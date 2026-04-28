@@ -1,0 +1,1 @@
+{"src":"client","dest":"mr_cluster","body":{"type":"submit_mapreduce","msg_id":1,"input":"s3://data/*.txt","map":"wordcount","num_partitions":4}}

@@ -1,0 +1,1 @@
+{"src":"client","dest":"gateway","body":{"type":"api_request","msg_id":1,"method":"GET","path":"/api/orders/123/details"},"failure_strategy":"partial","failed_services":["users"]}

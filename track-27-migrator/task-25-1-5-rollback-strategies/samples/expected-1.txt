@@ -1,0 +1,1 @@
+{"type": "rollback_complete", "in_reply_to": 1, "rolled_back_from": 3, "rolled_back_to": 2, "duration_seconds": 5}

@@ -1,0 +1,1 @@
+{"src": "cluster", "dest": "client", "body": {"type": "job_stolen", "in_reply_to": 1, "thief": "w3", "victim": "w1", "job_id": "job2", "victim_queue_size": 2}}

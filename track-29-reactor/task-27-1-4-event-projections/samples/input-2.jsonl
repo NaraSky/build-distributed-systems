@@ -1,0 +1,1 @@
+{"src":"eventstore","dest":"projection","body":{"type":"update","msg_id":1,"projection":"user-listing","event":{"event_type":"UserCreated","event_data":{"id":"user-123","name":"John"}}}}

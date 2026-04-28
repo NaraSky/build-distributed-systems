@@ -1,0 +1,2 @@
+{"src":"client","dest":"lb","body":{"type":"init","msg_id":1,"backends":[{"name":"large","weight":10},{"name":"medium","weight":3},{"name":"small","weight":1}],"algorithm":"weighted-round-robin"}}
+{"src":"client","dest":"lb","body":{"type":"send_requests","msg_id":2,"count":14}}

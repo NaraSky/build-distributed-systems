@@ -1,0 +1,1 @@
+{"src":"service","dest":"metrics","body":{"type":"gauge","msg_id":1,"name":"memory_usage_bytes","value":1073741824,"labels":{"service":"api","type":"heap"}}}

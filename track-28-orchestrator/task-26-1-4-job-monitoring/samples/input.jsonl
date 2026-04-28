@@ -1,0 +1,1 @@
+{"src":"worker","dest":"monitor","body":{"type":"update_status","msg_id":1,"job_id":"job-123","status":"running","progress":25}}

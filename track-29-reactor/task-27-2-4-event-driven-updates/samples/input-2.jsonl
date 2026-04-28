@@ -1,0 +1,1 @@
+{"src":"eventbus","dest":"projector","body":{"type":"event","msg_id":1,"event":{"type":"UserCreated","payload":{"id":"user-123","name":"John"}}}}

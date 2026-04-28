@@ -1,0 +1,1 @@
+{"src":"scheduler","dest":"resources","body":{"type":"allocate","msg_id":1,"requirements":[{"type":"gpu","amount":4}]}}

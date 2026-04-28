@@ -1,0 +1,2 @@
+{"src":"c0","dest":"coord","body":{"type":"init","msg_id":1,"shards":["s1","s2","s3"]}}
+{"src":"c1","dest":"coord","body":{"type":"join_query","msg_id":2,"left":"users","right":"orders","on":"user_id"}}

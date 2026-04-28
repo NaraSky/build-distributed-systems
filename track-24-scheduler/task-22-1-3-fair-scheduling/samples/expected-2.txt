@@ -1,0 +1,1 @@
+{"src": "scheduler", "dest": "client", "body": {"type": "job_preempted", "in_reply_to": 3, "job_id": "cpu_bound_job", "action": "demote_to_lower_queue"}}

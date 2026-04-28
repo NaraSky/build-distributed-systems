@@ -1,0 +1,1 @@
+{"src":"orchestrator","dest":"saga","body":{"type":"execute","msg_id":1,"saga_id":"booking-123","steps":["book_flight","book_hotel","book_car"]}}

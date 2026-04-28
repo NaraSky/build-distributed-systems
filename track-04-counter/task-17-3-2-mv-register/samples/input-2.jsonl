@@ -1,0 +1,4 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1","n2"]}}
+{"src":"c1","dest":"n1","body":{"type":"mv_write","msg_id":2,"key":"k","value":"v1"}}
+{"src":"n2","dest":"n1","body":{"type":"mv_merge","msg_id":3,"key":"k","entry":{"value":"v2","vclock":{"n2":1}}}}
+{"src":"c1","dest":"n1","body":{"type":"mv_read","msg_id":4,"key":"k"}}

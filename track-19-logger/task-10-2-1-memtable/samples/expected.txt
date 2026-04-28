@@ -1,0 +1,3 @@
+{"src": "n1", "dest": "c0", "body": {"type": "init_ok", "in_reply_to": 1, "msg_id": 0}}
+{"src": "n1", "dest": "c1", "body": {"type": "memtable_put_ok", "in_reply_to": 2, "msg_id": 1}}
+{"src": "n1", "dest": "c1", "body": {"type": "memtable_get_ok", "in_reply_to": 3, "value": "v1", "source": "memtable", "msg_id": 2}}

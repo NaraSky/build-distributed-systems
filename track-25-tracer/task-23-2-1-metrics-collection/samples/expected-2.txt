@@ -1,0 +1,1 @@
+{"type": "metric_recorded", "in_reply_to": 1, "name": "memory_usage_bytes", "value": 1073741824}

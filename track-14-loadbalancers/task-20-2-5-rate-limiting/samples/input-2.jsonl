@@ -1,0 +1,1 @@
+{"src":"client","dest":"l7_proxy","body":{"type":"http_request","msg_id":1,"method":"GET","path":"/api/data","client_ip":"1.2.3.4"}}

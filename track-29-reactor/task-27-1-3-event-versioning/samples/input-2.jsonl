@@ -1,0 +1,1 @@
+{"src":"migrator","dest":"eventstore","body":{"type":"migrate_batch","msg_id":1,"events":[{"event_type":"UserCreated","version":1,"event_data":{"id":1}}],"target_version":2}}

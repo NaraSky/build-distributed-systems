@@ -1,0 +1,1 @@
+{"type": "migration_rolled_back", "in_reply_to": 1, "version": 2, "name": "add_posts_table"}

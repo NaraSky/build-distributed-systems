@@ -1,0 +1,1 @@
+{"type": "integrity_verified", "in_reply_to": 1, "valid": true}

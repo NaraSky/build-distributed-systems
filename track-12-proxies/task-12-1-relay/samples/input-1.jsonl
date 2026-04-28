@@ -1,0 +1,2 @@
+{"src":"c0","dest":"proxy","body":{"type":"init","msg_id":1,"node_id":"proxy","node_ids":["proxy","backend"]}}
+{"src":"client","dest":"proxy","body":{"type":"relay_request","msg_id":2,"path":"/api/data","method":"GET"}}

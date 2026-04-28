@@ -1,0 +1,2 @@
+{"src":"client","dest":"lb","body":{"type":"init","msg_id":1,"backends":[{"name":"api-1","connections":10},{"name":"api-2","connections":5},{"name":"api-3","connections":8}],"algorithm":"power-of-two-choices"}}
+{"src":"client","dest":"lb","body":{"type":"http_request","msg_id":2,"algorithm":"power-of-two-choices"}}

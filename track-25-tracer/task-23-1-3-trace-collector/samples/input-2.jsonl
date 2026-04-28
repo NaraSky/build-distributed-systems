@@ -1,0 +1,1 @@
+{"src":"service","dest":"collector","body":{"type":"span","trace_id":"t2","span_id":"s3","service":"fast"},"sampling_rate":0.01}

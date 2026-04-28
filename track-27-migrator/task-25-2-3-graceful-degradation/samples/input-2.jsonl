@@ -1,0 +1,1 @@
+{"src":"client","dest":"api","body":{"type":"get_product","msg_id":1,"product_id":123,"service_unavailable":true}}

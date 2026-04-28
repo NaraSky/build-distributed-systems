@@ -1,0 +1,2 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1"]}}
+{"src":"c1","dest":"n1","body":{"type":"compare","msg_id":2,"vc_a":{"n1":1,"n2":0},"vc_b":{"n1":2,"n2":1}}}

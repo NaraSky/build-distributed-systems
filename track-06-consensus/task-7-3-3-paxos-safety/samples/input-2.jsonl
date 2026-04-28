@@ -1,0 +1,2 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1"]}}
+{"src":"c1","dest":"n1","body":{"type":"paxos_invariant_check","msg_id":2,"proposals":[{"n":1,"value":"a","accepted_by":["n1","n2"]},{"n":3,"value":"b","accepted_by":["n2","n3","n4"]},{"n":5,"value":"b","accepted_by":["n3","n4","n5"]}]}}

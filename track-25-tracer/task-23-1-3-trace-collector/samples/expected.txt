@@ -1,0 +1,1 @@
+{"type": "trace_complete", "trace_id": "t1", "span_count": 2}

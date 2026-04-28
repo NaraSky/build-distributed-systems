@@ -1,0 +1,1 @@
+{"src": "simulator", "dest": "client", "body": {"type": "simulation_complete", "in_reply_to": 1, "results": {"cascading_failures": true, "all_backends_failed": true, "error_rate": 1.0}}}

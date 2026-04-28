@@ -1,0 +1,1 @@
+{"src":"client","dest":"master","body":{"type":"split","msg_id":1,"lines":["a","b","c","d"],"num_chunks":2}}

@@ -1,0 +1,2 @@
+{"src":"c0","dest":"lb","body":{"type":"init","msg_id":1,"node_id":"lb","node_ids":["lb","s1","s2","s3"]}}
+{"src":"client","dest":"lb","body":{"type":"http_request","msg_id":2,"path":"/api/users","method":"GET"}}

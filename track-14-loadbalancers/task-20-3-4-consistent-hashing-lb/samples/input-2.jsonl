@@ -1,0 +1,2 @@
+{"src":"client","dest":"lb","body":{"type":"init","msg_id":1,"backends":["b1","b2","b3"],"algorithm":"consistent-hash"}}
+{"src":"client","dest":"lb","body":{"type":"test_remap","msg_id":2,"new_backend":"b4","clients":["c1","c2","c3","c4","c5","c6","c7","c8","c9","c10"]}}

@@ -1,0 +1,1 @@
+{"type": "aggregation_result", "in_reply_to": 1, "value": 1610612736, "unit": "bytes", "sample_count": 3}

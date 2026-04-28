@@ -1,0 +1,1 @@
+{"type": "token_valid", "in_reply_to": 1, "payload": {"sub": "user123", "email": "user@example.com"}}

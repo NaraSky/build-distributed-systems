@@ -1,0 +1,4 @@
+{"src":"n1","dest":"c0","body":{"type":"init_ok","in_reply_to":1,"msg_id":0}}
+{"src":"n1","dest":"c0","body":{"type":"become_leader_ok","in_reply_to":2,"msg_id":1}}
+{"src":"n1","dest":"n2","body":{"type":"append_entries","msg_id":2,"term":1,"leader_id":"n1","prev_log_index":0,"prev_log_term":0,"entries":[],"leader_commit":0}}
+{"src":"n1","dest":"n3","body":{"type":"append_entries","msg_id":3,"term":1,"leader_id":"n1","prev_log_index":0,"prev_log_term":0,"entries":[],"leader_commit":0}}

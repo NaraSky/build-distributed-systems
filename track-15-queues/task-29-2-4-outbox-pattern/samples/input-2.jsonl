@@ -1,0 +1,1 @@
+{"src":"publisher","dest":"queue","body":{"type":"publish","msg_id":1,"outbox_messages":[{"id":1,"event_type":"OrderCreated","payload":{"order_id":"order-123"}}]}}

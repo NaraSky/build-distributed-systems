@@ -1,0 +1,1 @@
+{"src": "tracer", "dest": "service", "body": {"type": "span_complete", "span_id": "span1", "duration_us": 10000, "status": "OK"}}

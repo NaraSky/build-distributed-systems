@@ -1,0 +1,1 @@
+{"src":"client","dest":"cqrs","body":{"type":"command","msg_id":1,"command":{"type":"CreateUser","payload":{"id":"user-123","name":"John"}}}}

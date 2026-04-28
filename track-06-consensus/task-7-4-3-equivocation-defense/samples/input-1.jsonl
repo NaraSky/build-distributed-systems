@@ -1,0 +1,2 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1","n2","n3","n4"]}}
+{"src":"c1","dest":"n1","body":{"type":"simulate_equivocation","msg_id":2,"byzantine_node":"n2","sequence":1,"messages_sent":{"to_n1":{"prepare":{"value":"A"}},"to_n3":{"prepare":{"value":"B"}},"to_n4":{"prepare":{"value":"A"}}}}}

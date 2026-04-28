@@ -1,0 +1,1 @@
+{"type": "validation_results", "in_reply_to": 1, "results": [{"name": "no_nulls", "passed": true, "failed_rows": 0}, {"name": "email_format", "passed": true, "failed_rows": 0}]}

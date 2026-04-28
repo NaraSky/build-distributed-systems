@@ -1,0 +1,2 @@
+{"src": "n1", "dest": "c0", "body": {"type": "init_ok", "in_reply_to": 1, "msg_id": 0}}
+{"src": "n1", "dest": "c1", "body": {"type": "commit_stats_ok", "total_commits": 0, "total_wait_ms": 0, "avg_wait_ms": 0, "in_reply_to": 2, "msg_id": 1}}

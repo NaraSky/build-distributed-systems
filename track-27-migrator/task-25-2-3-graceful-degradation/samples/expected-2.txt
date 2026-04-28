@@ -1,0 +1,1 @@
+{"type": "product_response", "in_reply_to": 1, "product": {"id": 123, "name": "Product"}, "_cached": true}

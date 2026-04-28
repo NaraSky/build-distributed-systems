@@ -1,0 +1,4 @@
+{"src":"client","dest":"scheduler","body":{"type":"init","msg_id":1,"replicas":["s1","s2","s3"]}}
+{"type":"assign_job","job_id":"job1","worker_id":"w1"}
+{"type":"scheduler_crash"}
+{"type":"scheduler_restart"}

@@ -1,0 +1,1 @@
+{"type": "saga_compensated", "in_reply_to": 1, "saga_id": "booking-124", "state": "compensated", "compensated_steps": ["book_flight"]}

@@ -1,0 +1,1 @@
+{"src":"replayer","dest":"eventstore","body":{"type":"replay","msg_id":1,"aggregate_id":"user-123","use_snapshot":true}}

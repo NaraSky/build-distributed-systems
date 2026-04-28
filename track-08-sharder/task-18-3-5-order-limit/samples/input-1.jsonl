@@ -1,0 +1,2 @@
+{"src":"c0","dest":"coord","body":{"type":"init","msg_id":1,"shards":["s1","s2","s3"]}}
+{"src":"c1","dest":"coord","body":{"type":"top_n_query","msg_id":2,"table":"scores","order_by":"score","order":"DESC","limit":10}}

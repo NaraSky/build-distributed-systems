@@ -1,0 +1,1 @@
+{"src":"service-a","dest":"service-b","body":{"type":"call","msg_id":1,"path":"/api/users/123"},"proxy":true}

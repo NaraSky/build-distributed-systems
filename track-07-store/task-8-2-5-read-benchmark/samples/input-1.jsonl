@@ -1,0 +1,2 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1","n2","n3"]}}
+{"src":"c1","dest":"n1","body":{"type":"read_benchmark","msg_id":2,"read_pct":80,"write_pct":20,"total_ops":100,"strategies":["linearizable","lease","follower"]}}

@@ -1,0 +1,1 @@
+{"src":"client","dest":"scheduler","body":{"type":"submit_workflow","msg_id":1,"jobs":[{"id":"a","deps":["b"]},{"id":"b","deps":["c"]},{"id":"c","deps":["a"]}]}}

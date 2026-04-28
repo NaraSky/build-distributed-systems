@@ -1,0 +1,1 @@
+{"type": "user_response", "in_reply_to": 1, "user": {"id": 123, "name": "John Doe"}, "circuit_state": "open", "from_cache": true}

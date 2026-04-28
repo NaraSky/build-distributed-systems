@@ -1,0 +1,1 @@
+{"src":"client","dest":"api","body":{"type":"get_user","msg_id":1,"user_id":123,"force_failures":6}}

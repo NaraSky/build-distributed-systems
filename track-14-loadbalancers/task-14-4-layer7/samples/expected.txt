@@ -1,0 +1,2 @@
+{"src":"lb","dest":"c0","body":{"type":"init_ok","in_reply_to":1,"msg_id":0}}
+{"src":"lb","dest":"client","body":{"type":"http_response","in_reply_to":2,"msg_id":1,"path":"/api/users","routed_to":"s1","status":200}}

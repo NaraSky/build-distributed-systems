@@ -1,0 +1,2 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1","n2","n3","n4","n5"]}}
+{"src":"c1","dest":"n1","body":{"type":"partition_test","msg_id":2,"cluster_size":5,"operations":20,"partition_after_op":5,"heal_after_op":15}}

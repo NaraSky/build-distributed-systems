@@ -1,0 +1,1 @@
+{"src":"client","dest":"mapreduce","body":{"type":"reduce","msg_id":1,"key":"hello","values":[1,1,1]}}

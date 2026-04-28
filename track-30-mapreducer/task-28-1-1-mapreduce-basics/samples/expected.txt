@@ -1,0 +1,1 @@
+{"type": "map_result", "in_reply_to": 1, "pairs": [["hello", 1], ["world", 1], ["hello", 1]]}

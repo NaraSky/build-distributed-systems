@@ -1,0 +1,1 @@
+{"type": "discovered", "in_reply_to": 1, "service": "service-b", "instances": [{"host": "10.0.1.1", "port": 8080}, {"host": "10.0.1.2", "port": 8080}]}

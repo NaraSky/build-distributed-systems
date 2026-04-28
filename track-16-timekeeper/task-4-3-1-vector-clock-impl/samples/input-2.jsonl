@@ -1,0 +1,4 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1","n2"]}}
+{"src":"c1","dest":"n1","body":{"type":"tick","msg_id":2}}
+{"src":"n2","dest":"n1","body":{"type":"recv_msg","msg_id":3,"from":"n2","remote_clock":[0,7],"payload":"hi"}}
+{"src":"c1","dest":"n1","body":{"type":"get_clock","msg_id":4}}

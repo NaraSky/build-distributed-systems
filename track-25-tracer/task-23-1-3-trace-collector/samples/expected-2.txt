@@ -1,0 +1,1 @@
+{"type": "span_accepted", "sampled": false, "reason": "Trace not sampled (1% rate)"}

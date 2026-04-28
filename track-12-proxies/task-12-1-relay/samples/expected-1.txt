@@ -1,0 +1,2 @@
+{"src":"proxy","dest":"c0","body":{"type":"init_ok","in_reply_to":1,"msg_id":0}}
+{"src":"proxy","dest":"client","body":{"type":"relay_response","in_reply_to":2,"msg_id":1,"status":200,"path":"/api/data"}}

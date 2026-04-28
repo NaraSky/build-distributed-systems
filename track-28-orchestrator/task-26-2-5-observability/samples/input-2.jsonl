@@ -1,0 +1,1 @@
+{"src":"service-a","dest":"tracer","body":{"type":"trace","msg_id":1,"operation":"GET /api/users"}}

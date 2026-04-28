@@ -1,0 +1,1 @@
+{"type": "dashboard_data", "in_reply_to": 1, "panels": [{"id": 1, "title": "Request Rate", "data_points": 60}]}

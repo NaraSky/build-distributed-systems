@@ -1,0 +1,1 @@
+{"type": "encoded", "in_reply_to": 1, "format": "protobuf", "encoded": ".*", "fields": ["id", "email", "full_name"]}

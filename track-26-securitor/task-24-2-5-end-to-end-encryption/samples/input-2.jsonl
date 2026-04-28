@@ -1,0 +1,1 @@
+{"src":"alice","dest":"e2ee","body":{"type":"send_message","msg_id":1,"recipient":"bob","plaintext":"Secret message"}}

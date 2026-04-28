@@ -1,0 +1,3 @@
+{"src":"c0","dest":"controller","body":{"type":"init","msg_id":1,"node_id":"controller","node_ids":["controller"]}}
+{"src":"c1","dest":"controller","body":{"type":"join","msg_id":2,"gid":"g1","servers":["s1","s2"]}}
+{"src":"c1","dest":"controller","body":{"type":"query","msg_id":3,"num":-1}}

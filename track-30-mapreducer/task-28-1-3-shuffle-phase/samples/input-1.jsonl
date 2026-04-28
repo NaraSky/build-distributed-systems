@@ -1,0 +1,1 @@
+{"src":"shuffler","dest":"partitioner","body":{"type":"partition","msg_id":1,"pairs":[["hello",1],["world",1],["hello",1]],"num_reducers":2}}

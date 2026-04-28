@@ -1,0 +1,1 @@
+{"src": "scheduler", "dest": "client", "body": {"type": "workflow_submitted", "in_reply_to": 1, "execution_plan": {"round_1": ["a"], "round_2": ["b", "c"], "round_3": ["d"]}}}

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.example.distsys</groupId>
+        <artifactId>build-distributed-systems-java</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>track-27-migrator</artifactId>
+    <name>Track 27 - The Migrator</name>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>task-25-1-1-database-migrations</module>
+        <module>task-25-1-2-backward-compatible-migrations</module>
+        <module>task-25-1-3-zero-downtime-migrations</module>
+        <module>task-25-1-4-data-migrations</module>
+        <module>task-25-1-5-rollback-strategies</module>
+        <module>task-25-2-1-api-versioning</module>
+        <module>task-25-2-2-backward-compatibility</module>
+        <module>task-25-2-3-graceful-degradation</module>
+        <module>task-25-2-4-protocol-evolution</module>
+        <module>task-25-2-5-client-migration</module>
+    </modules>
+</project>

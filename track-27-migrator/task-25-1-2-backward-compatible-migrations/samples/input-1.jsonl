@@ -1,0 +1,1 @@
+{"src":"admin","dest":"migrations","body":{"type":"migrate","msg_id":1,"phase":"expand","table":"users","add_column":"full_name"}}

@@ -1,0 +1,1 @@
+{"src":"viewer","dest":"dashboards","body":{"type":"query_dashboard","msg_id":1,"dashboard_id":"dash-123","time_range":"1h"}}

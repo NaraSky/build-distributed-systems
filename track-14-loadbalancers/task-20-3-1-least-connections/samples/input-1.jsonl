@@ -1,0 +1,2 @@
+{"src":"client","dest":"lb","body":{"type":"init","msg_id":1,"backends":["api-1","api-2","api-3"],"algorithm":"least-connections"}}
+{"src":"client","dest":"lb","body":{"type":"http_request","msg_id":2,"method":"GET","path":"/api/data","active_connections":{"api-1":5,"api-2":2,"api-3":8}}}

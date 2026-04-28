@@ -1,0 +1,1 @@
+{"type": "read_models_updated", "in_reply_to": 1, "event_id": "evt-123", "updated_models": ["user_listing", "user_by_email"]}

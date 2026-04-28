@@ -1,0 +1,2 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1"]}}
+{"src":"c1","dest":"n1","body":{"type":"saga_execute","msg_id":2,"saga_id":"saga1","steps":[{"name":"reserve_inventory","action":"reserve","compensation":"release"},{"name":"charge_payment","action":"charge","compensation":"refund"},{"name":"ship_order","action":"ship","compensation":"cancel_shipment"}]}}

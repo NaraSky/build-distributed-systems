@@ -1,0 +1,3 @@
+{"src":"lb","dest":"c0","body":{"type":"init_ok","in_reply_to":1,"msg_id":0}}
+{"src":"lb","dest":"c1","body":{"type":"health_status_ok","in_reply_to":2,"msg_id":1,"status":"unhealthy"}}
+{"src":"lb","dest":"c2","body":{"type":"get_healthy_servers_ok","in_reply_to":3,"msg_id":2,"healthy":["s2","s3"]}}

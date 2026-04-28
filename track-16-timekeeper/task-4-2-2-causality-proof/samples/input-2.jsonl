@@ -1,0 +1,4 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1"]}}
+{"src":"c1","dest":"n1","body":{"type":"record_event","msg_id":2,"event_id":"e1","caused_by":null}}
+{"src":"c1","dest":"n1","body":{"type":"record_event","msg_id":3,"event_id":"e2","caused_by":"e1"}}
+{"src":"c1","dest":"n1","body":{"type":"check_causality","msg_id":4,"event_a":"e1","event_b":"e2"}}

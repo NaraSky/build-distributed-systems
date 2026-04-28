@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.example.distsys</groupId>
+        <artifactId>build-distributed-systems-java</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>track-03-gossiper</artifactId>
+    <name>Track 03 - The Gossiper</name>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>task-3-1-basic-broadcast</module>
+        <module>task-3-2-tree-topology</module>
+        <module>task-3-3-random-gossip</module>
+        <module>task-3-4-batching</module>
+        <module>task-3-5-partition-healing</module>
+        <module>task-3-2-1-gossip-fanout</module>
+        <module>task-3-2-2-fanout-probability</module>
+        <module>task-3-2-3-gossip-timer</module>
+        <module>task-3-2-4-anti-entropy</module>
+        <module>task-3-2-5-tuning</module>
+        <module>task-3-3-1-tree-broadcast</module>
+        <module>task-3-3-2-tree-failure</module>
+        <module>task-3-3-3-hybrid-gossip</module>
+        <module>task-3-3-5-partition-heal</module>
+        <module>task-3-4-1-gset</module>
+        <module>task-3-4-2-twopset</module>
+        <module>task-3-4-3-lww-kv</module>
+        <module>task-3-4-4-lww-problem</module>
+        <module>task-3-4-5-gossip-kv-bench</module>
+    </modules>
+</project>

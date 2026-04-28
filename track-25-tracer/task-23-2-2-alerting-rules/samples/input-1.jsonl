@@ -1,0 +1,1 @@
+{"src":"metrics","dest":"alerter","body":{"type":"evaluate","msg_id":1,"metric":"error_rate","value":0.08,"threshold":0.05,"duration_sec":300}}

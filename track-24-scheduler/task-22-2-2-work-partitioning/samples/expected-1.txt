@@ -1,0 +1,1 @@
+{"src": "mr_cluster", "dest": "client", "body": {"type": "job_submitted", "in_reply_to": 1, "job_id": "mr1", "partition_sizes": [256, 256, 256, 256], "workers": [1,2,3,4]}}

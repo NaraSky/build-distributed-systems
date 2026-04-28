@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.example.distsys</groupId>
+        <artifactId>build-distributed-systems-java</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>track-19-logger</artifactId>
+    <name>Track 19 - The Logger</name>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>task-10-1-1-wal-impl</module>
+        <module>task-10-1-2-wal-recovery</module>
+        <module>task-10-1-3-segments</module>
+        <module>task-10-1-4-compaction</module>
+        <module>task-10-1-5-fsync-bench</module>
+        <module>task-10-2-1-memtable</module>
+        <module>task-10-2-2-sstable-flush</module>
+        <module>task-10-2-3-multi-level</module>
+        <module>task-10-2-4-compaction</module>
+        <module>task-10-2-5-lsm-bench</module>
+        <module>task-10-3-1-btree-node</module>
+        <module>task-10-3-2-btree-insert</module>
+        <module>task-10-3-3-btree-delete</module>
+        <module>task-10-3-4-buffer-pool</module>
+        <module>task-10-3-5-btree-vs-lsm</module>
+        <module>task-10-4-1-partition-log</module>
+        <module>task-10-4-2-consumer-offsets</module>
+        <module>task-10-4-3-partition-leader</module>
+        <module>task-10-4-4-isr</module>
+        <module>task-10-4-5-consumer-rebalance</module>
+    </modules>
+</project>

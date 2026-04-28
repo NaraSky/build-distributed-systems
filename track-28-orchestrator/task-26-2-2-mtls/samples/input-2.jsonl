@@ -1,0 +1,1 @@
+{"src":"service","dest":"ca","body":{"type":"issue_certificate","msg_id":1,"service":"service-a"}}

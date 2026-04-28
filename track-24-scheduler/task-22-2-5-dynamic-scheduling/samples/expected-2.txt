@@ -1,0 +1,1 @@
+{"src": "scheduler", "dest": "client", "body": {"type": "job_assigned", "in_reply_to": 1, "worker": "node-2", "reason": "Same rack as data (rack1) and less loaded than node-1"}}

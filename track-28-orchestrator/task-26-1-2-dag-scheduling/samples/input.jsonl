@@ -1,0 +1,1 @@
+{"src":"client","dest":"dag","body":{"type":"create_dag","msg_id":1,"tasks":[{"id":"A","command":"run A"},{"id":"B","command":"run B"},{"id":"C","command":"run C"}],"dependencies":[{"task":"B","depends_on":"A"},{"task":"C","depends_on":"A"}]}}

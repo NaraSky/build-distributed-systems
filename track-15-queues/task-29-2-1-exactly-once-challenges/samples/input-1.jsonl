@@ -1,0 +1,1 @@
+{"src":"producer","dest":"queue","body":{"type":"send","msg_id":1,"message":{"id":"msg-1"}}}

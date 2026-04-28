@@ -1,0 +1,3 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1"]}}
+{"src":"c1","dest":"n1","body":{"type":"doc_index","msg_id":2,"index":"metrics","doc":{"count":42}}}
+{"src":"c1","dest":"n1","body":{"type":"mapping_get","msg_id":3,"index":"metrics"}}

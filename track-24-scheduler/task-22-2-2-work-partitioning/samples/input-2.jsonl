@@ -1,0 +1,1 @@
+{"src":"client","dest":"mr_cluster","body":{"type":"benchmark_partitioning","msg_id":1,"strategies":["range","hash"],"data":"keys_with_skew","num_partitions":4}}

@@ -1,0 +1,1 @@
+{"src":"client_v1","dest":"service","body":{"type":"encode","msg_id":1,"format":"protobuf","data":{"id":1,"email":"user@example.com","full_name":"John Doe"}}}

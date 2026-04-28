@@ -1,0 +1,1 @@
+{"src":"metrics","dest":"alerter","body":{"type":"evaluate","msg_id":1,"metric":"up","value":0,"threshold":0,"duration_sec":60,"service":"api"},"routing":{"channels":["pagerduty"]}}

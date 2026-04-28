@@ -1,0 +1,1 @@
+{"type": "queued", "in_reply_to": 1, "reason": "Insufficient resources", "available": {"gpu": 2}, "required": 4}

@@ -1,0 +1,1 @@
+{"src":"stream","dest":"windower","body":{"type":"assign","msg_id":1,"events":[{"id":1,"timestamp":"2024-01-15T10:00:10Z"}],"window_size_ms":60000}}

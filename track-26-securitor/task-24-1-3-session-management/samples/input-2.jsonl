@@ -1,0 +1,1 @@
+{"src":"api","dest":"session","body":{"type":"validate_session","msg_id":1,"session_id":"abc123"}}

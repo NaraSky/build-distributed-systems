@@ -1,0 +1,1 @@
+{"src":"client","dest":"commandside","body":{"type":"CreateUser","msg_id":1,"payload":{"name":"John","email":"john@example.com","age":16}}}

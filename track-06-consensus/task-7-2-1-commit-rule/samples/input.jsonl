@@ -1,0 +1,2 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1","n2","n3"]}}
+{"src":"c1","dest":"n1","body":{"type":"check_commit","msg_id":2,"log_length":3,"match_indices":{"n1":3,"n2":3,"n3":1},"current_term":1}}

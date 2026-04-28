@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.example.distsys</groupId>
+        <artifactId>build-distributed-systems-java</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>track-07-store</artifactId>
+    <name>Track 07 - The Store</name>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>task-7-1-kv-interface</module>
+        <module>task-7-2-client-routing</module>
+        <module>task-7-3-read-consistency</module>
+        <module>task-7-4-client-dedup</module>
+        <module>task-7-5-snapshots</module>
+        <module>task-8-2-1-read-index</module>
+        <module>task-8-2-2-lease-reads</module>
+        <module>task-8-2-3-follower-reads</module>
+        <module>task-8-2-4-read-your-writes</module>
+        <module>task-8-2-5-read-benchmark</module>
+        <module>task-8-3-1-multi-key-txn</module>
+        <module>task-8-3-2-occ</module>
+        <module>task-8-3-3-mvcc</module>
+        <module>task-8-3-4-tikv-regions</module>
+        <module>task-8-3-5-contention-benchmark</module>
+    </modules>
+</project>

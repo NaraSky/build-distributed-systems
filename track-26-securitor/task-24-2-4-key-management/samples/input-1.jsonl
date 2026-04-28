@@ -1,0 +1,1 @@
+{"src":"app","dest":"kms","body":{"type":"generate_data_key","msg_id":1,"key_id":"data-key-1","key_spec":"AES_256"}}

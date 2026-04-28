@@ -1,0 +1,2 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1"]}}
+{"src":"c1","dest":"n1","body":{"type":"crdt_verify","msg_id":2,"state_a":{"n1":5,"n2":3},"state_b":{"n1":5,"n2":3}}}

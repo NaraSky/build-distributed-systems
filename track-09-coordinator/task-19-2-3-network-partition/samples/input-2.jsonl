@@ -1,0 +1,2 @@
+{"src":"c0","dest":"coord","body":{"type":"init","msg_id":1,"participants":["p1","p2","p3"]}}
+{"src":"c1","dest":"coord","body":{"type":"txn_begin","msg_id":2,"participants":["p1","p2","p3"],"operations":[{"transfer":100,"from":"a","to":"b"}],"partition_after":"pre_commit","partitioned_participants":["p3"],"timeout_ms":2000}}

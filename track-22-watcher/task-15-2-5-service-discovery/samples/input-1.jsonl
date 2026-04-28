@@ -1,0 +1,3 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1"]}}
+{"src":"c1","dest":"n1","body":{"type":"service_register","msg_id":2,"service":"web","instance":"i-001","host":"10.0.0.1","port":8080,"session_id":"s1"}}
+{"src":"c1","dest":"n1","body":{"type":"service_discover","msg_id":3,"service":"web"}}

@@ -1,0 +1,4 @@
+{"src":"client","dest":"lb","body":{"type":"init","msg_id":1,"backends":["backend-1","backend-2","backend-3"],"algorithm":"consistent-hash"}}
+{"src":"client","dest":"lb","body":{"type":"http_request","msg_id":2,"client_id":"alice"}}
+{"src":"client","dest":"lb","body":{"type":"http_request","msg_id":3,"client_id":"alice"}}
+{"src":"client","dest":"lb","body":{"type":"http_request","msg_id":4,"client_id":"alice"}}

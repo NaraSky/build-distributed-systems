@@ -1,0 +1,1 @@
+{"src":"worker","dest":"queue","body":{"type":"pop_job","msg_id":1,"consumer_id":"w1","partitions":["p1","p2","p3"]}}

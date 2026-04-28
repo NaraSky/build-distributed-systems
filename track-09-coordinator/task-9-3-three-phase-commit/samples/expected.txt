@@ -1,0 +1,2 @@
+{"src":"n1","dest":"c0","body":{"type":"init_ok","in_reply_to":1,"msg_id":0}}
+{"src":"n1","dest":"c1","body":{"type":"3pc_prepare_ok","in_reply_to":2,"msg_id":1,"tx_id":"tx1","votes":{"n2":"yes","n3":"yes","n4":"yes"}}}

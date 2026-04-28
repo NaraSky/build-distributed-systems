@@ -1,0 +1,1 @@
+{"src":"admin","dest":"migrations","body":{"type":"migrate","msg_id":1,"phase":"migrate_data","from":"name","to":"full_name"}}

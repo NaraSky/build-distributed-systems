@@ -1,0 +1,1 @@
+{"src":"client","dest":"scheduler","body":{"type":"submit_job","msg_id":1,"job":{"id":"job1","type":"render_video","params":{"resolution":"1080p"}},"estimate_resources":true}}

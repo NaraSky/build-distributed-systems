@@ -1,0 +1,1 @@
+{"src":"client","dest":"cqrs","body":{"type":"query","msg_id":1,"query":{"type":"GetUser","params":{"userId":"user-123"}}}}

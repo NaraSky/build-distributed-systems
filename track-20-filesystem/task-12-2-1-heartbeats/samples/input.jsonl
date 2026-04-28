@@ -1,0 +1,2 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1","n2","n3"]}}
+{"src":"n2","dest":"n1","body":{"type":"heartbeat","msg_id":2,"server":"n2","chunks":["ch_001","ch_002"],"disk_usage_pct":30}}

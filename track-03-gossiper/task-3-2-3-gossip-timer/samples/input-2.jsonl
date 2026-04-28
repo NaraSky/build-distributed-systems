@@ -1,0 +1,4 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1"]}}
+{"src":"c1","dest":"n1","body":{"type":"broadcast","msg_id":2,"message":10}}
+{"src":"n2","dest":"n1","body":{"type":"gossip_sync","msg_id":3,"messages":[10,20,30]}}
+{"src":"c1","dest":"n1","body":{"type":"read","msg_id":4}}

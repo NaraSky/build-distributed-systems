@@ -1,0 +1,1 @@
+{"src":"auth","dest":"jwt","body":{"type":"generate_access_token","msg_id":1,"payload":{"sub":"user123","email":"user@example.com","roles":["user"]}}}

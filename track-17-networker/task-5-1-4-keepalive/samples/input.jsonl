@@ -1,0 +1,2 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1"]}}
+{"src":"c1","dest":"n1","body":{"type":"ka_register","msg_id":2,"client_id":"c1","timeout_ms":30000,"ping_interval_ms":10000}}

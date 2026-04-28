@@ -1,0 +1,1 @@
+{"src":"client","dest":"lb","body":{"type":"benchmark","msg_id":1,"algorithms":["least-connections","power-of-two-choices"],"backends":[{"name":"api-1","connections":10},{"name":"api-2","connections":5},{"name":"api-3","connections":8}],"requests":1000}}

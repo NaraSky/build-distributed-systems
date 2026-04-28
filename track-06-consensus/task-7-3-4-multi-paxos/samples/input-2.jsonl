@@ -1,0 +1,3 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1"]}}
+{"src":"c1","dest":"n1","body":{"type":"multi_paxos_propose","msg_id":2,"slot":1,"value":"cmd1"}}
+{"src":"c1","dest":"n1","body":{"type":"multi_paxos_propose","msg_id":3,"slot":2,"value":"cmd2"}}

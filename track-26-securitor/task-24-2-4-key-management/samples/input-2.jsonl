@@ -1,0 +1,1 @@
+{"src":"app","dest":"crypto","body":{"type":"envelope_encrypt","msg_id":1,"plaintext":"Secret data","data_key":"DATA_KEY"}}

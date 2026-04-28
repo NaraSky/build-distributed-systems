@@ -1,0 +1,1 @@
+{"src":"client","dest":"encryption","body":{"type":"encrypt","msg_id":1,"plaintext":"Secret message"}}

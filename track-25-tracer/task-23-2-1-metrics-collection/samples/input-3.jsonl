@@ -1,0 +1,1 @@
+{"src":"service","dest":"metrics","body":{"type":"histogram","msg_id":1,"name":"request_duration_ms","value":123,"labels":{"endpoint":"/api/users"}}}

@@ -1,0 +1,1 @@
+{"type": "new_leader_elected", "old_leader": "s1", "new_leader": "s2", "term": 2}

@@ -1,0 +1,2 @@
+{"src":"c0","dest":"coord_2pc","body":{"type":"init","msg_id":1,"participants":["p1","p2"],"protocol":"2pc"}}
+{"src":"c1","dest":"coord_2pc","body":{"type":"txn_begin","msg_id":2,"participants":["p1","p2"],"operations":[{"transfer":100,"from":"a","to":"b"}],"crash_coordinator_after":"prepare","participant_timeout_ms":2000}}

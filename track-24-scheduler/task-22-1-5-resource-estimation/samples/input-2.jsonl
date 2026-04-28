@@ -1,0 +1,1 @@
+{"src":"client","dest":"scheduler","body":{"type":"submit_jobs","msg_id":1,"jobs":[{"id":"j1","cpu":4,"memory":16},{"id":"j2","cpu":2,"memory":8},{"id":"j3","cpu":4,"memory":16}],"worker_capacity":{"cpu":8,"memory":32}}}

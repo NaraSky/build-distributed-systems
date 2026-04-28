@@ -1,0 +1,4 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1"]}}
+{"src":"c1","dest":"n1","body":{"type":"kv_put","msg_id":2,"key":"x","value":"v1","clock":[1,0]}}
+{"src":"c1","dest":"n1","body":{"type":"kv_put","msg_id":3,"key":"x","value":"v2","clock":[0,1]}}
+{"src":"c1","dest":"n1","body":{"type":"kv_get","msg_id":4,"key":"x"}}

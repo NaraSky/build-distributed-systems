@@ -1,0 +1,1 @@
+{"src":"analyzer","dest":"insights","body":{"type":"analyze_errors","msg_id":1,"traces":[{"trace_id":"t1","has_error":true,"service":"payment-service"},{"trace_id":"t2","has_error":false},{"trace_id":"t3","has_error":true,"service":"payment-service"}]}}

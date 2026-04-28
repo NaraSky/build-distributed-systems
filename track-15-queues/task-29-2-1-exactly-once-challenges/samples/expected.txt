@@ -1,0 +1,1 @@
+{"type": "duplicate_detected", "in_reply_to": 1, "message_id": "msg-1", "action": "rejected"}

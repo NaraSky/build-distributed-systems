@@ -1,0 +1,1 @@
+{"src":"service","dest":"eventstore","body":{"type":"append","msg_id":1,"aggregate_id":"user-123","event_type":"UserUpdated","event_data":{"name":"Jane"},"version":5}}

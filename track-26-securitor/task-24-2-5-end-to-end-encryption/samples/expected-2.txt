@@ -1,0 +1,1 @@
+{"type": "message_encrypted", "in_reply_to": 1, "encrypted_message": {"ciphertext": ".*", "auth_tag": ".*"}}

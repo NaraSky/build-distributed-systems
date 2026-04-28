@@ -1,0 +1,1 @@
+{"src":"sidecar","dest":"metrics","body":{"type":"record","msg_id":1,"service":"api","duration_ms":150,"status":200}}

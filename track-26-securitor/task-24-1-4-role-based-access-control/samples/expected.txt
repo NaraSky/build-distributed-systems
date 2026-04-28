@@ -1,0 +1,1 @@
+{"type": "permission_check", "in_reply_to": 1, "allowed": true, "permission": "posts.write"}

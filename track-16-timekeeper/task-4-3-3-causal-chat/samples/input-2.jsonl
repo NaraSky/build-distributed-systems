@@ -1,0 +1,2 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1","n2"]}}
+{"src":"n2","dest":"n1","body":{"type":"chat_recv","msg_id":2,"from":"n2","text":"hi","sender_clock":[0,1]}}

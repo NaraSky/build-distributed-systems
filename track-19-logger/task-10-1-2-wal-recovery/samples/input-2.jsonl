@@ -1,0 +1,2 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1"]}}
+{"src":"c1","dest":"n1","body":{"type":"wal_recover","msg_id":2,"wal_entries":[{"offset":0,"payload":"set a=10","checksum":"valid"},{"offset":1,"payload":"set b=20","checksum":"valid"},{"offset":2,"payload":"set c=30","checksum":"valid"}]}}

@@ -1,0 +1,1 @@
+{"src":"api","dest":"jwt","body":{"type":"verify_token","msg_id":1,"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyMTIzIiwiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwiaWF0IjoxNzA0MDY3MjAwfQ.signature"}}

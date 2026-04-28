@@ -1,0 +1,2 @@
+{"src":"client","dest":"cluster","body":{"type":"init","msg_id":1,"workers":["w1","w2","w3"],"jobs_to_distribute":6}}
+{"src":"client","dest":"cluster","body":{"type":"run_simulation","msg_id":2,"duration_ms":1000}}

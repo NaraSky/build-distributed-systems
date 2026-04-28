@@ -1,0 +1,2 @@
+{"src":"client","dest":"scheduler_cluster","body":{"type":"init","msg_id":1,"replicas":["s1","s2","s3"]}}
+{"type":"leader_crash","leader_id":"s1"}

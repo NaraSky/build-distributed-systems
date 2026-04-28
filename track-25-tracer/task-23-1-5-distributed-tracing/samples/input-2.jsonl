@@ -1,0 +1,1 @@
+{"src":"developer","dest":"code","body":{"type":"manual_instrument","msg_id":1,"code":"async function process() { const span = tracer.startSpan('process'); try { await work(); span.end(); } catch(e) { span.recordException(e); throw; } }"}}

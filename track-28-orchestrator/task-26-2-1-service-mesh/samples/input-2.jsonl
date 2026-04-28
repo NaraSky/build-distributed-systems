@@ -1,0 +1,1 @@
+{"src":"sidecar","dest":"registry","body":{"type":"discover","msg_id":1,"service":"service-b"}}

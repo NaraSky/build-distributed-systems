@@ -1,0 +1,1 @@
+{"src":"alerter","dest":"pagerduty","body":{"type":"create_incident","msg_id":1,"title":"High error rate","service":"api","severity":"critical","description":"Error rate is 15% (threshold: 5%)"}}

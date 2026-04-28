@@ -1,0 +1,1 @@
+{"type": "allocated", "in_reply_to": 1, "allocation_id": ".*", "resources": {"cpu": 2, "memory": 4}}

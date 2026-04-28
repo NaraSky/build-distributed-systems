@@ -1,0 +1,5 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1"]}}
+{"src":"c1","dest":"n1","body":{"type":"seq_insert","msg_id":2,"position":0,"char":"A"}}
+{"src":"c1","dest":"n1","body":{"type":"seq_insert","msg_id":3,"position":1,"char":"B"}}
+{"src":"c1","dest":"n1","body":{"type":"seq_delete","msg_id":4,"position":0}}
+{"src":"c1","dest":"n1","body":{"type":"seq_read","msg_id":5}}

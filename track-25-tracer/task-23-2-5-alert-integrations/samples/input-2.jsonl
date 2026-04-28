@@ -1,0 +1,1 @@
+{"src":"alerter","dest":"slack","body":{"type":"send_alert","msg_id":1,"channel":"#alerts","title":"WARNING: High latency","severity":"warning","description":"P95 latency is 500ms (threshold: 200ms)","service":"api"}}

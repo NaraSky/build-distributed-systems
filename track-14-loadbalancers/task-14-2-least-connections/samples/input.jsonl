@@ -1,0 +1,5 @@
+{"src":"c0","dest":"lb","body":{"type":"init","msg_id":1,"node_id":"lb","node_ids":["lb","s1","s2","s3"]}}
+{"src":"c1","dest":"lb","body":{"type":"set_connections","msg_id":2,"server":"s1","count":2}}
+{"src":"c2","dest":"lb","body":{"type":"set_connections","msg_id":3,"server":"s2","count":5}}
+{"src":"c3","dest":"lb","body":{"type":"set_connections","msg_id":4,"server":"s3","count":1}}
+{"src":"c4","dest":"lb","body":{"type":"route_request","msg_id":5}}

@@ -1,0 +1,2 @@
+{"src":"c0","dest":"paxos_coord","body":{"type":"init","msg_id":1,"participants":["p1","p2","p3"],"acceptors":["a1","a2","a3"]}}
+{"src":"c1","dest":"paxos_coord","body":{"type":"paxos_commit_begin","msg_id":2,"participants":["p1","p2","p3"],"acceptors":["a1","a2","a3"],"operations":[{"transfer":100,"from":"a","to":"b"}]}}

@@ -1,0 +1,2 @@
+{"src":"producer","dest":"queue","body":{"type":"init","msg_id":1,"partitions":3,"replication_factor":2}}
+{"src":"producer","dest":"queue","body":{"type":"push_job","msg_id":2,"jobs":[{"id":"j1"},{"id":"j2"},{"id":"j3"},{"id":"j4"},{"id":"j5"},{"id":"j6"}]}}

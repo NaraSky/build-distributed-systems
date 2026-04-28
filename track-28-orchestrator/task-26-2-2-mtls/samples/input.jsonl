@@ -1,0 +1,1 @@
+{"src":"sidecar-a","dest":"sidecar-b","body":{"type":"handshake","msg_id":1,"client":"service-a","server":"service-b"}}

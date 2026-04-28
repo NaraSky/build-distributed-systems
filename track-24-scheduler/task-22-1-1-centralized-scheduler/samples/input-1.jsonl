@@ -1,0 +1,2 @@
+{"src":"client","dest":"scheduler","body":{"type":"init","msg_id":1,"workers":["worker-1","worker-2","worker-3"]}}
+{"src":"client","dest":"scheduler","body":{"type":"submit_job","msg_id":2,"job":{"id":"job1","type":"process_data","priority":10,"params":{"data":"abc"}}}}

@@ -1,0 +1,1 @@
+{"type": "trace_complete", "trace_id": ".*", "services": ["web", "api", "db"], "span_count": 3}

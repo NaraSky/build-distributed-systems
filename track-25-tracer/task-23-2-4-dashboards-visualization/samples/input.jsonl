@@ -1,0 +1,1 @@
+{"src":"ui","dest":"dashboards","body":{"type":"create_dashboard","msg_id":1,"name":"Service Overview","panels":[{"id":1,"title":"Request Rate","type":"graph","query":"rate(http_requests_total[5m])"},{"id":2,"title":"Error Rate","type":"gauge","query":"rate(http_errors_total[5m])"}]}}

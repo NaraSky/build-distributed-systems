@@ -1,0 +1,1 @@
+{"src":"client","dest":"hash","body":{"type":"verify_integrity","msg_id":1,"data":"Hello World","expected_hash":"a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e"}}

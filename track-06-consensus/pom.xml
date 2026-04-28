@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.example.distsys</groupId>
+        <artifactId>build-distributed-systems-java</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>track-06-consensus</artifactId>
+    <name>Track 06 - The Consensus</name>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>task-6-1-log-replication</module>
+        <module>task-6-2-log-matching</module>
+        <module>task-6-3-commitment</module>
+        <module>task-6-4-state-machine</module>
+        <module>task-6-5-safety</module>
+        <module>task-7-2-1-commit-rule</module>
+        <module>task-7-2-2-apply-channel</module>
+        <module>task-7-2-3-noop-on-election</module>
+        <module>task-7-2-4-snapshot</module>
+        <module>task-7-2-5-lin-kv-partition</module>
+        <module>task-7-3-1-single-decree</module>
+        <module>task-7-3-2-accept-phase</module>
+        <module>task-7-3-3-paxos-safety</module>
+        <module>task-7-3-4-multi-paxos</module>
+        <module>task-7-3-5-raft-vs-paxos</module>
+        <module>task-7-4-1-byzantine-faults</module>
+        <module>task-7-4-2-pbft-impl</module>
+        <module>task-7-4-3-equivocation-defense</module>
+        <module>task-7-4-4-bft-threshold</module>
+        <module>task-7-4-5-tendermint</module>
+    </modules>
+</project>

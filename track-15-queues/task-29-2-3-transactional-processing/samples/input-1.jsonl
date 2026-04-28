@@ -1,0 +1,1 @@
+{"src":"consumer","dest":"processor","body":{"type":"consume","msg_id":1,"message":{"id":"msg-1","data":{"user_id":"user-123","amount":100}}}}

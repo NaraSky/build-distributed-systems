@@ -1,0 +1,5 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1"]}}
+{"src":"c1","dest":"n1","body":{"type":"commit_offset","msg_id":2,"group":"fast","topic":"t1","partition":0,"offset":100}}
+{"src":"c1","dest":"n1","body":{"type":"commit_offset","msg_id":3,"group":"slow","topic":"t1","partition":0,"offset":5}}
+{"src":"c1","dest":"n1","body":{"type":"fetch_offset","msg_id":4,"group":"fast","topic":"t1","partition":0}}
+{"src":"c1","dest":"n1","body":{"type":"fetch_offset","msg_id":5,"group":"slow","topic":"t1","partition":0}}

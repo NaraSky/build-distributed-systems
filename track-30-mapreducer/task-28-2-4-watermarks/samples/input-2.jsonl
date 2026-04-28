@@ -1,0 +1,1 @@
+{"src":"stream","dest":"processor","body":{"type":"process","msg_id":1,"event":{"id":1},"event_time":"2024-01-15T10:00:00Z","watermark":"2024-01-15T10:00:30Z"}}

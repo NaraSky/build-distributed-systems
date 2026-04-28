@@ -1,0 +1,1 @@
+{"src": "lb", "dest": "client", "body": {"type": "benchmark_ok", "in_reply_to": 1, "results": {"least-connections": {"avg_connections": 7.67}, "power-of-two-choices": {"avg_connections": 8.1}}}}

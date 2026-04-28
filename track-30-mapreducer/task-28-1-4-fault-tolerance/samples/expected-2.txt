@@ -1,0 +1,2 @@
+{"type": "heartbeat_ok", "in_reply_to": 1}
+{"type": "failures_detected", "in_reply_to": 2, "failed_workers": ["w1"]}

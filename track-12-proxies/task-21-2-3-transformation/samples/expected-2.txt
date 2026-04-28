@@ -1,0 +1,1 @@
+{"src": "gateway", "dest": "client", "body": {"type": "api_response", "in_reply_to": 1, "body": {"userId": "user123", "firstName": "Alice"}}}

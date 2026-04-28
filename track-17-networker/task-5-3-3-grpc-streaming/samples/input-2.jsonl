@@ -1,0 +1,3 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1"]}}
+{"src":"c1","dest":"n1","body":{"type":"grpc_bidi_stream_open","msg_id":2,"service":"Chat","method":"BiDiChat"}}
+{"src":"c1","dest":"n1","body":{"type":"grpc_bidi_stream_send","msg_id":3,"stream_id":"s1","data":{"text":"hello"}}}

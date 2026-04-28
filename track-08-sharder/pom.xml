@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.example.distsys</groupId>
+        <artifactId>build-distributed-systems-java</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>track-08-sharder</artifactId>
+    <name>Track 08 - The Sharder</name>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>task-8-1-shard-controller</module>
+        <module>task-8-2-consistent-hash</module>
+        <module>task-8-3-config-change</module>
+        <module>task-8-4-data-migration</module>
+        <module>task-8-5-sharded-kv</module>
+        <module>task-18-2-1-hash-ring</module>
+        <module>task-18-2-2-virtual-nodes</module>
+        <module>task-18-2-3-node-join</module>
+        <module>task-18-2-4-node-removal</module>
+        <module>task-18-2-5-rendezvous-hashing</module>
+        <module>task-18-3-1-scatter-gather</module>
+        <module>task-18-3-2-aggregations</module>
+        <module>task-18-3-3-joins</module>
+        <module>task-18-3-4-secondary-indexes</module>
+        <module>task-18-3-5-order-limit</module>
+    </modules>
+</project>

@@ -1,0 +1,1 @@
+{"src": "scheduler", "dest": "client", "body": {"type": "job_submitted", "in_reply_to": 1, "estimated_resources": {"cpu": 4, "memory": 16, "duration_min": 15}, "historical_jobs_analyzed": 10}}

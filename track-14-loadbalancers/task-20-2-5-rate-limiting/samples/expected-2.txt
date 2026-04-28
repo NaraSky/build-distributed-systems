@@ -1,0 +1,1 @@
+{"src": "l7_proxy", "dest": "client", "body": {"type": "http_response", "in_reply_to": 1, "status": 200, "headers": {"X-RateLimit-Remaining": .*, "X-RateLimit-Limit": 10}}}

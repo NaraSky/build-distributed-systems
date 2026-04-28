@@ -1,0 +1,1 @@
+{"src":"projector","dest":"eventbus","body":{"type":"subscribe","msg_id":1,"event_types":["UserCreated","UserUpdated"]}}

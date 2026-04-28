@@ -1,0 +1,2 @@
+{"type": "processed", "in_reply_to": 1, "word": "hello", "count": 1, "was_duplicate": false}
+{"type": "processed", "in_reply_to": 2, "word": "hello", "count": 1, "was_duplicate": true}

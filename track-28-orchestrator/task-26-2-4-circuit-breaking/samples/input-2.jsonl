@@ -1,0 +1,1 @@
+{"src":"service-a","dest":"service-b","body":{"type":"call","msg_id":1,"state":"half_open","force_success":true}}

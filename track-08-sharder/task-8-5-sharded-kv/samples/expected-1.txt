@@ -1,0 +1,3 @@
+{"src":"proxy","dest":"client","body":{"type":"init_ok","in_reply_to":1,"msg_id":0}}
+{"src":"proxy","dest":"controller","body":{"type":"config_ok","in_reply_to":2,"msg_id":1}}
+{"src":"proxy","dest":"c1","body":{"type":"get_ok","in_reply_to":3,"msg_id":2,"key":"mykey"}}

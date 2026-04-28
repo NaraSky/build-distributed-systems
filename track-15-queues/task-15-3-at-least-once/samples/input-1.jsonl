@@ -1,0 +1,3 @@
+{"src":"c0","dest":"queue","body":{"type":"init","msg_id":1,"node_id":"queue","node_ids":["queue"]}}
+{"src":"producer","dest":"queue","body":{"type":"enqueue","msg_id":2,"message_id":"m1","value":"hello"}}
+{"src":"consumer","dest":"queue","body":{"type":"dequeue","msg_id":3,"ack_timeout":1000}}

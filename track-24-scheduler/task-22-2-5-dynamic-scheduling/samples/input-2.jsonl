@@ -1,0 +1,1 @@
+{"src":"client","dest":"scheduler","body":{"type":"submit_job","msg_id":1,"job":{"id":"job1","inputs":["data.csv"]},"topology":{"rack1":["node-1","node-2"],"rack2":["node-3","node-4"]},"data_location":"node-1","node-1_utilization":0.9,"node-2_utilization":0.3}}

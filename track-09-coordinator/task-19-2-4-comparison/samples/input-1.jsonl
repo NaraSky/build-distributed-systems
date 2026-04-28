@@ -1,0 +1,2 @@
+{"src":"c0","dest":"benchmarker","body":{"type":"init","msg_id":1,"participants":["p1","p2","p3"]}}
+{"src":"c1","dest":"benchmarker","body":{"type":"benchmark","msg_id":2,"protocols":["2pc","3pc"],"participants":3,"transactions":100}}

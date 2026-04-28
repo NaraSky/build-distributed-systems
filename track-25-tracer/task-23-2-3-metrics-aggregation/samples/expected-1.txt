@@ -1,0 +1,1 @@
+{"type": "aggregation_result", "in_reply_to": 1, "results": [{"service": "api", "value": 50000}, {"service": "web", "value": 30000}, {"service": "auth", "value": 15000}], "total": 95000}

@@ -1,0 +1,3 @@
+{"src":"client","dest":"scheduler","body":{"type":"submit_job","msg_id":1,"job":{"id":"low_job","priority":1}}}
+{"src":"client","dest":"scheduler","body":{"type":"submit_job","msg_id":2,"job":{"id":"high_job","priority":20}}}
+{"src":"client","dest":"scheduler","body":{"type":"submit_job","msg_id":3,"job":{"id":"med_job","priority":10}}}

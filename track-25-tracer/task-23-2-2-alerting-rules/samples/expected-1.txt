@@ -1,0 +1,1 @@
+{"type": "alert_triggered", "in_reply_to": 1, "rule": "High error rate", "severity": "WARNING", "value": 0.08}

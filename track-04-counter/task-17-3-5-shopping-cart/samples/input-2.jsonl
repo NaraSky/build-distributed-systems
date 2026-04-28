@@ -1,0 +1,4 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1"]}}
+{"src":"c1","dest":"n1","body":{"type":"cart_add","msg_id":2,"item":"eggs","qty":12}}
+{"src":"c1","dest":"n1","body":{"type":"cart_remove","msg_id":3,"item":"eggs"}}
+{"src":"c1","dest":"n1","body":{"type":"cart_view","msg_id":4}}

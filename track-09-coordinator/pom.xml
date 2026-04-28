@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.example.distsys</groupId>
+        <artifactId>build-distributed-systems-java</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>track-09-coordinator</artifactId>
+    <name>Track 09 - The Coordinator</name>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>task-9-1-two-phase-commit</module>
+        <module>task-9-2-coordinator-failure</module>
+        <module>task-9-3-three-phase-commit</module>
+        <module>task-9-4-sagas</module>
+        <module>task-9-5-txn-kv</module>
+        <module>task-19-2-1-three-phase</module>
+        <module>task-19-2-2-unblocking</module>
+        <module>task-19-2-3-network-partition</module>
+        <module>task-19-2-4-comparison</module>
+        <module>task-19-2-5-paxos-commit</module>
+        <module>task-19-3-1-saga-fundamentals</module>
+        <module>task-19-3-2-choreography</module>
+        <module>task-19-3-3-orchestration</module>
+        <module>task-19-3-4-idempotency</module>
+        <module>task-19-3-5-shopping-cart</module>
+    </modules>
+</project>

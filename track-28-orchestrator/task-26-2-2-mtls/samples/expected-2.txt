@@ -1,0 +1,1 @@
+{"type": "certificate_issued", "in_reply_to": 1, "service": "service-a", "certificate": "-----BEGIN CERTIFICATE-----...", "expiry": ".*"}

@@ -1,0 +1,1 @@
+{"src":"alice","dest":"e2ee","body":{"type":"initiate_conversation","msg_id":1,"recipient":"bob","bob_public_key":{"identity_key":"IK","signed_pre_key":"SPK"}}}

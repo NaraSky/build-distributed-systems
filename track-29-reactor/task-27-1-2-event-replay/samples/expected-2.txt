@@ -1,0 +1,1 @@
+{"type": "replayed", "in_reply_to": 1, "aggregate_id": "user-123", "snapshot_version": 100, "events_replayed": 2}

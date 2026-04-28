@@ -1,0 +1,2 @@
+{"src":"service","dest":"tracer","body":{"type":"create_span","msg_id":1,"name":"GET /api/users/999"}}
+{"type":"span_error","span_id":"span2","error":"User not found"}

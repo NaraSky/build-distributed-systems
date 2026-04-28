@@ -1,0 +1,1 @@
+{"src":"admin","dest":"migrations","body":{"type":"validate","msg_id":1,"table":"users","validations":["no_nulls","email_format"]}}

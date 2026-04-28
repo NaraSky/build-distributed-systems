@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.example.distsys</groupId>
+        <artifactId>build-distributed-systems-java</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>track-16-timekeeper</artifactId>
+    <name>Track 16 - The Timekeeper</name>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>task-4-1-1-clock-read</module>
+        <module>task-4-1-2-monotonic-clock</module>
+        <module>task-4-1-3-split-brain-lease</module>
+        <module>task-4-1-4-truetime-mock</module>
+        <module>task-4-1-5-wait-out-uncertainty</module>
+        <module>task-4-2-1-lamport-basic</module>
+        <module>task-4-2-2-causality-proof</module>
+        <module>task-4-2-3-lamport-mutex</module>
+        <module>task-4-2-4-mutex-contention</module>
+        <module>task-4-2-5-mutex-comparison</module>
+        <module>task-4-3-1-vector-clock-impl</module>
+        <module>task-4-3-2-happens-before</module>
+        <module>task-4-3-3-causal-chat</module>
+        <module>task-4-3-4-dotted-version-vectors</module>
+        <module>task-4-3-5-conflict-kv</module>
+        <module>task-4-4-1-hlc-impl</module>
+        <module>task-4-4-2-hlc-causality-bound</module>
+        <module>task-4-4-3-hlc-lock</module>
+        <module>task-4-4-4-time-oracle</module>
+        <module>task-4-4-5-clock-comparison-adr</module>
+    </modules>
+</project>

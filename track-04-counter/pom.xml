@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.example.distsys</groupId>
+        <artifactId>build-distributed-systems-java</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>track-04-counter</artifactId>
+    <name>Track 04 - The Counter</name>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>task-4-1-lost-update</module>
+        <module>task-4-2-kv-integration</module>
+        <module>task-4-3-cas-operation</module>
+        <module>task-4-4-g-counter</module>
+        <module>task-4-5-concurrent-increments</module>
+        <module>task-17-2-1-g-counter</module>
+        <module>task-17-2-2-g-counter-proof</module>
+        <module>task-17-2-3-pn-counter</module>
+        <module>task-17-2-4-gossip-counter</module>
+        <module>task-17-2-5-maelstrom-counter</module>
+        <module>task-17-3-1-or-set</module>
+        <module>task-17-3-2-mv-register</module>
+        <module>task-17-3-3-sequence-crdt</module>
+        <module>task-17-3-4-crdt-tradeoffs</module>
+        <module>task-17-3-5-shopping-cart</module>
+    </modules>
+</project>

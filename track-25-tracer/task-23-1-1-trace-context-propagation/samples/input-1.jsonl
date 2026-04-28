@@ -1,0 +1,1 @@
+{"src":"service_a","dest":"service_b","body":{"type":"http_request","msg_id":1,"path":"/api/data","headers":{"traceparent":"00-trace123-span_a-01"}}}

@@ -1,0 +1,1 @@
+{"type": "alert_triggered", "in_reply_to": 1, "severity": "CRITICAL", "action": "page_sent", "service": "api"}

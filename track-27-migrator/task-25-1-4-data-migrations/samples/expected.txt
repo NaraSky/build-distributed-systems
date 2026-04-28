@@ -1,0 +1,1 @@
+{"type": "backfill_complete", "in_reply_to": 1, "total_processed": 10000, "total_updated": 9500, "duration_seconds": 60}

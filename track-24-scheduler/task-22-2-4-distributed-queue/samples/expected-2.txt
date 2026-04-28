@@ -1,0 +1,1 @@
+{"src": "queue", "dest": "worker", "body": {"type": "job_assigned", "in_reply_to": 1, "job": {}, "partition": "p1"}}

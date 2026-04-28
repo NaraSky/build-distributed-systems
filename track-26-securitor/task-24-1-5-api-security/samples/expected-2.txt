@@ -1,0 +1,1 @@
+{"type": "validation_error", "in_reply_to": 1, "errors": [{"field": "email", "message": "Invalid email format"}, {"field": "password", "message": "Password must be at least 8 characters"}]}

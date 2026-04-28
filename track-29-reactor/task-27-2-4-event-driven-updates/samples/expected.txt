@@ -1,0 +1,1 @@
+{"type": "subscribed", "in_reply_to": 1, "event_types": ["UserCreated", "UserUpdated"]}

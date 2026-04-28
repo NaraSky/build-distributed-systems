@@ -1,0 +1,1 @@
+{"src":"client","dest":"scheduler","body":{"type":"allocate_resources","msg_id":1,"job_id":"job1","resources":{"cpu":4,"memory":16}}}

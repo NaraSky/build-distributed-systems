@@ -1,0 +1,1 @@
+{"type": "migration_applied", "in_reply_to": 1, "version": 1, "name": "add_full_name_column", "schema": "users (name, full_name NULL)", "backward_compatible": true}

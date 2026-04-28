@@ -1,0 +1,1 @@
+{"src": "scheduler", "dest": "client", "body": {"type": "jobs_scheduled", "in_reply_to": 1, "workers_provisioned": 2, "packing_efficiency": 0.75}}

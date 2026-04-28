@@ -1,0 +1,3 @@
+{"src":"n1","dest":"c0","body":{"type":"init_ok","in_reply_to":1,"msg_id":0}}
+{"src":"n1","dest":"c0","body":{"type":"seed_state_ok","in_reply_to":2,"msg_id":1}}
+{"src":"n1","dest":"c0","body":{"type":"snapshot_ok","in_reply_to":3,"msg_id":2,"last_included_index":5,"last_included_term":2}}

@@ -1,0 +1,4 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1","n2"]}}
+{"src":"c1","dest":"n1","body":{"type":"gcounter_increment","msg_id":2}}
+{"src":"c2","dest":"n2","body":{"type":"gcounter_increment","msg_id":3}}
+{"src":"c3","dest":"n1","body":{"type":"gcounter_value","msg_id":4}}

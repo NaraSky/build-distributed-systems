@@ -1,0 +1,1 @@
+{"src":"client","dest":"simulator","body":{"type":"simulate_thundering_herd","msg_id":1,"backends":["b1","b2","b3","b4"],"requests_per_second":4000,"fail_backend":"b4","with_circuit_breaker":false}}

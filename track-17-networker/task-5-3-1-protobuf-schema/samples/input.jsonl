@@ -1,0 +1,2 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1"]}}
+{"src":"c1","dest":"n1","body":{"type":"proto_define","msg_id":2,"schema":{"name":"Person","fields":[{"name":"name","number":1,"type":"string"},{"name":"age","number":2,"type":"int32"}]}}}

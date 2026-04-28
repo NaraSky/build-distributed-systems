@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.example.distsys</groupId>
+    <artifactId>build-distributed-systems-java</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <name>Build Distributed Systems Java</name>
+
+    <modules>
+        <module>track-01-messenger</module>
+        <module>track-02-identifier</module>
+        <module>track-03-gossiper</module>
+        <module>track-04-counter</module>
+        <module>track-05-elector</module>
+        <module>track-06-consensus</module>
+        <module>track-07-store</module>
+        <module>track-08-sharder</module>
+        <module>track-09-coordinator</module>
+        <module>track-10-advanced</module>
+        <module>track-11-caches</module>
+        <module>track-12-proxies</module>
+        <module>track-13-indexes</module>
+        <module>track-14-loadbalancers</module>
+        <module>track-15-queues</module>
+        <module>track-16-timekeeper</module>
+        <module>track-17-networker</module>
+        <module>track-19-logger</module>
+        <module>track-20-filesystem</module>
+        <module>track-22-watcher</module>
+        <module>track-23-searcher</module>
+        <module>track-24-scheduler</module>
+        <module>track-25-tracer</module>
+        <module>track-26-securitor</module>
+        <module>track-27-migrator</module>
+        <module>track-28-orchestrator</module>
+        <module>track-29-reactor</module>
+        <module>track-30-mapreducer</module>
+    </modules>
+
+    <properties>
+        <maven.compiler.release>21</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <jackson.version>2.17.2</jackson.version>
+        <junit.version>5.10.3</junit.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter</artifactId>
+                <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.13.0</version>
+                    <configuration>
+                        <release>${maven.compiler.release}</release>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.3.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>3.3.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.4.2</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+</project>

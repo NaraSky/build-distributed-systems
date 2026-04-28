@@ -1,0 +1,1 @@
+{"src":"client","dest":"pipeline","body":{"type":"pipeline","msg_id":1,"lines":["a b a","a c"],"top_n":1}}

@@ -1,0 +1,2 @@
+{"src":"client","dest":"scheduler","body":{"type":"init","msg_id":1,"workers":["node-1","node-2","node-3"],"data_map":{"file1.txt":["node-1"],"file2.txt":["node-2"]}}}
+{"src":"client","dest":"scheduler","body":{"type":"submit_job","msg_id":2,"job":{"id":"job1","inputs":["file1.txt","file2.txt"]}}}

@@ -1,0 +1,1 @@
+{"src":"generator","dest":"processor","body":{"type":"watermark","msg_id":1,"max_timestamp":"2024-01-15T10:00:00Z","allowed_lateness_ms":30000}}

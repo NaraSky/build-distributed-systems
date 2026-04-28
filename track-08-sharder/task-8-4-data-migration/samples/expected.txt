@@ -1,0 +1,3 @@
+{"src":"g1","dest":"c0","body":{"type":"init_ok","in_reply_to":1,"msg_id":0}}
+{"src":"g1","dest":"c0","body":{"type":"seed_shard_ok","in_reply_to":2,"msg_id":1}}
+{"src":"g1","dest":"c0","body":{"type":"prepare_migration_ok","in_reply_to":3,"msg_id":2,"shard":3,"target_gid":"g2","snapshot":{"data":{"x":1,"y":2}}}}

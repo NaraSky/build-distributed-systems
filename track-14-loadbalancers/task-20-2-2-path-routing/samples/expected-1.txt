@@ -1,0 +1,1 @@
+{"src": "l7_proxy", "dest": "client", "body": {"type": "http_response", "in_reply_to": 1, "status": 200, "backend": "users-1", "rewritten_path": "/users/123"}}

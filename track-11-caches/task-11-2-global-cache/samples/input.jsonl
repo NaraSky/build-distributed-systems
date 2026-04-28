@@ -1,0 +1,4 @@
+{"src":"c0","dest":"cache","body":{"type":"init","msg_id":1,"node_id":"cache","node_ids":["cache","n1","n2"]}}
+{"src":"n1","dest":"cache","body":{"type":"get","msg_id":2,"key":"x"}}
+{"src":"n2","dest":"cache","body":{"type":"set","msg_id":3,"key":"x","value":100}}
+{"src":"n1","dest":"cache","body":{"type":"get","msg_id":4,"key":"x"}}

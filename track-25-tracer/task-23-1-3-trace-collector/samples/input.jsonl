@@ -1,0 +1,2 @@
+{"src":"service_a","dest":"collector","body":{"type":"span","trace_id":"t1","span_id":"s1","service":"A"}}
+{"src":"service_b","dest":"collector","body":{"type":"span","trace_id":"t1","span_id":"s2","service":"B","parent_span_id":"s1"}}

@@ -1,0 +1,1 @@
+{"src":"query","dest":"metrics","body":{"type":"aggregate_metric","msg_id":1,"metric":"memory_usage_bytes","aggregator":"avg","instances":["api-1","api-2","api-3"],"values":[1073741824,2147483648,1610612736]}}

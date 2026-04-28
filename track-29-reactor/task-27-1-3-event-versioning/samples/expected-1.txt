@@ -1,0 +1,1 @@
+{"type": "upcasted", "in_reply_to": 1, "event": {"event_type": "UserCreated", "version": 2, "event_data": {"id": 1, "name": "John", "email": ""}}}

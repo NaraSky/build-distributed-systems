@@ -1,0 +1,3 @@
+{"src":"client","dest":"scheduler","body":{"type":"init","msg_id":1,"resources":{"total_cpu":16,"total_memory":64}}}
+{"src":"client","dest":"scheduler","body":{"type":"allocate_resources","msg_id":2,"job_id":"job1","resources":{"cpu":8,"memory":32}}}
+{"src":"client","dest":"scheduler","body":{"type":"allocate_resources","msg_id":3,"job_id":"job2","resources":{"cpu":8,"memory":32}}}

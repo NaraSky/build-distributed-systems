@@ -1,0 +1,1 @@
+{"type": "trace_created", "in_reply_to": 1, "trace_id": ".*", "span_id": ".*"}

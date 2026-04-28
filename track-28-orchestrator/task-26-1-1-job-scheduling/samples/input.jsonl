@@ -1,0 +1,1 @@
+{"src":"client","dest":"scheduler","body":{"type":"schedule_job","msg_id":1,"task":"send-email","payload":{"to":"user@example.com"},"delay_ms":60000}}

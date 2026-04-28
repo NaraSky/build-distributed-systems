@@ -1,0 +1,1 @@
+{"type": "projection_updated", "in_reply_to": 1, "projection": "user-listing", "version": 1, "state": [{"id": "user-123", "name": "John"}]}

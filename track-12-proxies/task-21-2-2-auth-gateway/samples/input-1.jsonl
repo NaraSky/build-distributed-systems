@@ -1,0 +1,2 @@
+{"src":"client","dest":"gateway","body":{"type":"init","msg_id":1,"jwt_public_key":"public_key_here"}}
+{"src":"client","dest":"gateway","body":{"type":"api_request","msg_id":2,"method":"GET","path":"/api/users/123","headers":{"Authorization":"Bearer valid_jwt_here"}}}

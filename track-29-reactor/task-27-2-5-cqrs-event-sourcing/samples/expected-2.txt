@@ -1,0 +1,1 @@
+{"type": "query_result", "in_reply_to": 1, "data": {"id": "user-123", "name": "John"}}

@@ -1,0 +1,2 @@
+{"src":"c0","dest":"comparator","body":{"type":"init","msg_id":1}}
+{"src":"c1","dest":"comparator","body":{"type":"compare_blocking","msg_id":2,"protocols":["2pc","3pc"]}}

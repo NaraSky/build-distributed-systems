@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.example.distsys</groupId>
+        <artifactId>build-distributed-systems-java</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>track-28-orchestrator</artifactId>
+    <name>Track 28 - The Orchestrator</name>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>task-26-1-1-job-scheduling</module>
+        <module>task-26-1-2-dag-scheduling</module>
+        <module>task-26-1-3-resource-management</module>
+        <module>task-26-1-4-job-monitoring</module>
+        <module>task-26-1-5-job-deadlines</module>
+        <module>task-26-2-1-service-mesh</module>
+        <module>task-26-2-2-mtls</module>
+        <module>task-26-2-3-traffic-splitting</module>
+        <module>task-26-2-4-circuit-breaking</module>
+        <module>task-26-2-5-observability</module>
+    </modules>
+</project>

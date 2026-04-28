@@ -1,0 +1,1 @@
+{"src":"client","dest":"cluster","body":{"type":"steal_job","msg_id":1,"thief_worker":"w3","busy_workers":["w1","w2"]}}

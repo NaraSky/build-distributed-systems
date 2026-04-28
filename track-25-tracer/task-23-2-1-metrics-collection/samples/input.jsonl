@@ -1,0 +1,1 @@
+{"src":"service","dest":"metrics","body":{"type":"counter","msg_id":1,"name":"http_requests_total","value":1,"labels":{"method":"POST","service":"api"}}}

@@ -1,0 +1,1 @@
+{"type": "circuit_breaker_closed", "in_reply_to": 1, "service": "service-b", "state": "closed"}

@@ -1,0 +1,1 @@
+{"type": "query_result", "in_reply_to": 1, "data": {"email": "john@example.com", "userId": "user-123"}, "cached": true}

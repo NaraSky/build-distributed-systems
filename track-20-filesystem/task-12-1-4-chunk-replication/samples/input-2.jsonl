@@ -1,0 +1,3 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1","n2","n3"]}}
+{"src":"c1","dest":"n1","body":{"type":"chunk_write","msg_id":2,"chunk_handle":"ch_001","offset":0,"data":"a","primary":"n1","secondaries":["n2","n3"]}}
+{"src":"c1","dest":"n1","body":{"type":"chunk_write","msg_id":3,"chunk_handle":"ch_001","offset":1,"data":"b","primary":"n1","secondaries":["n2","n3"]}}

@@ -1,0 +1,1 @@
+{"type": "auth_url_generated", "in_reply_to": 1, "url": "https://accounts.example.com/authorize?response_type=code&client_id=abc123&redirect_uri=https%3A%2F%2Fapp.com%2Fcallback&scope=read+write&state=xyz789"}

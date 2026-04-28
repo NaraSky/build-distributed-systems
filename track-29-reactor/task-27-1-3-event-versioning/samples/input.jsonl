@@ -1,0 +1,1 @@
+{"src":"migrator","dest":"eventstore","body":{"type":"upcast","msg_id":1,"event":{"event_type":"UserCreated","version":1,"event_data":{"id":1,"name":"John"}},"target_version":2}}

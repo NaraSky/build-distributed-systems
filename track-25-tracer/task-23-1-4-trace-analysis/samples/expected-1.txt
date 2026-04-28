@@ -1,0 +1,1 @@
+{"type": "insights", "in_reply_to": 1, "bottlenecks": ["db"], "critical_path": "web->api->db", "optimization_suggestion": "Add caching for database queries"}

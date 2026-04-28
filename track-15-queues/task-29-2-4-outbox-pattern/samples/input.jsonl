@@ -1,0 +1,1 @@
+{"src":"service","dest":"outbox","body":{"type":"write","msg_id":1,"business_data":{"order_id":"order-123"},"events":[{"type":"OrderCreated"},{"type":"PaymentRequested"}]}}

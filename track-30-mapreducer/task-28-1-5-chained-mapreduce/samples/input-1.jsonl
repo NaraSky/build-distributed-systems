@@ -1,0 +1,1 @@
+{"src":"client","dest":"pipeline","body":{"type":"pipeline","msg_id":1,"lines":["hello world","hello there","world peace"],"top_n":2}}

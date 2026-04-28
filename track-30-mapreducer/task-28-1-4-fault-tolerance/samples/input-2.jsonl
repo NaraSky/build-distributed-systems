@@ -1,0 +1,2 @@
+{"src":"w1","dest":"master","body":{"type":"heartbeat","msg_id":1,"worker_id":"w1","timestamp":1700000000000}}
+{"src":"monitor","dest":"master","body":{"type":"check_failures","msg_id":2,"timeout_ms":5000,"now":1700000010000}}

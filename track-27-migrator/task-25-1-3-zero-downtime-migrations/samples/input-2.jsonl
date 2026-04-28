@@ -1,0 +1,1 @@
+{"src":"admin","dest":"migrations","body":{"type":"add_column","msg_id":1,"table":"users","column":"status","default":"active","nullable":false}}

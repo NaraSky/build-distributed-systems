@@ -1,0 +1,5 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1"]}}
+{"src":"c1","dest":"n1","body":{"type":"pool_config","msg_id":2,"max_connections":2,"backlog_size":3}}
+{"src":"c1","dest":"n1","body":{"type":"pool_connect","msg_id":3,"client_id":"c1"}}
+{"src":"c1","dest":"n1","body":{"type":"pool_connect","msg_id":4,"client_id":"c2"}}
+{"src":"c1","dest":"n1","body":{"type":"pool_connect","msg_id":5,"client_id":"c3"}}

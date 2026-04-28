@@ -1,0 +1,1 @@
+{"src":"client","dest":"scheduler","body":{"type":"schedule_job","msg_id":1,"task":"cleanup","cron":"0 0 * * *","payload":{"days":30}}}

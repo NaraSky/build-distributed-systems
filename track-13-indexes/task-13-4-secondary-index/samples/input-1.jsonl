@@ -1,0 +1,4 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1"]}}
+{"src":"c1","dest":"n1","body":{"type":"db_insert","msg_id":2,"id":1,"name":"Alice","status":"active"}}
+{"src":"c2","dest":"n1","body":{"type":"db_insert","msg_id":3,"id":2,"name":"Bob","status":"active"}}
+{"src":"c3","dest":"n1","body":{"type":"db_query","msg_id":4,"field":"status","value":"active"}}

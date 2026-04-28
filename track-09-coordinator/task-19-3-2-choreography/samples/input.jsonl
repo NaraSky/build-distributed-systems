@@ -1,0 +1,2 @@
+{"src":"c0","dest":"event_bus","body":{"type":"init","msg_id":1,"services":["inventory","payment","shipping"]}}
+{"src":"c1","dest":"inventory","body":{"type":"reserve_inventory","msg_id":2,"saga_id":"saga42","sku":"abc123","quantity":1}}

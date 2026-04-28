@@ -1,0 +1,1 @@
+{"src":"api","dest":"rbac","body":{"type":"check_permission","msg_id":1,"user_id":"admin123","resource":"settings","action":"delete"}}

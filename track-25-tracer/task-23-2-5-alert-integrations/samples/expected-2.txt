@@ -1,0 +1,1 @@
+{"type": "alert_sent", "in_reply_to": 1, "channel": "#alerts", "notification_id": ".*", "actions": ["Acknowledge", "View Details"]}

@@ -1,0 +1,1 @@
+{"src":"query","dest":"metrics","body":{"type":"aggregate_metric","msg_id":1,"metric":"http_requests_total","aggregator":"sum","group_by":["service"],"services":["api","web","auth"],"time_range":"1h"}}

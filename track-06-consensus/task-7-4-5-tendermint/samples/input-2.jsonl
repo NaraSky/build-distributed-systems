@@ -1,0 +1,3 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1","n2","n3","n4"]}}
+{"src":"c1","dest":"n1","body":{"type":"tendermint_propose","msg_id":2,"round":0,"proposer":"n1","block":{"height":1,"txs":["tx1"]}}}
+{"src":"c1","dest":"n1","body":{"type":"tendermint_prevote","msg_id":3,"round":0,"validator":"n2","block_hash":"abc"}}

@@ -1,0 +1,3 @@
+{"src":"service","dest":"tracer","body":{"type":"create_span","msg_id":1,"name":"GET /api/users/123"}}
+{"type":"span_event","span_id":"span1","event":"db.query"}
+{"type":"span_end","span_id":"span1","status":"OK"}

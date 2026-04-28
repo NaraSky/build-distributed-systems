@@ -1,0 +1,3 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1"]}}
+{"src":"c1","dest":"n1","body":{"type":"sstable_flush","msg_id":2,"memtable_size_bytes":1024}}
+{"src":"c1","dest":"n1","body":{"type":"sstable_lookup","msg_id":3,"sstable":"L0_001.sst","key":"user:42"}}

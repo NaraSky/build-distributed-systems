@@ -1,0 +1,3 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1","n2","n3","n4"]}}
+{"src":"c1","dest":"n1","body":{"type":"simulate_equivocation","msg_id":2,"byzantine_node":"n2","sequence":1,"messages_sent":{"to_n1":{"prepare":{"value":"X"}},"to_n3":{"prepare":{"value":"Y"}},"to_n4":{"prepare":{"value":"X"}}}}}
+{"src":"c1","dest":"n1","body":{"type":"equivocation_report","msg_id":3}}

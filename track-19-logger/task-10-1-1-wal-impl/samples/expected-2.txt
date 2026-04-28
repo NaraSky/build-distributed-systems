@@ -1,0 +1,5 @@
+{"src": "n1", "dest": "c0", "body": {"type": "init_ok", "in_reply_to": 1, "msg_id": 0}}
+{"src": "n1", "dest": "c1", "body": {"type": "wal_append_ok", "in_reply_to": 2, "offset": 0, "msg_id": 1}}
+{"src": "n1", "dest": "c1", "body": {"type": "wal_append_ok", "in_reply_to": 3, "offset": 1, "msg_id": 2}}
+{"src": "n1", "dest": "c1", "body": {"type": "wal_append_ok", "in_reply_to": 4, "offset": 2, "msg_id": 3}}
+{"src": "n1", "dest": "c1", "body": {"type": "wal_info_ok", "in_reply_to": 5, "entries": 3, "msg_id": 4}}

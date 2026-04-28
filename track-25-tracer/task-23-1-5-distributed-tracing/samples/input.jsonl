@@ -1,0 +1,2 @@
+{"src":"instrumentor","dest":"services","body":{"type":"instrument_service","msg_id":1,"services":["web","api","db"],"auto":true}}
+{"src":"user","dest":"web","body":{"type":"http_request","path":"/api/users/123"}}

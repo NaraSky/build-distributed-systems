@@ -1,0 +1,1 @@
+{"type": "dag_executed", "in_reply_to": 1, "execution_id": ".*", "status": "completed", "tasks_completed": 3, "duration_seconds": 10}

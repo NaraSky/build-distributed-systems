@@ -1,0 +1,4 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1"]}}
+{"src":"c1","dest":"n1","body":{"type":"shard_route","msg_id":2,"doc_id":"a","num_shards":3}}
+{"src":"c1","dest":"n1","body":{"type":"shard_route","msg_id":3,"doc_id":"b","num_shards":3}}
+{"src":"c1","dest":"n1","body":{"type":"shard_route","msg_id":4,"doc_id":"c","num_shards":3}}

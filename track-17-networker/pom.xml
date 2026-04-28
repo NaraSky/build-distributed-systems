@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.example.distsys</groupId>
+        <artifactId>build-distributed-systems-java</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>track-17-networker</artifactId>
+    <name>Track 17 - The Networker</name>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>task-5-1-1-tcp-echo</module>
+        <module>task-5-1-2-connection-pool</module>
+        <module>task-5-1-3-graceful-shutdown</module>
+        <module>task-5-1-4-keepalive</module>
+        <module>task-5-1-5-throughput-bench</module>
+        <module>task-5-2-1-length-prefix</module>
+        <module>task-5-2-2-line-delimited</module>
+        <module>task-5-2-3-binary-serialization</module>
+        <module>task-5-2-4-compression</module>
+        <module>task-5-2-5-protocol-versioning</module>
+        <module>task-5-3-1-protobuf-schema</module>
+        <module>task-5-3-2-grpc-unary</module>
+        <module>task-5-3-3-grpc-streaming</module>
+        <module>task-5-3-4-grpc-interceptors</module>
+        <module>task-5-3-5-grpc-vs-rest</module>
+    </modules>
+</project>

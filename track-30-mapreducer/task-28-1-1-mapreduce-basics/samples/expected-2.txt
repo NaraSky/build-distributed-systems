@@ -1,0 +1,1 @@
+{"type": "reduce_result", "in_reply_to": 1, "result": ["hello", 3]}

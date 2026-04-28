@@ -1,0 +1,1 @@
+{"type": "merge_result", "in_reply_to": 1, "results": {"hello": 2, "world": 1, "peace": 1}}

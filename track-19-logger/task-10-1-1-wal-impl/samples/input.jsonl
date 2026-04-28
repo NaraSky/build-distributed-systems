@@ -1,0 +1,3 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1"]}}
+{"src":"c1","dest":"n1","body":{"type":"wal_append","msg_id":2,"payload":"set x=42"}}
+{"src":"c1","dest":"n1","body":{"type":"wal_read","msg_id":3,"offset":0}}

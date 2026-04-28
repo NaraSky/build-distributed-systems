@@ -1,0 +1,1 @@
+{"src": "scheduler", "dest": "client", "body": {"type": "workflow_rejected", "in_reply_to": 1, "error": "Circular dependency detected: a->b->c->a"}}

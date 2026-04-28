@@ -1,0 +1,1 @@
+{"type": "incident_created", "in_reply_to": 1, "incident_id": "INC123", "status": "triggered", "assigned_to": "on-call-engineer"}

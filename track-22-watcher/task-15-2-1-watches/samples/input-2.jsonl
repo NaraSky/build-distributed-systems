@@ -1,0 +1,4 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1"]}}
+{"src":"c1","dest":"n1","body":{"type":"znode_create","msg_id":2,"path":"/w","data":"old","ephemeral":false,"sequential":false}}
+{"src":"c1","dest":"n1","body":{"type":"znode_get_watch","msg_id":3,"path":"/w","watch":true,"watcher_id":"w1"}}
+{"src":"c1","dest":"n1","body":{"type":"znode_set","msg_id":4,"path":"/w","data":"new","version":0}}

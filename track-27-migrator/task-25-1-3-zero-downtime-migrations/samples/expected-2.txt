@@ -1,0 +1,1 @@
+{"type": "column_added", "in_reply_to": 1, "duration_seconds": 0.1, "table_rewritten": false}

@@ -1,0 +1,2 @@
+{"src":"c0","dest":"n2","body":{"type":"init","msg_id":1,"node_id":"n2","node_ids":["n1","n2","n3"]}}
+{"src":"n1","dest":"n2","body":{"type":"append_entries","msg_id":2,"term":1,"leader_id":"n1","prev_log_index":0,"prev_log_term":0,"entries":[{"term":1,"index":1,"command":{"op":"put","key":"x","value":1}}],"leader_commit":0}}

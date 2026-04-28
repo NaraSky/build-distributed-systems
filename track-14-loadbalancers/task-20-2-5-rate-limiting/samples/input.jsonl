@@ -1,0 +1,2 @@
+{"src":"client","dest":"l7_proxy","body":{"type":"init","msg_id":1,"rate_limits":{"per_ip":{"requests_per_second":10,"burst":20}}}}
+{"src":"client","dest":"l7_proxy","body":{"type":"http_request","msg_id":2,"method":"GET","path":"/api/data","client_ip":"1.2.3.4"},"send_times":11}

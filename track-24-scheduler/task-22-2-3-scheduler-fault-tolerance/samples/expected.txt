@@ -1,0 +1,1 @@
+{"type": "recovery_complete", "job_assignments": {"job1": "w1"}, "pending_notifications": ["w1"]}

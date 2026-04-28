@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.example.distsys</groupId>
+        <artifactId>build-distributed-systems-java</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>track-11-caches</artifactId>
+    <name>Track 11 - Caches</name>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>task-11-1-request-cache</module>
+        <module>task-11-2-global-cache</module>
+        <module>task-11-3-distributed-cache</module>
+        <module>task-11-4-eviction</module>
+        <module>task-11-5-invalidation</module>
+    </modules>
+</project>

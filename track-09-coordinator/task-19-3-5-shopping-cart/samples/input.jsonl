@@ -1,0 +1,2 @@
+{"src":"c0","dest":"checkout_orchestrator","body":{"type":"init","msg_id":1}}
+{"src":"c1","dest":"checkout_orchestrator","body":{"type":"checkout","msg_id":2,"saga_id":"checkout42","user_id":"u42","items":[{"sku":"abc123","quantity":2}],"shipping_address":"123 Main St"}}

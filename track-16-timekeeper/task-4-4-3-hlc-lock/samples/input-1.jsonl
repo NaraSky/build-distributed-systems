@@ -1,0 +1,2 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1"]}}
+{"src":"c1","dest":"n1","body":{"type":"lock_request","msg_id":2,"resource":"r1","requester":"n1","hlc_pt":1000,"hlc_c":0}}

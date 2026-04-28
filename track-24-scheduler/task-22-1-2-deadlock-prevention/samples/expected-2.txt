@@ -1,0 +1,1 @@
+{"src": "scheduler", "dest": "client", "body": {"type": "allocation_ok", "in_reply_to": 1, "job_id": "job1", "safe_state": true}}

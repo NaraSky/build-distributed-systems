@@ -1,0 +1,1 @@
+{"type": "saga_completed", "in_reply_to": 1, "saga_id": "booking-123", "state": "completed", "completed_steps": 3}

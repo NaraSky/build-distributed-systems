@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.example.distsys</groupId>
+        <artifactId>build-distributed-systems-java</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>track-23-searcher</artifactId>
+    <name>Track 23 - The Searcher</name>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>task-16-1-1-document-store</module>
+        <module>task-16-1-2-schema-mapping</module>
+        <module>task-16-1-3-text-analysis</module>
+        <module>task-16-1-4-dynamic-mapping</module>
+        <module>task-16-1-5-search-api</module>
+        <module>task-16-2-1-shard-routing</module>
+        <module>task-16-2-2-replica-shards</module>
+        <module>task-16-2-3-scatter-gather</module>
+        <module>task-16-2-4-shard-rebalance</module>
+        <module>task-16-2-5-node-failure</module>
+    </modules>
+</project>

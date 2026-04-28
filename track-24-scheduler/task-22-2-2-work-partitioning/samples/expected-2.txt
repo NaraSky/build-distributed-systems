@@ -1,0 +1,1 @@
+{"src": "mr_cluster", "dest": "client", "body": {"type": "benchmark_complete", "in_reply_to": 1, "results": {"range": {"skew_factor": 5.0}, "hash": {"skew_factor": 1.2}}}}

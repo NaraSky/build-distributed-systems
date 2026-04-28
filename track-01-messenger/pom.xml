@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.example.distsys</groupId>
+        <artifactId>build-distributed-systems-java</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>track-01-messenger</artifactId>
+    <name>Track 01 - The Messenger</name>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>task-1-1-json-parser</module>
+        <module>task-1-2-init-handler</module>
+        <module>task-1-3-echo-service</module>
+        <module>task-1-4-envelope-validation</module>
+        <module>task-1-5-async-handler</module>
+        <module>task-1-2-1-sync-rpc</module>
+        <module>task-1-2-2-timeout-retry</module>
+        <module>task-1-2-3-async-rpc</module>
+        <module>task-1-2-4-callback-reaper</module>
+        <module>task-1-2-5-exponential-backoff</module>
+        <module>task-1-3-1-typed-schema</module>
+        <module>task-1-3-2-envelope-logger</module>
+        <module>task-1-3-3-deduplication</module>
+        <module>task-1-3-4-throughput-bench</module>
+        <module>task-1-3-5-chaos-mode</module>
+    </modules>
+</project>

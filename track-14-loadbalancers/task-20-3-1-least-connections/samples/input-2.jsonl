@@ -1,0 +1,1 @@
+{"src":"client","dest":"lb","body":{"type":"http_request","msg_id":1,"method":"GET","path":"/api/data","active_connections":{"api-1":3,"api-2":3,"api-3":3}}}

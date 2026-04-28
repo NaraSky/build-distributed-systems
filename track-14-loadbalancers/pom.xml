@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.example.distsys</groupId>
+        <artifactId>build-distributed-systems-java</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>track-14-loadbalancers</artifactId>
+    <name>Track 14 - Load Balancers</name>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>task-14-1-round-robin</module>
+        <module>task-14-2-least-connections</module>
+        <module>task-14-3-health-checks</module>
+        <module>task-14-4-layer7</module>
+        <module>task-14-5-consistent-hashing-lb</module>
+        <module>task-20-2-1-http-proxy</module>
+        <module>task-20-2-2-path-routing</module>
+        <module>task-20-2-3-sticky-sessions</module>
+        <module>task-20-2-4-circuit-breaking</module>
+        <module>task-20-2-5-rate-limiting</module>
+        <module>task-20-3-1-least-connections</module>
+        <module>task-20-3-2-weighted-round-robin</module>
+        <module>task-20-3-3-power-of-two-choices</module>
+        <module>task-20-3-4-consistent-hashing-lb</module>
+        <module>task-20-3-5-thundering-herd</module>
+    </modules>
+</project>

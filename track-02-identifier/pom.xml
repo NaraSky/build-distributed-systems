@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.example.distsys</groupId>
+        <artifactId>build-distributed-systems-java</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>track-02-identifier</artifactId>
+    <name>Track 02 - The Identifier</name>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>task-2-1-basic-id</module>
+        <module>task-2-2-random-salt</module>
+        <module>task-2-3-partition-resilient</module>
+        <module>task-2-4-uniqueness-validation</module>
+        <module>task-2-5-high-throughput</module>
+        <module>task-2-2-1-bit-layout</module>
+        <module>task-2-2-2-timestamp-component</module>
+        <module>task-2-2-3-sequence-counter</module>
+        <module>task-2-2-5-multi-node</module>
+        <module>task-2-3-1-lamport-clock</module>
+        <module>task-2-3-2-lamport-limitation</module>
+        <module>task-2-3-3-vector-clock</module>
+        <module>task-2-3-4-happened-before</module>
+        <module>task-2-3-5-vc-conflict-kv</module>
+        <module>task-2-4-1-hlc-format</module>
+        <module>task-2-4-2-hlc-receive</module>
+        <module>task-2-4-3-clock-backward</module>
+        <module>task-2-4-4-id-comparison</module>
+        <module>task-2-4-5-hlc-unique-ids</module>
+    </modules>
+</project>

@@ -1,0 +1,1 @@
+{"src":"client","dest":"proxy","body":{"type":"route","msg_id":1},"traffic_split":{"v1":80,"v2":20}}

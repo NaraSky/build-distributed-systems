@@ -1,0 +1,1 @@
+{"type": "partitioned", "in_reply_to": 1, "partitions": [{"reducer_id": 0, "pairs": [["world", 1]]}, {"reducer_id": 1, "pairs": [["hello", 2]]}]}

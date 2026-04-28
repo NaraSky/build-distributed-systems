@@ -1,0 +1,1 @@
+{"src":"alice","dest":"crypto","body":{"type":"encrypt","msg_id":1,"plaintext":"Secret message","public_key":"PUBLIC_KEY"}}

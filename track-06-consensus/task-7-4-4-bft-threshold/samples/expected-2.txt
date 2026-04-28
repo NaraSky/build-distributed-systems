@@ -1,0 +1,2 @@
+{"src": "n1", "dest": "c0", "body": {"type": "init_ok", "in_reply_to": 1, "msg_id": 0}}
+{"src": "n1", "dest": "c1", "body": {"type": "bft_threshold_ok", "in_reply_to": 2, "f": 2, "min_n": 7, "quorum_size": 5, "honest_in_quorum": 3, "safe": true, "msg_id": 1}}

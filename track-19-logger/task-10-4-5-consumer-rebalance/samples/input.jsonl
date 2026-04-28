@@ -1,0 +1,2 @@
+{"src":"c0","dest":"n1","body":{"type":"init","msg_id":1,"node_id":"n1","node_ids":["n1"]}}
+{"src":"c1","dest":"n1","body":{"type":"consumer_rebalance","msg_id":2,"group":"g1","consumers":["c1","c2","c3"],"partitions":[0,1,2,3,4,5],"strategy":"range"}}
