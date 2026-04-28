@@ -1,65 +1,59 @@
-# 添加 Replica Shards用于Fault Tolerance
+# 添加副本分片实现容错
 
-英文标题：Add Replica Shards用于Fault Tolerance
+英文标题：Add Replica Shards for Fault Tolerance
 网页：<https://builddistributedsystem.com/tracks/searcher/tasks/task-16-2-2-replica-shards>
 
-课程：23. 搜索器：分布式搜索
+课程：23. 搜索引擎
 任务序号：7
-短标题：Replica Shards
-难度：advanced
-子主题：Distributed Sharding和复制
+短标题：副本分片
+难度：高级
+子主题：分布式分片与复制
 
 ## 中文导读
 
-本题要求你完成 `添加 Replica Shards用于Fault Tolerance`。
-
-重点关注：`replica shard`、`replication`、`write propagation`、`read scaling`、`fault tolerance`。
-
-建议先按提示逐步实现：Each primary 分片 has R replica shards on different 节点。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你为主分片添加副本分片（Replica Shard），实现数据冗余。副本分片就像数据的"备份"，一方面提高容错能力（某台机器宕机了数据不会丢），另一方面可以分担读取压力，提升搜索吞吐量。
 
 ## 题目说明
 
-Replica shards provide 故障 tolerance和read scaling. Each primary 分片 has one or more replicas on different 节点.
+副本分片（Replica Shard）提供容错能力和读取扩展。每个主分片在不同节点上拥有一个或多个副本。
 
-**Write flow**:
-1. Write 请求 arrives at the primary 分片
-2. Primary indexes the document
-3. Primary forwards the write to all replica shards in parallel
-4. Each replica indexes the document和sends ACK
-5. Primary returns success to the 客户端 after all replicas ACK
+**写入流程**：
+1. 写请求到达主分片
+2. 主分片索引文档
+3. 主分片将写操作并行转发到所有副本分片
+4. 每个副本索引文档并发送确认
+5. 主分片在收到所有副本确认后，向客户端返回成功
 
-**Read flow**: reads can be served from any copy (primary or replica), distributing read load.
+**读取流程**：读取请求可以由任意副本（包括主分片和副本分片）来处理，从而分散读取负载。
 
-**故障 handling**: if a 节点，包含a primary dies, a replica is promoted to primary. If a 节点，包含a replica dies, a new replica is allocated on another 节点.
+**故障处理**：如果持有主分片的节点宕机，其中一个副本会被提升为新的主分片。如果持有副本的节点宕机，系统会在其他节点上重新分配一个新的副本。
 
-```JSON
-请求:  {"type": "create_index", "msg_id": 1, "索引": "articles", "num_shards": 3, "num_replicas": 1}
-响应: {"type": "create_index_ok", "in_reply_to": 1, "primary_shards": 3, "replica_shards": 3, "total_shards": 6}
+```json
+Request:  {"type": "create_index", "msg_id": 1, "index": "articles", "num_shards": 3, "num_replicas": 1}
+Response: {"type": "create_index_ok", "in_reply_to": 1, "primary_shards": 3, "replica_shards": 3, "total_shards": 6}
 ```
 
 ## 涉及概念
 
-- `replica shard`
-- `replication`
-- `write propagation`
-- `read scaling`
-- `fault tolerance`
+- replica shard
+- replication
+- write propagation
+- read scaling
+- fault tolerance
 
 ## 实现提示
 
-- Each primary 分片 has R replica shards on different 节点
-- Writes go to the primary first, then propagate to all replicas
-- Reads can be served from any replica (scaling read throughput)
-- Primary wait用于replicas to acknowledge before returning success
-- If a replica falls behind, it is marked as "unassigned" until it catches up
+- 每个主分片有 R 个副本分片，分布在不同节点上
+- 写操作先到主分片，再传播到所有副本
+- 读请求可以由任意副本处理（从而提升读取吞吐量）
+- 主分片需要等待所有副本确认后才返回写入成功
+- 如果某个副本落后了，将其标记为"未分配"状态，直到追上进度
 
 ## 测试用例
 
-### 1. 创建 索引，包含replicas
+### 1. 创建带副本的索引
 
-create_index_ok should show 3 primary + 3 replica = 6 total shards.
+`create_index_ok` 应显示 3 个主分片 + 3 个副本分片 = 共 6 个分片。
 
 输入：
 
@@ -74,9 +68,9 @@ create_index_ok should show 3 primary + 3 replica = 6 total shards.
 {"src": "n1", "dest": "c0", "body": {"type": "init_ok", "in_reply_to": 1, "msg_id": 0}}
 ```
 
-### 2. Write propagates to replicas
+### 2. 写操作传播到副本
 
-doc_index_ok should confirm replica acknowledgement.
+`doc_index_ok` 应确认副本已完成同步。
 
 输入：
 
@@ -93,7 +87,7 @@ doc_index_ok should confirm replica acknowledgement.
 
 ## 参考资料
 
-- [Elasticsearch Replication](https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-replication.html)：Elasticsearch documentation on primary-replica 复制
+- [Elasticsearch Replication](https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-replication.html)：关于主副本复制机制的官方文档
 
 ## 本地文件
 

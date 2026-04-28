@@ -1,4 +1,4 @@
-# 实现 Consumer Group Rebalancing
+# 实现消费者组的重平衡
 
 英文标题：Implement Consumer Group Rebalancing
 网页：<https://builddistributedsystem.com/tracks/logger/tasks/task-10-4-5-consumer-rebalance>
@@ -6,42 +6,36 @@
 课程：19. 日志器：WAL、LSM 与分布式日志
 任务序号：20
 短标题：Consumer Rebalance
-难度：advanced
-子主题：Distributed 日志 (Kafka Architecture)
+难度：高级
+子主题：Distributed Log (Kafka Architecture)
 
 ## 中文导读
 
-本题要求你完成 `实现 Consumer Group Rebalancing`。
-
-重点关注：`consumer group`、`rebalancing`、`partition assignment`、`range strategy`、`group coordinator`。
-
-建议先按提示逐步实现：When a consumer joins or leaves a group, all partition assignments must be recalculated。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你实现消费者组的重平衡（Rebalance）机制。当消费者组的成员发生变化（有消费者加入、离开或宕机）时，需要将分区重新均匀分配给各个消费者。这是 Kafka 实现弹性伸缩和容错消费的核心协议，理解它有助于排查生产环境中的消费延迟抖动问题。
 
 ## 题目说明
 
-Consumer group rebalancing ensures that partitions are evenly distributed among consumers. When the group membership changes (a consumer joins, leaves, or crashes), the partitions must be reassigned.
+消费者组重平衡（Consumer Group Rebalancing）确保分区在消费者之间均匀分配。当组的成员发生变化（有消费者加入、离开或因心跳超时被移除）时，需要重新分配所有分区。
 
-The rebalancing protocol:
-1. **Trigger**: a consumer joins the group, leaves the group, or is removed (心跳 超时)
-2. **Stop**: all consumers in the group stop reading (consumption is paused)
-3. **Elect Leader**: the group coordinator (a broker) elects one consumer as the group Leader
-4. **Assign**: the Leader runs the assignment strategy和assigns partitions to consumers
-5. **Resume**: all consumers receive their new assignments和resume reading
+重平衡协议的流程：
+1. **触发**：有消费者加入、离开或被移除（心跳超时）
+2. **暂停**：组内所有消费者停止读取消息（消费暂停）
+3. **选举组长**：组协调者（一个代理节点）选出一个消费者作为组长
+4. **分配**：组长运行分配策略，将分区分配给各个消费者
+5. **恢复**：所有消费者收到新的分配方案后恢复消费
 
-**Range assignment strategy** (the simplest):
-- Sort the partition IDs和consumer IDs
-- Divide partitions into contiguous ranges
-- Example: 6 partitions, 3 consumers -> c1: [0,1], c2: [2,3], c3: [4,5]
-- With uneven division: 7 partitions, 3 consumers -> c1: [0,1,2], c2: [3,4], c3: [5,6]
+**范围分配策略（Range Assignment Strategy）**（最简单的策略）：
+- 将分区编号和消费者编号分别排序
+- 将分区按连续的范围分配
+- 例如：6 个分区、3 个消费者 -> c1: [0,1]、c2: [2,3]、c3: [4,5]
+- 不能整除时：7 个分区、3 个消费者 -> c1: [0,1,2]、c2: [3,4]、c3: [5,6]
 
-```JSON
-请求:  {"type": "consumer_rebalance", "msg_id": 1, "group": "analytics", "consumers": ["c1", "c2", "c3"], "partitions": [0, 1, 2, 3, 4, 5], "strategy": "range"}
-响应: {"type": "consumer_rebalance_ok", "in_reply_to": 1, "assignments": {"c1": [0, 1], "c2": [2, 3], "c3": [4, 5]}}
+```json
+Request:  {"type": "consumer_rebalance", "msg_id": 1, "group": "analytics", "consumers": ["c1", "c2", "c3"], "partitions": [0, 1, 2, 3, 4, 5], "strategy": "range"}
+Response: {"type": "consumer_rebalance_ok", "in_reply_to": 1, "assignments": {"c1": [0, 1], "c2": [2, 3], "c3": [4, 5]}}
 
-请求:  {"type": "consumer_rebalance", "msg_id": 2, "group": "analytics", "consumers": ["c1", "c2"], "partitions": [0, 1, 2, 3, 4, 5], "strategy": "range"}
-响应: {"type": "consumer_rebalance_ok", "in_reply_to": 2, "assignments": {"c1": [0, 1, 2], "c2": [3, 4, 5]}}
+Request:  {"type": "consumer_rebalance", "msg_id": 2, "group": "analytics", "consumers": ["c1", "c2"], "partitions": [0, 1, 2, 3, 4, 5], "strategy": "range"}
+Response: {"type": "consumer_rebalance_ok", "in_reply_to": 2, "assignments": {"c1": [0, 1, 2], "c2": [3, 4, 5]}}
 ```
 
 ## 涉及概念
@@ -54,15 +48,15 @@ The rebalancing protocol:
 
 ## 实现提示
 
-- When a consumer joins or leaves a group, all partition assignments must be recalculated
-- Range strategy: sort consumers和partitions, divide partitions into contiguous ranges per consumer
-- During rebalancing, all consumers in the group pause consumption briefly (stop-the-world)
-- The group coordinator (a broker) manages the rebalancing protocol
-- Uneven distribution: if 6 partitions / 4 consumers, some consumers get 2和some get 1
+- 当消费者加入或离开组时，需要重新计算所有分区的分配方案
+- 范围分配策略：对消费者和分区分别排序，将分区按连续的范围分配给各消费者
+- 重平衡期间，组内所有消费者会短暂暂停消费（全局暂停）
+- 组协调者（一个代理节点）负责管理重平衡协议
+- 不能整除的情况：如果 6 个分区分给 4 个消费者，部分消费者分到 2 个，部分分到 1 个
 
 ## 测试用例
 
-### 1. Even distribution: 6 partitions, 3 consumers
+### 1. 均匀分配：6 个分区、3 个消费者
 
 输入：
 
@@ -78,7 +72,7 @@ The rebalancing protocol:
 {"src": "n1", "dest": "c1", "body": {"type": "consumer_rebalance_ok", "in_reply_to": 2, "assignments": {"c1": [0, 1], "c2": [2, 3], "c3": [4, 5]}, "msg_id": 1}}
 ```
 
-### 2. Redistribution after consumer leaves: 6 partitions, 2 consumers
+### 2. 消费者离开后重新分配：6 个分区、2 个消费者
 
 输入：
 
@@ -96,7 +90,7 @@ The rebalancing protocol:
 
 ## 参考资料
 
-- [Kafka Consumer Group Protocol](https://kafka.apache.org/documentation/#impl_consumerrebalance)：Kafka documentation on consumer group rebalancing protocol和partition assignment strategies
+- [Kafka Consumer Group Protocol](https://kafka.apache.org/documentation/#impl_consumerrebalance)：Kafka 官方文档，讲解消费者组重平衡协议和分区分配策略
 
 ## 本地文件
 

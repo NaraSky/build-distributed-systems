@@ -1,45 +1,39 @@
-# 添加 WAL Segment Files，包含Offset 索引
+# 添加带偏移量索引的 WAL 分段文件
 
-英文标题：Add WAL Segment Files，包含Offset Index
+英文标题：Add WAL Segment Files with Offset Index
 网页：<https://builddistributedsystem.com/tracks/logger/tasks/task-10-1-3-segments>
 
 课程：19. 日志器：WAL、LSM 与分布式日志
 任务序号：3
 短标题：WAL Segments
-难度：advanced
-子主题：The Commit 日志 (WAL)
+难度：高级
+子主题：提交日志（WAL）
 
 ## 中文导读
 
-本题要求你完成 `添加 WAL Segment Files，包含Offset 索引`。
-
-重点关注：`segment files`、`log segmentation`、`offset index`、`fast seeks`、`immutable segments`。
-
-建议先按提示逐步实现：When the active segment exceeds a size threshold (e.g. 64MB), seal it和open a new one。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你为 WAL 实现分段文件机制。单个 WAL 文件会无限增长，导致查找变慢且无法高效清理。通过将日志拆分为多个段文件，并建立偏移量索引，可以实现快速定位和独立管理旧数据。这正是 Kafka 等生产级系统组织日志的方式。
 
 ## 题目说明
 
-A single WAL file has a problem: it grows without bound. Once it reaches gigabytes, seeks become slow和cleanup is impossible without rewriting the entire file.
+单个 WAL 文件存在一个问题：它会无限增长。一旦文件达到几个 GB，查找操作就会变慢，而且不重写整个文件就无法进行清理。
 
-The solution: **segment files**. When a WAL segment exceeds a size threshold, seal it (make it immutable)和open a new active segment. An offset 索引 enables O(1) lookups by mapping each 日志 offset to the correct segment file和byte position.
+解决方案是使用**分段文件（Segment Files）**。当一个 WAL 段超过大小阈值时，将其封存（变为不可变），然后打开一个新的活跃段。偏移量索引（Offset Index）通过将每个日志偏移量映射到正确的段文件和字节位置，实现 O(1) 的查找效率。
 
-This is how Kafka, etcd,和most production systems organize their logs:
-1. Segments are named by their starting offset (e.g. `00000000.日志`, `00001000.日志`)
-2. Each segment has a companion `.索引` file mapping offset -> byte position
-3. Old sealed segments can be deleted, compressed, or archived independently
-4. The active segment is the only one receiving new writes
+Kafka、etcd 以及大多数生产系统都是这样组织日志的：
+1. 段文件以其起始偏移量命名（例如 `00000000.log`、`00001000.log`）
+2. 每个段都有一个配套的 `.index` 文件，记录偏移量到字节位置的映射
+3. 旧的已封存段可以独立删除、压缩或归档
+4. 只有活跃段接收新的写入
 
-```JSON
-请求:  {"type": "wal_segment_config", "msg_id": 1, "max_segment_bytes": 67108864}
-响应: {"type": "wal_segment_config_ok", "in_reply_to": 1, "max_segment_bytes": 67108864}
+```json
+Request:  {"type": "wal_segment_config", "msg_id": 1, "max_segment_bytes": 67108864}
+Response: {"type": "wal_segment_config_ok", "in_reply_to": 1, "max_segment_bytes": 67108864}
 
-请求:  {"type": "wal_segment_info", "msg_id": 2}
-响应: {"type": "wal_segment_info_ok", "in_reply_to": 2, "segments": [
-    {"file": "00000000.日志", "start_offset": 0, "end_offset": 999, "size_bytes": 67108000, "sealed": true},
-    {"file": "00001000.日志", "start_offset": 1000, "end_offset": 1050, "size_bytes": 5120, "sealed": false}
-], "active_segment": "00001000.日志"}
+Request:  {"type": "wal_segment_info", "msg_id": 2}
+Response: {"type": "wal_segment_info_ok", "in_reply_to": 2, "segments": [
+    {"file": "00000000.log", "start_offset": 0, "end_offset": 999, "size_bytes": 67108000, "sealed": true},
+    {"file": "00001000.log", "start_offset": 1000, "end_offset": 1050, "size_bytes": 5120, "sealed": false}
+], "active_segment": "00001000.log"}
 ```
 
 ## 涉及概念
@@ -52,15 +46,15 @@ This is how Kafka, etcd,和most production systems organize their logs:
 
 ## 实现提示
 
-- When the active segment exceeds a size threshold (e.g. 64MB), seal it和open a new one
-- Maintain an 索引 mapping (log_offset -> segment_file + byte_offset)用于O(1) seeks
-- Sealed segments are immutable — they can be safely compressed, archived, or deleted
-- Name segments by their starting offset: 00000000.日志, 00001000.日志, etc.
-- This is exactly how Kafka organizes its partition logs on disk
+- 当活跃段超过大小阈值（例如 64MB）时，将其封存并打开一个新段
+- 维护一个索引映射（日志偏移量 -> 段文件 + 字节偏移量），以实现 O(1) 的查找
+- 已封存的段是不可变的，可以安全地压缩、归档或删除
+- 段文件以起始偏移量命名：00000000.log、00001000.log 等
+- 这正是 Kafka 在磁盘上组织其分区日志的方式
 
 ## 测试用例
 
-### 1. Configure segment size threshold
+### 1. 配置段大小阈值
 
 输入：
 
@@ -76,9 +70,9 @@ This is how Kafka, etcd,和most production systems organize their logs:
 {"src": "n1", "dest": "c1", "body": {"type": "wal_segment_config_ok", "in_reply_to": 2, "max_segment_bytes": 1024, "msg_id": 1}}
 ```
 
-### 2. Segment info shows active segment on empty 日志
+### 2. 空日志时查看段信息应显示活跃段
 
-wal_segment_info_ok should show at least 1 segment，包含sealed: false (active).
+返回的 wal_segment_info_ok 中应至少包含 1 个 sealed 为 false 的段（即活跃段）。
 
 输入：
 
@@ -95,7 +89,7 @@ wal_segment_info_ok should show at least 1 segment，包含sealed: false (active
 
 ## 参考资料
 
-- [Kafka Log Segments](https://kafka.apache.org/documentation/#design_filesystem)：How Kafka organizes partition logs into segment files用于efficient 存储和cleanup
+- [Kafka Log Segments](https://kafka.apache.org/documentation/#design_filesystem)：介绍 Kafka 如何将分区日志组织为段文件，以实现高效存储和清理
 
 ## 本地文件
 

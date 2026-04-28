@@ -1,33 +1,26 @@
-#处理RequestVote RPC
+# 处理请求投票 RPC
 
-英文标题：Handle RequestVote RPC
 网页：<https://builddistributedsystem.com/tracks/elector/tasks/task-5-4-request-vote>
 
-课程：5. 选举器：Leader Election
+课程：5. 选举器：领导者选举
 任务序号：4
-短标题：RequestVote
-难度：advanced
-子主题：Raft Leader 选举
+短标题：请求投票
+难度：高级
+子主题：Raft 领导者选举
 
 ## 中文导读
 
-本题要求你完成 `Handle RequestVote RPC`。
-
-重点关注：`voting`、`term comparison`、`vote granting`。
-
-建议先按提示逐步实现：Grant vote if Candidate term >= current term。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题让你实现 Raft 的请求投票 RPC。候选人向其他节点请求投票，节点根据任期号和投票状态来决定是否投票。每个任期内每个节点最多只能投一票，这保证了每个任期最多只有一个领导者，是 Raft 安全性的核心保障。
 
 ## 题目说明
 
-Implement the RequestVote RPC. Candidates 请求 votes from other 节点. 节点 grant their vote if the Candidate's term is current和they have not already voted in this term.
+实现请求投票（RequestVote）RPC。候选人向其他节点请求投票。节点在满足以下条件时授予投票：候选人的任期号（Term）不低于自己的任期号，且自己在当前任期内还没有投过票。
 
 ## 概念说明
 
-### Vote Granting
+### 投票授予规则
 
-A 节点 grants its vote if: the Candidate term is at least as recent as its own,和it has not voted用于another Candidate in this term. This ensures at most one Leader per term.
+一个节点在以下条件下授予投票：候选人的任期号至少和自己的一样新，并且自己在这个任期内还没有给其他候选人投过票。这确保了每个任期内最多只有一个领导者。就像选举中每人只有一票，投了就不能再改，保证了不会同时选出两个领导者。
 
 ## 涉及概念
 
@@ -37,13 +30,13 @@ A 节点 grants its vote if: the Candidate term is at least as recent as its own
 
 ## 实现提示
 
-- Grant vote if Candidate term >= current term
-- Only vote once per term
-- Update term if Candidate has higher term
+- 当候选人的任期号大于等于自己的任期号时，才考虑投票
+- 每个任期内只能投一次票
+- 如果候选人的任期号更高，先更新自己的任期号
 
 ## 测试用例
 
-### 1. Grant vote to same term candidate
+### 1. 为相同任期的候选人投票
 
 输入：
 
@@ -63,7 +56,7 @@ A 节点 grants its vote if: the Candidate term is at least as recent as its own
 
 ## 参考资料
 
-- [Raft Lecture](https://www.youtube.com/watch?v=YbZ3zDzDnrw)：MIT 6.824 Raft lecture by Robert Morris
+- [Raft Lecture](https://www.youtube.com/watch?v=YbZ3zDzDnrw)：MIT 6.824 课程中 Robert Morris 讲授的 Raft 讲座
 
 ## 本地文件
 

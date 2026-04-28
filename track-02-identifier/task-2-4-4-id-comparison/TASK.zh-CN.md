@@ -1,31 +1,25 @@
-# Compare HLC, UUID v4,和Snowflake IDs
+# 比较三种分布式标识方案
 
-英文标题：Compare HLC, UUID v4,和Snowflake IDs
+英文标题：Compare HLC, UUID v4, and Snowflake IDs
 网页：<https://builddistributedsystem.com/tracks/identifier/tasks/task-2-4-4-id-comparison>
 
 课程：2. 标识符：分布式唯一 ID
 任务序号：19
-短标题：ID Comparison
-难度：intermediate
-子主题：混合逻辑 Clocks (HLC)
+短标题：标识方案对比
+难度：进阶
+子主题：Hybrid Logical Clocks (HLC)
 
 ## 中文导读
 
-本题要求你完成 `Compare HLC, UUID v4,和Snowflake IDs`。
-
-重点关注：`UUID`、`Snowflake`、`HLC`、`ID tradeoffs`、`benchmarking`。
-
-建议先按提示逐步实现：UUID v4 is random: 128 bits, no ordering, no coordination needed。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+分布式系统中有多种标识生成方案，各有优劣。本题要求你分别实现 UUID v4、Snowflake 和混合逻辑时钟三种方案，并生成一张对比表，帮助你理解不同场景下应该选择哪种方案。这是对整个标识课程的综合总结。
 
 ## 题目说明
 
-Different ID schemes have different tradeoffs. Your task is to implement all three和return a comparison table.
+不同的标识生成方案有着不同的权衡取舍。你的任务是实现三种方案，并返回一张对比表。
 
-Implement a `compare_ids` handler that generates one ID of each type和reports their properties:
+实现 `compare_ids` 处理器，分别生成三种类型的标识，并报告它们的属性：
 
-```JSON
+```json
 请求:  {"type": "compare_ids", "msg_id": 1}
 响应: {"type": "compare_ids_ok", "in_reply_to": 1, "comparison": [
     {"scheme": "uuid_v4", "id": "550e8400-e29b...", "bits": 128, "sortable": false, "causal": false},
@@ -33,6 +27,11 @@ Implement a `compare_ids` handler that generates one ID of each type和reports t
     {"scheme": "hlc", "id": "1234567-0-n1", "bits": 96, "sortable": true, "causal": true}
 ]}
 ```
+
+三种方案简要对比如下：
+- **UUID v4**：纯随机生成，128 位，不可排序，不需要节点间协调
+- **Snowflake**：基于时间戳，64 位，可排序，需要分配机器编号
+- **混合逻辑时钟**：时间戳加因果关系，可变大小，可排序，还能追踪因果关系
 
 ## 涉及概念
 
@@ -44,17 +43,17 @@ Implement a `compare_ids` handler that generates one ID of each type和reports t
 
 ## 实现提示
 
-- UUID v4 is random: 128 bits, no ordering, no coordination needed
-- Snowflake is timestamped: 64 bits, sorted, needs machine_id assignment
-- HLC is timestamped + causal: variable size, captures causality, needs 时钟 sync
-- Compare: 存储 size, generation speed, uniqueness guarantee, sortability
-- Each approach has different tradeoffs用于different use cases
+- UUID v4 是纯随机的：128 位，没有排序能力，不需要协调
+- Snowflake 是基于时间戳的：64 位，可排序，需要分配机器编号
+- 混合逻辑时钟包含时间戳和因果信息：可变大小，能捕获因果关系，需要时钟同步
+- 可以从以下维度进行比较：存储大小、生成速度、唯一性保证、可排序性
+- 每种方案适用于不同的使用场景
 
 ## 测试用例
 
-### 1. Compare IDs returns three schemes
+### 1. 对比接口返回三种方案
 
-compare_ids_ok should contain a comparison array，包含3 entries: uuid_v4, snowflake,和hlc. Each has id, bits, sortable,和causal fields.
+`compare_ids_ok` 响应应包含一个具有 3 个条目的对比数组，分别是 uuid_v4、snowflake 和 hlc。每个条目都有 id、bits、sortable 和 causal 字段。
 
 输入：
 
@@ -71,7 +70,7 @@ compare_ids_ok should contain a comparison array，包含3 entries: uuid_v4, sno
 
 ## 参考资料
 
-- [UUID Versions Explained](https://www.ietf.org/rfc/rfc4122.txt)：RFC 4122 defining UUID format和versions
+- [UUID Versions Explained](https://www.ietf.org/rfc/rfc4122.txt)：定义 UUID 格式和版本的 RFC 4122 标准文档
 
 ## 本地文件
 

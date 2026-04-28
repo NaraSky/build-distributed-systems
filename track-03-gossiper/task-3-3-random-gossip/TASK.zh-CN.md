@@ -1,33 +1,29 @@
-# 实现 Peer-to-Peer Gossip，包含Random Neighbors
+# 实现随机邻居的点对点传播
 
-英文标题：Implement Peer-to-Peer Gossip，包含Random Neighbors
+英文标题：Implement Peer-to-Peer Gossip with Random Neighbors
 网页：<https://builddistributedsystem.com/tracks/gossiper/tasks/task-3-3-random-gossip>
 
 课程：3. 传播者：Gossip 信息传播
 任务序号：3
-短标题：Random Gossip
-难度：intermediate
-子主题：Naive 广播 (Flooding)
+短标题：随机传播
+难度：进阶
+子主题：朴素广播（洪泛）
 
 ## 中文导读
 
-本题要求你完成 `实现 Peer-to-Peer Gossip，包含Random Neighbors`。
-
-重点关注：`gossip protocol`、`random selection`、`probabilistic broadcast`。
-
-建议先按提示逐步实现：Randomly select a subset of neighbors。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题让你实现一个 Gossip 协议——每个节点随机选择一些邻居来分享信息，而不是广播给所有人。这种方式在节点发生故障时更加健壮，同时也能把消息开销控制在合理范围内。理解随机传播是掌握真实分布式系统中 Gossip 协议的关键一步。
 
 ## 题目说明
 
-Implement a gossip protocol where each 节点 randomly selects neighbors to share information with. This provides robustness against 节点 failures while keeping 消息 overhead reasonable.
+实现一个 Gossip 协议（Gossip Protocol），让每个节点随机选择部分邻居来分享信息。这种方式在面对节点故障时具有较好的鲁棒性，同时消息开销也保持在合理水平。
 
 ## 概念说明
 
-### Gossip Protocols
+### Gossip 协议
 
-gossip, or epidemic, protocols spread information like a disease. Each infected 节点 randomly selects peers to infect. This provides probabilistic guarantees of delivery，包含tunable overhead.
+Gossip 协议也叫流行病协议（Epidemic Protocol），它传播信息的方式就像疾病传播一样：每个"被感染"的节点随机选择若干个同伴进行"感染"。这种方式提供了概率性的消息送达保证，并且开销是可调节的。
+
+打个比方，这就像办公室里的八卦——你不会把一个消息告诉所有人，而是随机跟几个同事说，然后他们又随机告诉别人，最终消息就传遍了整个办公室。
 
 ## 涉及概念
 
@@ -37,13 +33,13 @@ gossip, or epidemic, protocols spread information like a disease. Each infected 
 
 ## 实现提示
 
-- Randomly select a subset of neighbors
-- 重试 periodically用于reliability
-- Balance between speed和overhead
+- 随机选择一部分邻居进行消息传播
+- 定期重试以提高可靠性
+- 在传播速度和消息开销之间取得平衡
 
 ## 测试用例
 
-### 1.随机Gossip spreads 消息 to all nodes
+### 1. 随机传播将消息扩散到所有节点
 
 输入：
 
@@ -65,7 +61,7 @@ gossip, or epidemic, protocols spread information like a disease. Each infected 
 
 ## 参考资料
 
-- [Epidemic Algorithms](https://www.cs.cornell.edu/courses/cs6410/2018fa/slides/18-gossip-epidemic.pdf)：Academic overview of epidemic/gossip protocols
+- [Epidemic Algorithms](https://www.cs.cornell.edu/courses/cs6410/2018fa/slides/18-gossip-epidemic.pdf)：关于流行病/Gossip 协议的学术概述
 
 ## 本地文件
 

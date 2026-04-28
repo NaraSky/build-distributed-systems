@@ -1,52 +1,46 @@
-# Define和Encode Protocol Buffer Messages
+# 定义和编码 Protocol Buffer 消息
 
-英文标题：Define和Encode Protocol Buffer Messages
+英文标题：Define and Encode Protocol Buffer Messages
 网页：<https://builddistributedsystem.com/tracks/networker/tasks/task-5-3-1-protobuf-schema>
 
 课程：17. 网络器：TCP 与协议基础
 任务序号：11
-短标题：Protobuf Schema
-难度：intermediate
-子主题：gRPC和Protocol Buffers
+短标题：Protobuf 模式定义
+难度：进阶
+子主题：gRPC 与 Protocol Buffers
 
 ## 中文导读
 
-本题要求你完成 `Define和Encode Protocol Buffer Messages`。
-
-重点关注：`Protocol Buffers`、`schema definition`、`field numbering`、`varint encoding`。
-
-建议先按提示逐步实现：Protobuf uses field numbers instead of field names on the wire。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题让你深入 Protocol Buffers（简称 Protobuf）的底层编码原理。Protobuf 是 Google 开源的一种高效序列化框架，它通过 .proto 文件定义数据结构，然后用紧凑的二进制格式在网络上传输。与 JSON 不同，Protobuf 在传输时不带字段名，而是用字段编号来标识，大大减小了数据体积。通过亲手实现 Protobuf 的编码器和解码器，你将理解变长整数编码（Varint）、线路类型等核心概念。
 
 ## 题目说明
 
-Protocol Buffers use a schema definition (.proto file)和a compact binary wire format. Each field has a number, type,和wire encoding.
+Protocol Buffers 使用模式定义文件（.proto 文件）和紧凑的二进制线路格式。每个字段都有一个编号、一个类型和对应的线路编码方式。
 
-Wire format: each field is `(field_number << 3 | wire_type)` followed by the value.
+线路格式：每个字段编码为 `(field_number << 3 | wire_type)` 加上字段值。
 
-Implement a protobuf encoder/decoder用于a simple 消息:
+为一个简单的消息实现 Protobuf 编码器/解码器：
 
 ```proto
-消息 Person {
+message Person {
     string name = 1;
     int32 age = 2;
     string email = 3;
 }
 ```
 
-Implement handlers:
+实现以下消息处理器：
 
-```JSON
-请求:  {"type": "proto_define", "msg_id": 1, "schema": {"name": "Person", "fields": [
+```json
+Request:  {"type": "proto_define", "msg_id": 1, "schema": {"name": "Person", "fields": [
     {"name": "name", "number": 1, "type": "string"},
     {"name": "age", "number": 2, "type": "int32"},
     {"name": "email", "number": 3, "type": "string"}
 ]}}
-响应: {"type": "proto_define_ok", "in_reply_to": 1, "message_name": "Person", "field_count": 3}
+Response: {"type": "proto_define_ok", "in_reply_to": 1, "message_name": "Person", "field_count": 3}
 
-请求:  {"type": "proto_encode", "msg_id": 2, "消息": "Person", "data": {"name": "Alice", "age": 30, "email": "alice@example.com"}}
-响应: {"type": "proto_encode_ok", "in_reply_to": 2, "encoded_hex": "...", "size_bytes": 28}
+Request:  {"type": "proto_encode", "msg_id": 2, "message": "Person", "data": {"name": "Alice", "age": 30, "email": "alice@example.com"}}
+Response: {"type": "proto_encode_ok", "in_reply_to": 2, "encoded_hex": "...", "size_bytes": 28}
 ```
 
 ## 涉及概念
@@ -58,15 +52,15 @@ Implement handlers:
 
 ## 实现提示
 
-- Protobuf uses field numbers instead of field names on the wire
-- Varint encoding uses 7 bits per byte，包含MSB continuation flag
-- Wire types: 0=varint, 1=64-bit, 2=length-delimited, 5=32-bit
-- Each field is encoded as (field_number << 3 | wire_type)
-- String fields use wire type 2: tag + length + bytes
+- Protobuf 在线路上使用字段编号而非字段名，从而节省空间
+- 变长整数编码（Varint）每个字节使用 7 位存储数据，最高位作为是否还有后续字节的标志
+- 线路类型：0 表示变长整数，1 表示 64 位定长，2 表示长度分隔，5 表示 32 位定长
+- 每个字段编码为 (field_number << 3 | wire_type)
+- 字符串字段使用线路类型 2：标签 + 长度 + 字节内容
 
 ## 测试用例
 
-### 1. Define a protobuf schema
+### 1. 定义 Protobuf 模式
 
 输入：
 
@@ -82,9 +76,9 @@ Implement handlers:
 {"src": "n1", "dest": "c1", "body": {"type": "proto_define_ok", "in_reply_to": 2, "message_name": "Person", "field_count": 2, "msg_id": 1}}
 ```
 
-### 2. Encode a protobuf 消息
+### 2. 编码 Protobuf 消息
 
-proto_encode_ok should contain valid protobuf hex encoding. Name field: tag 0x0a then length then ASCII. Age field: tag 0x10 then varint 30.
+验证说明：proto_encode_ok 应包含合法的 Protobuf 十六进制编码。name 字段：标签 0x0a 后跟长度再跟 ASCII 字节。age 字段：标签 0x10 后跟变长整数 30。
 
 输入：
 
@@ -102,7 +96,7 @@ proto_encode_ok should contain valid protobuf hex encoding. Name field: tag 0x0a
 
 ## 参考资料
 
-- [Protocol Buffers Encoding](https://protobuf.dev/programming-guides/encoding/)：How Protocol Buffers encode data on the wire (varint, length-delimited, etc.)
+- [Protocol Buffers Encoding](https://protobuf.dev/programming-guides/encoding/)：详解 Protocol Buffers 如何在线路上编码数据（变长整数、长度分隔等）
 
 ## 本地文件
 

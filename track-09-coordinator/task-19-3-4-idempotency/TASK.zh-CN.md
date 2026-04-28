@@ -1,4 +1,4 @@
-# 实现 Idempotency in Sagas
+# 在 Saga 中实现幂等性
 
 英文标题：Implement Idempotency in Sagas
 网页：<https://builddistributedsystem.com/tracks/coordinator/tasks/task-19-3-4-idempotency>
@@ -6,31 +6,25 @@
 课程：9. 协调器：分布式事务
 任务序号：14
 短标题：Saga Idempotency
-难度：intermediate
+难度：进阶
 子主题：Saga Pattern
 
 ## 中文导读
 
-本题要求你完成 `实现 Idempotency in Sagas`。
-
-重点关注：`idempotency`、`deduplication`、`exactly-once semantics`、`message retries`、`saga_id + step_id`。
-
-建议先按提示逐步实现：Tag each step，包含a unique saga_id + step_id combination。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你在 Saga 中实现幂等性（Idempotency）。在分布式系统中，网络超时等原因会导致消息被重试。如果操作不具备幂等性，重试可能会造成重复扣款等严重问题。通过这道题，你将学习如何用幂等键来确保同一操作即使被多次执行，结果也只生效一次。
 
 ## 题目说明
 
-Idempotency ensures that retrying saga steps doesn't cause duplicate operations like double-charging payments.
+幂等性确保 Saga 步骤被重试时不会产生重复操作，比如重复扣款。
 
-**Idempotency key**:
+**幂等键**：
 
-Each saga step is tagged with:
+每个 Saga 步骤都会打上以下标签：
 - saga_id: "saga42"
 - step_id: 2
 - idempotency_key: "saga42:step2"
 
-**Service-side idempotency tracking**:
+**服务端的幂等性追踪**：
 
 ```typescript
 processed_steps = new Map<string, PaymentResult>();
@@ -40,41 +34,41 @@ chargePayment(saga_id: string, step: number, params: ChargeParams) {
 
   // Check if already processed
   if (this.processed_steps.has(key)) {
-    console.日志(`Already processed ${key}, returning cached result`);
+    console.log(`Already processed ${key}, returning cached result`);
     return this.processed_steps.get(key);
   }
 
-  // Process和缓存 result
+  // Process and cache result
   const result = this.doCharge(params);
   this.processed_steps.set(key, result);
   return result;
 }
 ```
 
-**Example: 重试 without double-charge**:
+**示例：重试时不会重复扣款**：
 
-```JSON
+```json
 // First attempt:
 {"type": "ChargePayment", "saga_id": "saga42", "step": 2, "params": {"user_id": "u42", "amount": 99.99}}
-响应: {"type": "ChargePayment_ok", "saga_id": "saga42", "step": 2, "result": {"payment_id": "p1", "charged": 99.99}}
+Response: {"type": "ChargePayment_ok", "saga_id": "saga42", "step": 2, "result": {"payment_id": "p1", "charged": 99.99}}
 
-// 网络 超时, orchestrator retries:
+// Network timeout, orchestrator retries:
 {"type": "ChargePayment", "saga_id": "saga42", "step": 2, "params": {"user_id": "u42", "amount": 99.99}}
-响应: {"type": "ChargePayment_ok", "saga_id": "saga42", "step": 2, "result": {"payment_id": "p1", "charged": 99.99}, "note": "cached_result"}
+Response: {"type": "ChargePayment_ok", "saga_id": "saga42", "step": 2, "result": {"payment_id": "p1", "charged": 99.99}, "note": "cached_result"}
 
 // User is only charged once (payment_id = "p1")
 ```
 
-**Compensating transactions must also be idempotent**:
+**补偿事务也必须是幂等的**：
 
-```JSON
+```json
 // First compensation:
 {"type": "RefundPayment", "saga_id": "saga42", "step": 2, "compensating": true, "params": {"payment_id": "p1", "amount": 99.99}}
-响应: {"type": "RefundPayment_ok", "saga_id": "saga42", "step": 2, "result": {"refund_id": "r1", "refunded": 99.99}}
+Response: {"type": "RefundPayment_ok", "saga_id": "saga42", "step": 2, "result": {"refund_id": "r1", "refunded": 99.99}}
 
-// 重试:
+// Retry:
 {"type": "RefundPayment", "saga_id": "saga42", "step": 2, "compensating": true, "params": {"payment_id": "p1", "amount": 99.99}}
-响应: {"type": "RefundPayment_ok", "saga_id": "saga42", "step": 2, "result": {"refund_id": "r1", "refunded": 99.99}, "note": "already_refunded"}
+Response: {"type": "RefundPayment_ok", "saga_id": "saga42", "step": 2, "result": {"refund_id": "r1", "refunded": 99.99}, "note": "already_refunded"}
 ```
 
 ## 涉及概念
@@ -87,17 +81,17 @@ chargePayment(saga_id: string, step: number, params: ChargeParams) {
 
 ## 实现提示
 
-- Tag each step，包含a unique saga_id + step_id combination
-- Services track processed steps to avoid duplicate work
-- If a step is retried, the service should return the same result
-- Use idempotency keys: the service checks if it already processed this step
-- Example: ChargePayment(saga42, step2) should only charge once, even if retried
+- 为每个步骤打上唯一的 saga_id + step_id 组合标签
+- 服务端追踪已处理的步骤，避免重复执行
+- 如果同一步骤被重试，服务应返回与之前相同的结果
+- 使用幂等键：服务先检查该步骤是否已经处理过
+- 例如：ChargePayment(saga42, step2) 即使被重试也只扣款一次
 
 ## 测试用例
 
-### 1. Idempotent charge on 重试
+### 1. 重试时扣款操作的幂等性
 
-Both requests should return the same payment_id. Second 请求 should note "cached_result". User should only be charged once.
+两次请求应返回相同的 payment_id。第二次请求应标注 "cached_result"。用户应该只被扣款一次。
 
 输入：
 
@@ -113,9 +107,9 @@ Both requests should return the same payment_id. Second 请求 should note "cach
 {"src": "payment", "dest": "c0", "body": {"type": "init_ok", "in_reply_to": 1, "msg_id": 0}}
 ```
 
-### 2. Idempotent refund on 重试
+### 2. 重试时退款操作的幂等性
 
-Both requests should return the same refund_id. Second 请求 should note "already_refunded". Payment should only be refunded once.
+两次请求应返回相同的 refund_id。第二次请求应标注 "already_refunded"。款项应该只被退还一次。
 
 输入：
 
@@ -133,7 +127,7 @@ Both requests should return the same refund_id. Second 请求 should note "alrea
 
 ## 参考资料
 
-- [Idempotency Patterns](https://www.awsarchitectureblog.com/2017/01/12/idempotency-patterns-for-distributed-systems.html)：AWS blog on idempotency patterns
+- [Idempotency Patterns](https://www.awsarchitectureblog.com/2017/01/12/idempotency-patterns-for-distributed-systems.html)：AWS 博客上关于幂等性模式的文章
 
 ## 本地文件
 

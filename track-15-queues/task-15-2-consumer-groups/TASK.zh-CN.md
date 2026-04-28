@@ -1,45 +1,39 @@
-# 添加 Consumer Groups，包含Partitions
+# 实现消费者组与分区
 
-英文标题：Add Consumer Groups，包含Partitions
+英文标题：Add Consumer Groups with Partitions
 网页：<https://builddistributedsystem.com/tracks/queues/tasks/task-15-2-consumer-groups>
 
 课程：15. 队列
 任务序号：2
-短标题：Consumer Groups
-难度：intermediate
-子主题：At-Most-Once和At-Least-Once Delivery
+短标题：消费者组
+难度：进阶
+子主题：至多一次与至少一次投递
 
 ## 中文导读
 
-本题要求你完成 `添加 Consumer Groups，包含Partitions`。
-
-重点关注：`consumer groups`、`partitioning`、`parallel processing`。
-
-建议先按提示逐步实现：Partition 消息 by key。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你实现类似 Kafka 的消费者组（Consumer Group）机制，让多个消费者可以并行地从同一个主题中消费消息，同时保证同一个键的消息始终由同一个消费者处理。这是大规模消息系统实现水平扩展的核心机制。
 
 ## 题目说明
 
-Implement Kafka-style consumer groups:
+实现 Kafka 风格的消费者组：
 
-1. Topic has multiple partitions
-2. 消息，包含same key go to same partition
-3. Consumer group: each partition assigned to one consumer
-4. Multiple groups each see all 消息
-5. Rebalance partitions when consumers change
+1. 一个主题（Topic）包含多个分区（Partition）
+2. 具有相同键（Key）的消息会被路由到同一个分区
+3. 在一个消费者组内，每个分区只分配给一个消费者
+4. 不同的消费者组各自独立消费全部消息
+5. 当消费者加入或离开时，需要重新分配分区
 
-This enables parallel consumption while maintaining per-key ordering.
+这种设计既实现了并行消费，又保证了同一个键的消息按顺序处理。
 
 ## 概念说明
 
-### Consumer Groups
+### 消费者组
 
-Kafka pioneered consumer groups. Within a group, partitions are divided among consumers用于parallelism. Different groups independently consume all 消息 (pub-sub pattern，包含scaling).
+消费者组是 Kafka 首创的概念。在一个消费者组内部，所有分区会被均匀分配给组内的消费者，从而实现并行处理。不同的消费者组则各自独立地消费所有消息，相当于"发布-订阅"模式加上了水平扩展的能力。
 
-### Partition Assignment
+### 分区分配
 
-When consumers join/leave, partitions must be reassigned. Cooperative rebalancing minimizes disruption. Partition count limits max parallelism - plan accordingly.
+当消费者加入或离开消费者组时，需要对分区进行重新分配（Rebalance）。协作式的重平衡策略可以尽量减少对正在处理中的任务的干扰。需要注意的是，分区的数量决定了最大并行度——如果只有 4 个分区，那么同一个消费者组最多只能有 4 个消费者同时工作。
 
 ## 涉及概念
 
@@ -49,15 +43,15 @@ When consumers join/leave, partitions must be reassigned. Cooperative rebalancin
 
 ## 实现提示
 
-- Partition 消息 by key
-- Each partition assigned to one consumer per group
-- Rebalance on consumer join/leave
+- 根据消息的键来决定消息应该进入哪个分区
+- 在同一个消费者组内，每个分区只能分配给一个消费者
+- 当消费者加入或离开时，触发分区的重新分配
 
 ## 测试用例
 
-### 1. Parallel consumption
+### 1. 并行消费验证
 
-Topic，包含4 partitions. Consumer group，包含2 consumers (c1, c2). Each consumer should be assigned 2 partitions. 消息，包含same key go to same partition. Verify consumers process partitions in parallel和maintain per-key ordering.
+一个主题包含 4 个分区，一个消费者组中有 2 个消费者（c1 和 c2）。每个消费者应该被分配 2 个分区。具有相同键的消息会进入同一个分区。验证消费者能够并行处理各自的分区，并且在每个键的维度上保持消息的顺序。
 
 输入：
 
@@ -73,7 +67,7 @@ Topic，包含4 partitions. Consumer group，包含2 consumers (c1, c2). Each co
 
 ## 参考资料
 
-- [Kafka Consumer Groups](https://kafka.apache.org/documentation/#intro_consumers)：Kafka consumer documentation
+- [Kafka Consumer Groups](https://kafka.apache.org/documentation/#intro_consumers)：Kafka 官方文档中关于消费者组的介绍
 
 ## 本地文件
 

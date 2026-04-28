@@ -1,74 +1,70 @@
-# 实现 Secure Session Management
+# 实现安全会话管理
 
 英文标题：Implement Secure Session Management
 网页：<https://builddistributedsystem.com/tracks/securitor/tasks/task-24-1-3-session-management>
 
-课程：26. 安全器：认证、授权与加密
+课程：26. 安全器
 任务序号：3
-短标题：Session Management
-难度：intermediate
-子主题：Authentication和Authorization
+短标题：会话管理
+难度：进阶
+子主题：认证与授权
 
 ## 中文导读
 
-本题要求你完成 `实现 Secure Session Management`。
-
-重点关注：`session`、`session ID`、`session fixation`、`session expiry`、`session storage`。
-
-建议先按提示逐步实现：Session ID must be cryptographically random (use uuid or similar)。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现服务端会话管理，包括会话的创建、验证、重新生成和销毁。会话是传统 Web 应用中最常用的身份状态保持方式：用户登录后服务端创建一条记录，将标识通过 Cookie 发给客户端，后续请求凭此标识证明身份。理解会话管理的安全要点，是 Web 安全的基础。
 
 ## 题目说明
 
-Sessions store authentication state 服务端-side. After login, the 服务端 creates a session record keyed by a random ID和sends that ID to the 客户端 as a cookie. On every subsequent 请求, the 客户端 presents the ID和the 服务端 looks up the session.
+会话（Session）在服务端存储认证状态。用户登录成功后，服务端创建一条会话记录，以随机生成的标识作为键，并通过 Cookie 将该标识发送给客户端。此后每次请求，客户端都会携带这个标识，服务端据此查找对应的会话信息。
 
-Implement a 节点 that manages 服务端-side sessions:
+会话管理就像餐厅的取餐号码牌：你点完餐（登录）后，餐厅给你一个号码牌（会话标识），之后你凭号码牌取餐（访问资源）。会话固定攻击（Session Fixation）是指攻击者先获取一个会话标识，然后诱导用户使用这个标识登录，这样攻击者就能冒充用户。防范方法很简单：用户登录或权限变更后，立即重新生成一个新的会话标识。
 
-```JSON
-// Create a new session after successful login
+你需要实现一个节点来管理服务端会话：
+
+```json
+// 登录成功后创建新会话
 { "type": "create_session", "msg_id": 1, "user_id": "user123" }
 -> { "type": "session_created", "in_reply_to": 1,
     "session_id": "<crypto-random-uuid>",
     "expires_at": <unix-timestamp> }
 
-// Validate a session cookie on incoming 请求
+// 验证传入请求中的会话 Cookie
 { "type": "validate_session", "msg_id": 2, "session_id": "abc123" }
 -> { "type": "session_valid", "in_reply_to": 2,
     "user_id": "user123", "expires_in": 3600 }
 
-// Regenerate session ID after privilege change (prevents fixation)
+// 权限变更后重新生成会话标识（防范会话固定攻击）
 { "type": "regenerate_session", "msg_id": 3, "old_session_id": "abc123" }
 -> { "type": "session_regenerated", "in_reply_to": 3,
     "new_session_id": "<new-uuid>" }
 
-// Destroy session on logout
+// 登出时销毁会话
 { "type": "destroy_session", "msg_id": 4, "session_id": "abc123" }
 -> { "type": "session_destroyed", "in_reply_to": 4,
-    "消息": "Session destroyed" }
+    "message": "Session destroyed" }
 ```
 
 ## 涉及概念
 
-- `session`
-- `session ID`
-- `session fixation`
-- `session expiry`
-- `session storage`
+- session
+- session ID
+- session fixation
+- session expiry
+- session storage
 
 ## 实现提示
 
-- Session ID must be cryptographically random (use uuid or similar)
-- validate_session returns user_id和expires_in from the stored session
-- regenerate_session creates a NEW random session_id和copies all session data to it
-- destroy_session removes the session from 存储 permanently
-- Session expiry: track created_at + ttl; return session_invalid if expired
+- 会话标识必须是加密安全的随机值（使用 UUID 或类似方案）
+- validate_session 从存储的会话中返回 user_id 和 expires_in
+- regenerate_session 创建一个新的随机会话标识，并将原有会话数据复制过去
+- destroy_session 从存储中永久删除该会话
+- 会话过期：记录 created_at + ttl；如果已过期则返回 session_invalid
 
 ## 测试用例
 
-### 1. 创建 session
+### 1. 创建会话
 
-Should create session，包含random session_id和expiry timestamp.
+应当创建会话，包含随机的会话标识和过期时间戳。
 
 输入：
 
@@ -82,9 +78,9 @@ Should create session，包含random session_id和expiry timestamp.
 {"type": "session_created", "in_reply_to": 1, "session_id": ".*", "expires_at": ".*"}
 ```
 
-### 2. Validate session
+### 2. 验证会话
 
-Valid session_id should return user_id和remaining time.
+有效的会话标识应当返回用户标识和剩余有效时间。
 
 输入：
 
@@ -100,7 +96,7 @@ Valid session_id should return user_id和remaining time.
 
 ## 参考资料
 
-- [OWASP Session Management](https://owasp.org/www-community/attacks/Session_fixation)：Session fixation attacks和how to prevent them
+- [OWASP Session Management](https://owasp.org/www-community/attacks/Session_fixation)：介绍会话固定攻击及其防范方法
 
 ## 本地文件
 

@@ -1,4 +1,4 @@
-# 实现 Byzantine Fault Tolerance
+# 实现拜占庭容错
 
 英文标题：Implement Byzantine Fault Tolerance
 网页：<https://builddistributedsystem.com/tracks/advanced/tasks/task-10-3-pbft>
@@ -6,28 +6,22 @@
 课程：10. 高级主题
 任务序号：3
 短标题：PBFT
-难度：advanced
-子主题：高级 Paradigms
+难度：高级
+子主题：高级范式
 
 ## 中文导读
 
-本题要求你完成 `实现 Byzantine Fault Tolerance`。
-
-重点关注：`Byzantine`、`PBFT`、`f faults`。
-
-建议先按提示逐步实现：Need 3f+1 节点 to tolerate f faults。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你实现实用拜占庭容错（PBFT）算法。与之前学习的崩溃容错不同，拜占庭容错能应对节点"作恶"的情况（比如发送虚假消息）。PBFT 需要 3f+1 个节点才能容忍 f 个拜占庭故障节点，是区块链等系统的理论基础。
 
 ## 题目说明
 
-Implement PBFT: tolerates f Byzantine faults，包含3f+1 节点. Three phases: pre-prepare, prepare, commit.
+实现 PBFT 算法：在 3f+1 个节点的系统中容忍 f 个拜占庭（Byzantine）故障节点。协议分为三个阶段：预准备（Pre-Prepare）、准备（Prepare）和提交（Commit）。
 
 ## 概念说明
 
-### Byzantine Fault Tolerance
+### 拜占庭容错
 
-Byzantine faults include malicious behavior. PBFT requires 3f+1 节点 to tolerate f faulty 节点. Uses 3 phases，包含quorum certificates.
+拜占庭故障包括恶意行为，比如节点故意发送错误信息或拒绝响应。PBFT 需要 3f+1 个节点才能容忍 f 个故障节点，协议通过三个阶段和法定人数证书（Quorum Certificate）来达成共识。你可以把它理解为：即使有人在捣乱，只要捣乱的人不超过三分之一，系统仍然能正常工作。
 
 ## 涉及概念
 
@@ -37,15 +31,15 @@ Byzantine faults include malicious behavior. PBFT requires 3f+1 节点 to tolera
 
 ## 实现提示
 
-- Need 3f+1 节点 to tolerate f faults
-- Pre-prepare, Prepare, Commit phases
-- Wait用于2f+1 matching 消息
+- 需要 3f+1 个节点来容忍 f 个故障节点
+- 三个阶段：预准备（Pre-Prepare）、准备（Prepare）、提交（Commit）
+- 等待收集到 2f+1 个一致的消息才能推进
 
 ## 测试用例
 
-### 1. Pre-prepare phase
+### 1. 预准备阶段
 
-Multi-节点 test: 4 节点 (n=4, f=1, need 2f+1=3用于quorum). Primary (n0) receives 客户端 请求 seq=1. Primary broadcasts PRE-PREPARE to all replicas (n1, n2, n3)，包含sequence number, digest,和view. Verify all replicas receive pre-prepare 消息.
+多节点测试：4 个节点（n=4，f=1，法定人数为 2f+1=3）。主节点（n0）收到客户端请求 seq=1。主节点向所有副本（n1、n2、n3）广播 PRE-PREPARE 消息，包含序列号、摘要和视图编号。验证所有副本都收到了预准备消息。
 
 输入：
 
@@ -61,7 +55,7 @@ Multi-节点 test: 4 节点 (n=4, f=1, need 2f+1=3用于quorum). Primary (n0) re
 
 ## 参考资料
 
-- [PBFT Paper](http://pmg.csail.mit.edu/papers/osdi99.pdf)：Practical Byzantine 故障 Tolerance
+- [PBFT Paper](http://pmg.csail.mit.edu/papers/osdi99.pdf)：实用拜占庭容错的原始论文
 
 ## 本地文件
 

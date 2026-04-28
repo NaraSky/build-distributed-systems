@@ -1,42 +1,36 @@
-#处理Tree节点Failure，包含Direct Fallback
+# 处理树节点故障并实现直接投递回退
 
-英文标题：Handle Tree节点Failure，包含Direct Fallback
+英文标题：Handle Tree Node Failure with Direct Fallback
 网页：<https://builddistributedsystem.com/tracks/gossiper/tasks/task-3-3-2-tree-failure>
 
 课程：3. 传播者：Gossip 信息传播
 任务序号：12
-短标题：Tree Failure
-难度：advanced
+短标题：树节点故障
+难度：高级
 子主题：Topology-Aware Gossip
 
 ## 中文导读
 
-本题要求你完成 `Handle Tree节点Failure，包含Direct Fallback`。
-
-重点关注：`fault tolerance`、`tree failure`、`ack timeout`、`direct delivery`。
-
-建议先按提示逐步实现：When a child 节点 crashes, the entire subtree below it goes dark。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题让你解决树广播的"脆弱性"问题。树广播虽然高效，但一旦某个节点崩溃，它下方的整棵子树都会失联。你需要加入故障检测机制：当发现子节点没有按时回复确认时，自动切换到直接投递模式，把消息直接发给可能受影响的节点。这是分布式系统中容错设计的典型练习。
 
 ## 题目说明
 
-Tree 广播 is efficient but fragile: if a 节点 crashes, all its descendants lose connectivity. Your task is to add **故障 detection**，包含direct fallback.
+树广播效率高，但也很脆弱：如果某个节点崩溃了，它的所有后代节点都会失去连接。你的任务是为树广播添加**故障检测**机制，并在检测到故障时回退到直接投递方式。
 
-When forwarding to a neighbor, expect a `broadcast_ack` within a 超时. If no ack arrives, fall back to direct delivery to all known 节点 that might be in the failed subtree.
+具体来说，当你向邻居转发消息时，需要期待对方在超时时间内回复一个 `broadcast_ack`。如果超时未收到确认，就回退到直接投递模式，把消息直接发送给所有可能在故障子树中的节点。
 
-Implement:
-1. `广播`，包含ack tracking
-2. `broadcast_ack` handler用于acknowledgments
-3. `check_acks` handler to simulate 超时 checking和trigger fallback
-4. `failure_stats` to report failures
+需要实现以下功能：
+1. 带确认追踪的 `broadcast` 广播
+2. 处理 `broadcast_ack` 确认消息
+3. `check_acks` 处理器，用于模拟超时检查并触发回退投递
+4. `failure_stats` 用于报告故障统计信息
 
-```JSON
+```json
 请求:  {"type": "check_acks", "msg_id": 1}
 响应: {"type": "check_acks_ok", "in_reply_to": 1, "pending": 2, "timed_out": 1, "direct_sent": 3}
 ```
 
-```JSON
+```json
 请求:  {"type": "failure_stats", "msg_id": 2}
 响应: {"type": "failure_stats_ok", "in_reply_to": 2, "total_failures": 1, "direct_deliveries": 3}
 ```
@@ -50,15 +44,15 @@ Implement:
 
 ## 实现提示
 
-- When a child 节点 crashes, the entire subtree below it goes dark
-- Track acknowledgments from children，包含timeouts
-- If no ack within 500ms, send directly to known downstream 节点
-- Maintain a list of all 节点用于direct fallback
-- 日志 failed deliveries to 标准错误用于debugging
+- 当一个子节点崩溃时，它下方的整棵子树都会"失联"
+- 为每个子节点的确认设置超时追踪
+- 如果 500 毫秒内未收到确认，就直接把消息发给已知的下游节点
+- 维护一个包含所有节点的列表，用于直接投递的回退方案
+- 将投递失败的信息输出到标准错误流，便于调试
 
 ## 测试用例
 
-### 1. 广播，包含no neighbors
+### 1. 没有邻居时的广播
 
 输入：
 
@@ -78,7 +72,7 @@ Implement:
 {"src": "n1", "dest": "c1", "body": {"type": "read_ok", "messages": [42], "in_reply_to": 4, "msg_id": 3}}
 ```
 
-### 2. Failure stats initially zero
+### 2. 故障统计初始值为零
 
 输入：
 
@@ -96,7 +90,7 @@ Implement:
 
 ## 参考资料
 
-- [Fault-Tolerant Broadcast](https://www.cs.cornell.edu/projects/Quicksilver/public_pdfs/2003-reliable-scalable.pdf)：Cornell research on reliable 广播 in unreliable networks
+- [Fault-Tolerant Broadcast](https://www.cs.cornell.edu/projects/Quicksilver/public_pdfs/2003-reliable-scalable.pdf)：康奈尔大学关于在不可靠网络中实现可靠广播的研究论文
 
 ## 本地文件
 

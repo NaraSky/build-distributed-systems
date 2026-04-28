@@ -1,45 +1,39 @@
-# 实现 Collapsed Forwarding
+# 实现合并转发
 
 英文标题：Implement Collapsed Forwarding
 网页：<https://builddistributedsystem.com/tracks/proxies/tasks/task-12-3-collapsed>
 
 课程：12. 代理
 任务序号：3
-短标题：Collapsed Forwarding
-难度：intermediate
-子主题：Caching 代理
+短标题：合并转发
+难度：进阶
+子主题：缓存代理
 
 ## 中文导读
 
-本题要求你完成 `实现 Collapsed Forwarding`。
-
-重点关注：`collapsed forwarding`、`thundering herd`、`cache miss handling`。
-
-建议先按提示逐步实现：Similar to deduplication but用于缓存 misses。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现合并转发（Collapsed Forwarding），用于解决缓存失效时的"惊群效应"问题。当一个热门缓存项过期后，可能有大量请求同时到达并且都没有命中缓存。合并转发只让第一个请求去源服务器拉取数据，其余请求则等待结果，从而避免后端被瞬间涌入的请求压垮。
 
 ## 题目说明
 
-Implement collapsed forwarding用于缓存 misses to prevent thundering herd:
+实现缓存未命中时的合并转发，防止惊群效应（Thundering Herd）：
 
-When a cached item expires和multiple requests arrive:
-1. First 请求 goes to the origin (is "collapsed")
-2. Subsequent requests用于the same key wait
-3. When origin responds, 缓存 the 响应
-4. Return the cached 响应 to all waiting requests
+当一个缓存项过期且同时有多个请求到达时：
+1. 第一个请求被放行，去源服务器获取数据（这就是"合并"的含义）
+2. 后续对同一个键的请求排队等待
+3. 当源服务器响应后，将结果缓存起来
+4. 将缓存的响应返回给所有等待中的请求
 
-This prevents the backend from being overwhelmed when popular items expire.
+这样可以防止热门缓存项过期时后端被大量请求淹没。
 
 ## 概念说明
 
-### Thundering Herd Problem
+### 惊群效应
 
-When a popular cached item expires, thousands of requests might simultaneously miss the 缓存和hit the backend. This can overwhelm the backend和cause cascading failures.
+当一个热门的缓存项过期时，可能有成千上万个请求同时发现缓存已失效，然后全部涌向后端。这就像一群羊突然受惊，全部朝同一个方向冲去——后端可能因此被压垮，进而引发级联故障。
 
-### Collapsed Forwarding
+### 合并转发
 
-Collapsed forwarding allows only one 请求 through to the origin while others wait. When the 响应 arrives, it is cached和returned to all waiters. CDNs like Varnish implement this.
+合并转发只允许一个请求穿透到源服务器，其他请求则排队等待。当响应返回后，结果被缓存并分发给所有等待者。CDN 系统（如 Varnish）就实现了这一机制。
 
 ## 涉及概念
 
@@ -49,15 +43,15 @@ Collapsed forwarding allows only one 请求 through to the origin while others w
 
 ## 实现提示
 
-- Similar to deduplication but用于缓存 misses
-- Only one 请求 goes to origin
-- 队列 waiters until 响应 arrives
+- 与请求去重类似，但针对的是缓存未命中的场景
+- 只让一个请求到达源服务器
+- 将其余请求排队，等待响应到达后再统一返回
 
 ## 测试用例
 
-### 1. Collapse concurrent requests
+### 1. 合并并发请求
 
-缓存 miss用于key "x". Three concurrent requests用于key "x" arrive at 代理 simultaneously. First 请求 goes to backend (collapsed), other 2 wait. When backend responds, all 3 clients get the cached 响应. Verify only 1 backend call made.
+键 "x" 的缓存未命中。三个并发请求同时到达代理，都请求键 "x"。第一个请求被放行到后端（合并），其余两个等待。当后端响应后，所有三个客户端都收到缓存的响应。验证只发起了一次后端调用。
 
 输入：
 
@@ -73,7 +67,7 @@ Collapsed forwarding allows only one 请求 through to the origin while others w
 
 ## 参考资料
 
-- [Varnish Collapsed Forwarding](https://varnish-cache.org/docs/)：Varnish documentation on 请求 coalescing
+- [Varnish Collapsed Forwarding](https://varnish-cache.org/docs/)：Varnish 文档中关于请求合并的说明
 
 ## 本地文件
 

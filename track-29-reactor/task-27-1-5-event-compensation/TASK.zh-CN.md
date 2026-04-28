@@ -1,32 +1,26 @@
-# 实现 Event Compensation和Sagas
+# 实现事件补偿与 Saga 模式
 
-英文标题：Implement Event Compensation和Sagas
+英文标题：Implement Event Compensation and Sagas
 网页：<https://builddistributedsystem.com/tracks/reactor/tasks/task-27-1-5-event-compensation>
 
 课程：29. 反应器：事件溯源与 CQRS
 任务序号：5
-短标题：Sagas
-难度：advanced
+短标题：Saga 模式
+难度：高级
 子主题：Event Sourcing
 
 ## 中文导读
 
-本题要求你完成 `实现 Event Compensation和Sagas`。
-
-重点关注：`saga pattern`、`distributed transactions`、`compensation`、`rollback`、`choreography`。
-
-建议先按提示逐步实现：Execute steps in order; on any 故障, compensate all previously completed steps in reverse order。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你实现 Saga 模式来处理分布式事务。在微服务架构中，一个业务操作往往需要跨多个服务协调完成，但又不能像单体应用那样用一个数据库事务搞定。Saga 把整个操作拆成一系列步骤，每个步骤都有对应的"撤销"操作。一旦某个步骤失败，就按相反的顺序逐个撤销已完成的步骤。这是分布式系统中保证数据一致性的经典方案。
 
 ## 题目说明
 
-Distributed transactions across multiple services cannot use a single database commit. A **saga** breaks the operation into a sequence of local steps, each，包含a corresponding compensation action. If any step fails, all already-completed steps are rolled back by executing their compensations in reverse order.
+跨多个服务的分布式事务无法使用单个数据库提交来完成。**Saga 模式**将操作拆分为一系列本地步骤，每个步骤都有对应的补偿操作。如果某个步骤失败，所有已完成的步骤都会通过按相反顺序执行补偿操作来回滚。
 
-Implement a 节点 that executes sagas和handles failures:
+你需要实现一个执行 Saga 并处理失败的节点：
 
-```JSON
-// Execute all steps successfully
+```json
+// 所有步骤全部成功
 { "type": "execute", "msg_id": 1,
   "saga_id": "booking-123",
   "steps": ["book_flight", "book_hotel", "book_car"] }
@@ -34,7 +28,7 @@ Implement a 节点 that executes sagas和handles failures:
     "saga_id": "booking-123",
     "state": "completed", "completed_steps": 3 }
 
-// Fail at book_hotel, compensate completed steps in reverse
+// 在 book_hotel 步骤失败，按相反顺序补偿已完成的步骤
 { "type": "execute", "msg_id": 2,
   "saga_id": "booking-124",
   "steps": ["book_flight", "book_hotel"],
@@ -45,7 +39,11 @@ Implement a 节点 that executes sagas和handles failures:
     "compensated_steps": ["book_flight"] }
 ```
 
-When a step fails, only the steps that were successfully completed before it need to be compensated — the failing step itself is not compensated because it never completed. Compensation order is the reverse of execution order.
+当某个步骤失败时，只有在它之前已经成功完成的步骤需要被补偿。失败的步骤本身不需要补偿，因为它从未完成。补偿顺序是执行顺序的逆序。
+
+## 概念说明
+
+Saga 模式可以用旅行预订来类比：你需要依次订机票、订酒店、订租车。如果订酒店时失败了，你需要把之前订好的机票退掉。注意退订的顺序是"后进先出"的：最后完成的步骤最先撤销，就像撤销操作的"回退栈"一样。
 
 ## 涉及概念
 
@@ -57,17 +55,17 @@ When a step fails, only the steps that were successfully completed before it nee
 
 ## 实现提示
 
-- Execute steps in order; on any 故障, compensate all previously completed steps in reverse order
-- fail_step in the test input tells you which step should fail — simulate that 故障
-- compensated_steps must list only the steps that were successfully executed before the 故障
-- The compensation order is reverse of execution: last completed step is compensated first
-- saga_id must be echoed back in every 响应 so the caller can correlate requests
+- 按顺序执行步骤；如果某个步骤失败，按相反顺序补偿所有之前已完成的步骤
+- 测试输入中的 fail_step 字段指明哪个步骤应该模拟失败
+- compensated_steps 只列出在失败之前已成功执行的步骤
+- 补偿顺序是执行顺序的逆序：最后完成的步骤最先被补偿
+- 每个响应中都必须回传 saga_id，以便调用者进行关联
 
 ## 测试用例
 
-### 1. Execute saga successfully
+### 1. 成功执行 Saga
 
-All three steps succeed, completed_steps=3.
+三个步骤全部成功，completed_steps 为 3。
 
 输入：
 
@@ -81,9 +79,9 @@ All three steps succeed, completed_steps=3.
 {"type": "saga_completed", "in_reply_to": 1, "saga_id": "booking-123", "state": "completed", "completed_steps": 3}
 ```
 
-### 2. Compensate on failure
+### 2. 失败时进行补偿
 
-book_hotel fails, only book_flight (already completed) is compensated.
+book_hotel 失败，只有之前已完成的 book_flight 需要被补偿。
 
 输入：
 
@@ -99,7 +97,7 @@ book_hotel fails, only book_flight (already completed) is compensated.
 
 ## 参考资料
 
-- [Saga Pattern](https://microservices.io/patterns/data/saga.html)：Chris Richardson's overview of the saga pattern用于distributed transactions
+- [Saga Pattern](https://microservices.io/patterns/data/saga.html)：Chris Richardson 对分布式事务 Saga 模式的概述
 
 ## 本地文件
 

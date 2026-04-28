@@ -1,4 +1,4 @@
-# 实现 Path-Based Routing
+# 实现基于路径的路由
 
 英文标题：Implement Path-Based Routing
 网页：<https://builddistributedsystem.com/tracks/loadbalancers/tasks/task-20-2-2-path-routing>
@@ -6,24 +6,20 @@
 课程：14. 负载均衡器
 任务序号：7
 短标题：Path-Based Routing
-难度：intermediate
-子主题：Layer 7 Load Balancing
+难度：进阶
+子主题：七层负载均衡
 
 ## 中文导读
 
-本题要求你完成 `实现 Path-Based Routing`。
-
-重点关注：`path-based routing`、`URL rewriting`、`routing tables`、`wildcard matching`、`backend pools`。
-
-建议先按提示逐步实现：Match URL paths against routing rules: /api/* → api pool, /static/* → static pool。
+本题要求你实现基于 URL 路径的请求路由。在微服务架构中，不同的路径通常对应不同的服务：比如 /api/* 打到 API 服务器，/static/* 打到静态资源服务器。你需要实现路径匹配（包括最长前缀匹配）和 URL 重写功能。这是构建 API 网关和微服务入口的核心能力。
 
 协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
 
 ## 题目说明
 
-Path-based routing directs requests to different backend pools based on the URL path. This enables microservices architecture where /api/* routes to API servers和/static/* routes to CDN/static servers.
+基于路径的路由根据 URL 路径将请求转发到不同的后端池，从而支持微服务架构——例如 /api/* 路由到 API 服务器，/static/* 路由到 CDN 或静态资源服务器。
 
-**Routing rules**:
+**路由规则**：
 ```
 /api/*              → api-backend-pool
 /api/users/*       → users-service-pool (more specific)
@@ -32,31 +28,31 @@ Path-based routing directs requests to different backend pools based on the URL 
 /admin/*           → admin-backend-pool
 ```
 
-**Longest-prefix matching**:
+**最长前缀匹配**：
 ```
-请求: /api/users/123
+Request: /api/users/123
   - Matches /api/*           (priority: 1)
   - Matches /api/users/*     (priority: 2) ✓ MORE SPECIFIC
   → Route to users-service-pool
 ```
 
-**URL rewriting**:
+**URL 重写**：
 ```
-客户端 请求: GET /api/v1/users
-  ↓ (代理 rewrites)
-Backend 请求: GET /v1/users
+Client request: GET /api/v1/users
+  ↓ (proxy rewrites)
+Backend request: GET /v1/users
   ↓ (backend responds)
-代理 响应: HTTP/1.1 200 OK
+Proxy response: HTTP/1.1 200 OK
 ```
 
-**Example routing**:
-```JSON
-请求:  {"type": "http_request", "msg_id": 1, "method": "GET", "path": "/api/users/123", "headers": {"Host": "example.com"}}
-响应: {"type": "http_response", "in_reply_to": 1, "status": 200, "backend": "users-1", "rewritten_path": "/users/123"}
+**路由示例**：
+```json
+Request:  {"type": "http_request", "msg_id": 1, "method": "GET", "path": "/api/users/123", "headers": {"Host": "example.com"}}
+Response: {"type": "http_response", "in_reply_to": 1, "status": 200, "backend": "users-1", "rewritten_path": "/users/123"}
 ```
 
-**Routing table configuration**:
-```JSON
+**路由表配置**：
+```json
 {
   "routes": [
     {"path_pattern": "/api/users/*", "backend_pool": "users", "rewrite": { "strip_prefix": "/api" }},
@@ -77,17 +73,17 @@ Backend 请求: GET /v1/users
 
 ## 实现提示
 
-- Match URL paths against routing rules: /api/* → api pool, /static/* → static pool
-- Use longest-prefix matching: /api/users/auth matches /api/users/* not just /api/*
-- Implement URL rewriting: strip /api prefix before forwarding to backend
-- Support wildcards: /api/v* matches /api/v1, /api/v2
-- Return 404 if no route matches
+- 将 URL 路径与路由规则匹配：/api/* 路由到 API 池，/static/* 路由到静态资源池
+- 使用最长前缀匹配：/api/users/auth 应匹配 /api/users/* 而不是 /api/*
+- 实现 URL 重写：转发到后端前去掉 /api 前缀
+- 支持通配符：/api/v* 匹配 /api/v1、/api/v2
+- 没有匹配规则时返回 404
 
 ## 测试用例
 
-### 1. Route /api/users to users pool
+### 1. 将 /api/users 路由到用户服务池
 
-Should match /api/users/* (more specific than /api/*)和strip /api prefix.
+应匹配 /api/users/*（比 /api/* 更具体），并去掉 /api 前缀。
 
 输入：
 
@@ -101,9 +97,9 @@ Should match /api/users/* (more specific than /api/*)和strip /api prefix.
 {"src": "l7_proxy", "dest": "client", "body": {"type": "http_response", "in_reply_to": 1, "status": 200, "backend": "users-1", "rewritten_path": "/users/123"}}
 ```
 
-### 2. Route /api/posts to api pool
+### 2. 将 /api/posts 路由到通用 API 池
 
-Should match /api/* (no more specific rule exists)和strip /api prefix.
+应匹配 /api/*（没有更具体的规则），并去掉 /api 前缀。
 
 输入：
 
@@ -119,7 +115,7 @@ Should match /api/* (no more specific rule exists)和strip /api prefix.
 
 ## 参考资料
 
-- [Path-Based Routing](https://kubernetes.io/docs/concepts/services-networking/ingress/)：Kubernetes ingress path-based routing documentation
+- [Path-Based Routing](https://kubernetes.io/docs/concepts/services-networking/ingress/)：关于基于路径路由的说明文档
 
 ## 本地文件
 

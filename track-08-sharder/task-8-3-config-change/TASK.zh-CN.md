@@ -1,45 +1,39 @@
-#处理Configuration Changes
+# 处理配置变更
 
 英文标题：Handle Configuration Changes
 网页：<https://builddistributedsystem.com/tracks/sharder/tasks/task-8-3-config-change>
 
 课程：8. 分片器：水平扩展与数据迁移
 任务序号：3
-短标题：Config Change
-难度：advanced
+短标题：配置变更
+难度：高级
 子主题：Range Sharding
 
 ## 中文导读
 
-本题要求你完成 `Handle Configuration Changes`。
-
-重点关注：`configuration`、`coordination`、`atomic transition`。
-
-建议先按提示逐步实现：Poll controller用于new configs。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你处理分片配置的变更流程。当分片控制器更新了分配方案后，各副本组需要感知到变化并执行数据迁移。这是分布式系统中一个很有挑战性的问题，因为必须保证数据在迁移过程中不丢失、不重复。
 
 ## 题目说明
 
-Handle 分片 configuration changes:
+处理分片配置的变更：
 
-1. Replica groups poll controller用于configuration updates
-2. Detect when 分片 assignment changes
-3. Start migration: fetch shards assigned to this group
-4. Complete migration before processing 客户端 requests
-5. Acknowledge migration to source groups
+1. 副本组定期向控制器轮询配置更新
+2. 检测分片分配是否发生了变化
+3. 开始迁移：获取新分配给本组的分片数据
+4. 在迁移完成之前，不处理客户端请求
+5. 向源副本组确认迁移完成
 
-Groups must coordinate to ensure exactly-once transfer.
+各副本组之间必须协调配合，确保数据的精确一次传输。
 
 ## 概念说明
 
-### Configuration Versioning
+### 配置版本控制
 
-Configurations are versioned. Groups must apply configurations in order. Skip a version和you might miss a 分片 assignment, leading to data loss.
+配置信息带有版本号。各副本组必须按顺序逐版本应用配置。如果跳过某个版本，可能会遗漏分片分配的变更，导致数据丢失。
 
-### Migration Coordination
+### 迁移协调
 
-When shards move, both source和destination must coordinate. Source stops serving the 分片, sends data, destination takes over. Use config version to track progress.
+当分片发生迁移时，源副本组和目标副本组必须相互协调。源端停止服务该分片、发送数据，目标端接收数据后开始提供服务。通过配置版本号来跟踪迁移进度。
 
 ## 涉及概念
 
@@ -49,15 +43,15 @@ When shards move, both source和destination must coordinate. Source stops servin
 
 ## 实现提示
 
-- Poll controller用于new configs
-- Process configs in order
-- Coordinate between replicas
+- 定期向控制器轮询新配置
+- 按照版本顺序处理配置变更
+- 在副本之间进行协调
 
 ## 测试用例
 
-### 1. Detect config change
+### 1. 检测配置变更
 
-Group detects version change (1→2)和applies new config.
+副本组检测到版本从 1 变为 2，并应用新配置。
 
 输入：
 

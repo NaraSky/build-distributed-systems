@@ -1,43 +1,39 @@
-# 实现 异步 RPC使用Callbacks
+# 基于回调实现异步 RPC
 
-英文标题：Implement Async RPC使用Callbacks
+英文标题：Implement Async RPC Using Callbacks
 网页：<https://builddistributedsystem.com/tracks/messenger/tasks/task-1-2-3-async-rpc>
 
 课程：1. 信使：消息通信基础
 任务序号：8
 短标题：异步 RPC
-难度：intermediate
-子主题：RPC和the Request-Response模式l
+难度：进阶
+子主题：RPC 与请求-响应模型
 
 ## 中文导读
 
-本题要求你完成 `实现 异步 RPC使用Callbacks`。
+前面实现的同步 RPC 有一个问题：发送请求后必须阻塞等待回复，期间节点无法处理其他消息。在高吞吐的分布式系统中，这是不可接受的。
 
-重点关注：`asynchronous programming`、`callbacks`、`non-blocking I/O`、`event-driven`。
-
-建议先按提示逐步实现：Store callbacks in a dictionary keyed by msg_id。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题让你实现**异步 RPC**：发送请求后立即返回，不阻塞；等回复到达时，通过预先注册的回调函数来处理。这是构建高性能分布式系统的关键模式。
 
 ## 题目说明
 
-Synchronous RPC blocks the caller until a reply arrives, which prevents the 节点 from handling other 消息 during that time. In high-throughput 分布式系统, **asynchronous RPC** is preferred.
+同步 RPC 在等待回复期间会阻塞调用方，导致节点在此期间无法处理其他消息。在高吞吐的分布式系统中，**异步 RPC** 是更好的选择。
 
-Your task is to implement an `async_rpc` method that:
+你的任务是实现一个 `async_rpc` 方法，它需要：
 
-1. Sends a 消息 to a target 节点
-2. Registers a callback function keyed by the outgoing `msg_id`
-3. Returns immediately (non-blocking)
-4. When a reply arrives (with matching `in_reply_to`), invokes the callback，包含the reply body
+1. 向目标节点发送消息
+2. 以发出消息的 `msg_id` 为键，注册一个回调函数（Callback）
+3. 立即返回（非阻塞）
+4. 当回复到达时（通过 `in_reply_to` 匹配），调用对应的回调函数，并传入回复的 body
 
-Implement a `batch_echo` 消息 type: the 节点 receives a list of strings, sends an `echo` RPC用于each one to itself (loopback),和collects all replies使用callbacks. Once all replies are collected, respond，包含the results.
+实现一个 `batch_echo`（批量回声）消息类型来验证该功能：节点收到一组字符串后，为每个字符串向自己发送一条 `echo` RPC（环回），并通过回调收集所有回复。当所有回复都收集完成后，将结果返回给调用方。
 
-```JSON
-请求:  {"type": "batch_echo", "msg_id": 1, "values": ["a", "b", "c"]}
-响应: {"type": "batch_echo_ok", "in_reply_to": 1, "results": ["a", "b", "c"]}
+```json
+Request:  {"type": "batch_echo", "msg_id": 1, "values": ["a", "b", "c"]}
+Response: {"type": "batch_echo_ok", "in_reply_to": 1, "results": ["a", "b", "c"]}
 ```
 
-For testing, the 节点 should echo to itself (src和dest are the same 节点).
+在测试中，节点应该向自己发送 echo 请求（即 `src` 和 `dest` 都是本节点）。
 
 ## 涉及概念
 
@@ -48,15 +44,15 @@ For testing, the 节点 should echo to itself (src和dest are the same 节点).
 
 ## 实现提示
 
-- Store callbacks in a dictionary keyed by msg_id
-- When a reply arrives, look up the callback by in_reply_to和invoke it
-- The callback should receive the reply body as its argument
-- Use a handler map to dispatch different 消息 types
-- Async RPC allows the 节点 to continue processing other 消息 while waiting
+- 用一个字典（Map）存储回调函数，以 `msg_id` 为键
+- 当回复到达时，通过 `in_reply_to` 查找对应的回调并执行
+- 回调函数应该接收回复的 body 作为参数
+- 使用处理器映射表来分发不同类型的消息
+- 异步 RPC 允许节点在等待回复的同时继续处理其他消息
 
 ## 测试用例
 
-### 1. 初始化和回声 still work
+### 1. 初始化和回声仍然正常工作
 
 输入：
 
@@ -72,9 +68,9 @@ For testing, the 节点 should echo to itself (src和dest are the same 节点).
 {"src": "n1", "dest": "c1", "body": {"type": "echo_ok", "echo": "async", "in_reply_to": 2, "msg_id": 1}}
 ```
 
-### 2. 回调 registration sends RPC
+### 2. 回调注册并发送 RPC
 
-The async_rpc should send an echo 消息 to itself. The callback fires when the reply arrives in a subsequent 消息.
+`async_rpc` 应该向自身发送一条 echo 消息。当回复在后续消息中到达时，触发回调。
 
 输入：
 
@@ -92,7 +88,7 @@ The async_rpc should send an echo 消息 to itself. The callback fires when the 
 
 ## 参考资料
 
-- [Callback-Based Asynchronous Programming](https://en.wikipedia.org/wiki/Callback_(computer_programming))：Overview of callback patterns in programming
+- [Callback-Based Asynchronous Programming](https://en.wikipedia.org/wiki/Callback_(computer_programming))：回调编程模式的概述
 
 ## 本地文件
 

@@ -1,4 +1,4 @@
-# 实现 Circuit Breaking in 服务 Mesh
+# 实现服务网格中的熔断器
 
 英文标题：Implement Circuit Breaking in Service Mesh
 网页：<https://builddistributedsystem.com/tracks/orchestrator/tasks/task-26-2-4-circuit-breaking>
@@ -6,52 +6,50 @@
 课程：28. 编排器：容器调度与服务网格
 任务序号：9
 短标题：Circuit Breaking
-难度：advanced
-子主题：服务 Mesh
+难度：高级
+子主题：Service Mesh
 
 ## 中文导读
 
-本题要求你完成 `实现 Circuit Breaking in 服务 Mesh`。
-
-重点关注：`circuit breaker`、`fail fast`、`half-open state`、`cascading failures`、`service resilience`。
-
-建议先按提示逐步实现：Three states: closed (calls pass through), open (fail immediately), half-open (test one call)。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现一个按服务维护状态机的熔断器节点。当下游服务出了问题，如果你还一直调用它，只会白白浪费资源并拖慢自己的响应速度。熔断器能自动检测到这种情况，立刻停止调用故障服务，并定期探测它是否恢复。这就像家里的保险丝，在电路异常时自动断开以保护整个电路。
 
 ## 题目说明
 
-When a downstream service is failing, continuing to call it wastes resources和slows down your service. A circuit breaker detects this和**fails fast**: instead of waiting用于a 超时, it immediately returns an error和periodically tests whether the service has recovered.
+当下游服务出现故障时，继续调用它只会浪费资源并拖慢你的服务。熔断器（Circuit Breaker）检测到故障后会**快速失败**：不再等待超时，而是立即返回错误，并周期性地探测下游服务是否已恢复。
 
-The circuit breaker has three states:
+熔断器有三个状态：
 
 ```
-CLOSED  --(故障 threshold exceeded)--> OPEN
-OPEN    --(after 超时)--> HALF-OPEN
-HALF-OPEN --(success)--> CLOSED
-HALF-OPEN --(故障)--> OPEN
+关闭（CLOSED）  --（失败次数超过阈值）--> 打开（OPEN）
+打开（OPEN）    --（等待超时后）--> 半开（HALF-OPEN）
+半开（HALF-OPEN） --（探测成功）--> 关闭（CLOSED）
+半开（HALF-OPEN） --（探测失败）--> 打开（OPEN）
 ```
 
-Implement a 节点 that enforces this state machine per service:
+请实现一个按服务维护熔断器状态机的节点：
 
-```JSON
-// Enough failures -> breaker opens
+```json
+// 失败次数足够多 -> 熔断器打开
 { "type": "call", "msg_id": 1,
   "force_failures": 5 }
 -> { "type": "circuit_breaker_open", "in_reply_to": 1,
     "service": "service-b", "failures": 5 }
 
-// Fail fast while circuit is open
+// 熔断器打开时快速失败
 { "type": "call", "msg_id": 2, "state": "open" }
 -> { "type": "error", "in_reply_to": 2,
     "error": "Circuit breaker OPEN", "service": "service-b" }
 
-// Half-open probe succeeds -> close the breaker
+// 半开状态下探测成功 -> 关闭熔断器
 { "type": "call", "msg_id": 3,
   "state": "half_open", "force_success": true }
 -> { "type": "circuit_breaker_closed", "in_reply_to": 3,
     "service": "service-b", "state": "closed" }
 ```
+
+## 概念说明
+
+熔断器的工作方式和家用保险丝很像。正常情况下保险丝是闭合的，电流正常通过（关闭状态）。一旦电流过大，保险丝就会熔断，切断电路以保护电器（打开状态）。过一段时间后，你会试着把保险丝合上，看看问题是否解决了（半开状态）。如果一切正常就恢复使用，如果还是有问题就再次断开。在分布式系统中，"电流过大"就对应着"下游服务连续失败"。
 
 ## 涉及概念
 
@@ -63,17 +61,17 @@ Implement a 节点 that enforces this state machine per service:
 
 ## 实现提示
 
-- Three states: closed (calls pass through), open (fail immediately), half-open (test one call)
-- Transition to open when consecutive failures >= threshold
-- In half-open, allow one call through; close on success, re-open on 故障
-- Fail fast: when open, return error immediately without calling the downstream service
-- Track failures per service so each service has its own independent circuit breaker
+- 三个状态：关闭（请求正常通过）、打开（立即返回失败）、半开（放行一个请求进行探测）
+- 当连续失败次数达到或超过阈值时，转换到打开状态
+- 在半开状态下，只放行一个请求：成功则关闭熔断器，失败则重新打开
+- 快速失败：打开状态下立即返回错误，不再调用下游服务
+- 按服务独立追踪失败次数，每个服务维护自己独立的熔断器
 
 ## 测试用例
 
-### 1. Circuit breaker opens after failures
+### 1. 熔断器在多次失败后打开
 
-Circuit breaker should open after 5 consecutive failures.
+连续 5 次失败后熔断器应打开。
 
 输入：
 
@@ -87,9 +85,9 @@ Circuit breaker should open after 5 consecutive failures.
 {"type": "circuit_breaker_open", "in_reply_to": 1, "service": "service-b", "failures": 5}
 ```
 
-### 2. Circuit breaker recovers on success
+### 2. 熔断器在探测成功后恢复
 
-Successful probe in half-open state should close the breaker.
+半开状态下的探测成功应关闭熔断器。
 
 输入：
 
@@ -105,7 +103,7 @@ Successful probe in half-open state should close the breaker.
 
 ## 参考资料
 
-- [Circuit Breaker Pattern](https://martinfowler.com/bliki/CircuitBreaker.html)：Martin Fowler's explanation of the circuit breaker pattern
+- [Circuit Breaker Pattern](https://martinfowler.com/bliki/CircuitBreaker.html)：Martin Fowler 对熔断器模式的详细解释
 
 ## 本地文件
 

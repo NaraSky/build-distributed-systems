@@ -1,41 +1,35 @@
-# 实现 Tree-Based 广播 Overlay
+# 实现基于树的广播覆盖网络
 
 英文标题：Implement Tree-Based Broadcast Overlay
 网页：<https://builddistributedsystem.com/tracks/gossiper/tasks/task-3-3-1-tree-broadcast>
 
 课程：3. 传播者：Gossip 信息传播
 任务序号：11
-短标题：Tree 广播
-难度：intermediate
+短标题：树广播
+难度：进阶
 子主题：Topology-Aware Gossip
 
 ## 中文导读
 
-本题要求你完成 `实现 Tree-Based 广播 Overlay`。
-
-重点关注：`spanning tree`、`tree broadcast`、`overlay network`、`message forwarding`。
-
-建议先按提示逐步实现：Build a spanning tree from the topology provided by Maelstrom。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你用生成树（Spanning Tree）来优化广播效率。随机八卦传播虽然简单，但会产生大量重复消息；而基于树的广播能保证每个节点只收到一份消息副本，大幅减少网络开销。理解树广播是学习拓扑感知型传播协议的基础。
 
 ## 题目说明
 
-Random gossip wastes 消息 because 节点 may receive duplicates. A **spanning tree** ensures each 节点 receives exactly one copy: the root broadcasts to its children, who forward to their children, etc.
+随机八卦传播会浪费消息，因为节点（Node）可能会重复收到同一条消息。**生成树（Spanning Tree）** 可以确保每个节点恰好只收到一份消息副本：根节点将消息广播给它的子节点，子节点再转发给各自的子节点，以此类推。
 
-Your task is to implement tree-based 广播:
+你需要实现基于树的广播机制：
 
-1. Use the `topology` 消息 to learn your tree neighbors
-2. On `广播`, forward to all tree neighbors except the source
-3. Track the forwarding path用于debugging
+1. 通过 `topology` 消息获取本节点的树邻居列表
+2. 收到 `broadcast` 后，将消息转发给所有树邻居（发送方除外）
+3. 记录转发路径，便于调试
 
-Handle these 消息 types:
-- `topology`: Store the neighbor list用于this 节点
-- `广播`: Store value和forward to tree neighbors
-- `read`: Return all known values
-- `tree_info`: Return current tree structure用于this 节点
+需要处理以下消息类型：
+- `topology`：存储本节点的邻居列表
+- `broadcast`：存储值并转发给树邻居
+- `read`：返回所有已知的值
+- `tree_info`：返回本节点当前的树结构信息
 
-```JSON
+```json
 请求:  {"type": "tree_info", "msg_id": 1}
 响应: {"type": "tree_info_ok", "in_reply_to": 1, "neighbors": ["n2", "n3"], "message_count": 5}
 ```
@@ -49,15 +43,15 @@ Handle these 消息 types:
 
 ## 实现提示
 
-- Build a spanning tree from the topology provided by Maelstrom
-- Each 节点 only forwards to its children in the tree
-- Tree 广播 has O(N-1) 消息 vs O(N*K)用于random gossip
-- The root receives the 广播和pushes down the tree
-- Use the topology 消息 to learn your neighbors
+- 根据 Maelstrom 提供的拓扑信息构建生成树
+- 每个节点只向自己在树中的子节点转发消息
+- 树广播的消息复杂度为 O(N-1)，而随机八卦传播为 O(N*K)，效率差距明显
+- 根节点收到广播后，沿着树向下逐层推送
+- 利用 `topology` 消息来获知自己的邻居节点
 
 ## 测试用例
 
-### 1. Topology stores neighbors
+### 1. 拓扑消息正确存储邻居
 
 输入：
 
@@ -75,7 +69,7 @@ Handle these 消息 types:
 {"src": "n1", "dest": "c1", "body": {"type": "tree_info_ok", "neighbors": ["n2", "n3"], "message_count": 0, "in_reply_to": 3, "msg_id": 2}}
 ```
 
-### 2. 广播 stores和reads back
+### 2. 广播后可正确读取
 
 输入：
 
@@ -97,7 +91,7 @@ Handle these 消息 types:
 
 ## 参考资料
 
-- [Spanning Tree Protocol](https://en.wikipedia.org/wiki/Spanning_Tree_Protocol)：Overview of spanning tree concepts in networking
+- [Spanning Tree Protocol](https://en.wikipedia.org/wiki/Spanning_Tree_Protocol)：介绍网络中生成树概念的综述
 
 ## 本地文件
 

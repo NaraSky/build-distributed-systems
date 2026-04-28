@@ -1,34 +1,28 @@
-# 实现 Grow-Only Set (G-Set)，包含Gossip
+# 实现基于八卦传播的只增集合
 
-英文标题：Implement Grow-Only Set (G-Set)，包含Gossip
+英文标题：Implement Grow-Only Set (G-Set) with Gossip
 网页：<https://builddistributedsystem.com/tracks/gossiper/tasks/task-3-4-1-gset>
 
 课程：3. 传播者：Gossip 信息传播
 任务序号：16
-短标题：G-Set
-难度：intermediate
-子主题：Epidemic Algorithms和CRDT Gossip
+短标题：只增集合
+难度：进阶
+子主题：Epidemic Algorithms and CRDT Gossip
 
 ## 中文导读
 
-本题要求你完成 `实现 Grow-Only Set (G-Set)，包含Gossip`。
-
-重点关注：`G-Set`、`CRDT`、`set union`、`eventual consistency`。
-
-建议先按提示逐步实现：A G-Set only supports add operations, never remove。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题让你实现最简单的无冲突复制数据类型（CRDT）-- 只增集合（G-Set）。顾名思义，这个集合只能往里添加元素，不能删除。合并操作就是求并集，天然满足交换律、结合律和幂等性，非常适合通过八卦传播来实现最终一致性。这是理解所有 CRDT 的入门基础。
 
 ## 题目说明
 
-A **Grow-only Set (G-Set)** is the simplest CRDT. Elements can be added but never removed. Merge is set union, which is commutative, associative,和idempotent - guaranteeing 最终一致性 via gossip.
+**只增集合（G-Set）** 是最简单的无冲突复制数据类型（CRDT）。元素只能添加，不能删除。合并操作就是集合求并集，它满足交换律、结合律和幂等性，因此通过八卦传播就能保证最终一致性。
 
-Implement a G-Set replicated via gossip:
-1. `add` - Add an element to the set
-2. `read` - Return all elements
-3. `merge` - Merge a remote G-Set (union)
+你需要实现一个通过八卦传播复制的只增集合：
+1. `add` - 向集合中添加一个元素
+2. `read` - 返回集合中的所有元素
+3. `merge` - 与远端的只增集合合并（求并集）
 
-```JSON
+```json
 请求:  {"type": "add", "msg_id": 1, "element": "x"}
 响应: {"type": "add_ok", "in_reply_to": 1}
 
@@ -48,15 +42,15 @@ Implement a G-Set replicated via gossip:
 
 ## 实现提示
 
-- A G-Set only supports add operations, never remove
-- Merge is simply set union: merged = local | remote
-- Union is commutative, associative,和idempotent - perfect用于gossip
-- Convergence is guaranteed because sets only grow
-- This is the simplest CRDT to implement
+- 只增集合只支持添加操作，永远不能删除
+- 合并就是简单的集合并集：合并结果 = 本地集合 | 远端集合
+- 并集运算满足交换律、结合律和幂等性，天然适合八卦传播
+- 因为集合只会增长不会缩小，所以收敛是有保障的
+- 这是最简单的 CRDT 实现
 
 ## 测试用例
 
-### 1. 添加和read
+### 1. 添加元素后读取
 
 输入：
 
@@ -74,7 +68,7 @@ Implement a G-Set replicated via gossip:
 {"src": "n1", "dest": "c1", "body": {"type": "read_ok", "elements": ["x"], "in_reply_to": 3, "msg_id": 2}}
 ```
 
-### 2. Merge adds new elements
+### 2. 合并操作引入新元素
 
 输入：
 
@@ -96,7 +90,7 @@ Implement a G-Set replicated via gossip:
 
 ## 参考资料
 
-- [A Comprehensive Study of CRDTs](https://hal.inria.fr/inria-00555588/document)：Shapiro et al. survey of CRDT designs
+- [A Comprehensive Study of CRDTs](https://hal.inria.fr/inria-00555588/document)：Shapiro 等人对各种 CRDT 设计的综合调研
 
 ## 本地文件
 

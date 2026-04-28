@@ -1,45 +1,39 @@
-# 实现 基础 Relay 代理
+# 实现基础转发代理
 
 英文标题：Implement Basic Relay Proxy
 网页：<https://builddistributedsystem.com/tracks/proxies/tasks/task-12-1-relay>
 
 课程：12. 代理
 任务序号：1
-短标题：Relay 代理
-难度：beginner
-子主题：Caching 代理
+短标题：转发代理
+难度：入门
+子主题：缓存代理
 
 ## 中文导读
 
-本题要求你完成 `实现 基础 Relay 代理`。
-
-重点关注：`proxy`、`forwarding`、`request handling`。
-
-建议先按提示逐步实现：Accept incoming requests。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现一个最基础的转发代理（Relay Proxy）。代理是分布式系统中非常常见的组件，它位于客户端和服务端之间，负责接收客户端请求并转发给后端服务器，再把响应返回给客户端。掌握代理的工作原理是理解负载均衡、缓存、安全等高级功能的基础。
 
 ## 题目说明
 
-Build a basic relay 代理 that forwards requests to a backend 服务端:
+构建一个基础的转发代理，将请求转发到后端服务器：
 
-1. Listen用于incoming 客户端 requests
-2. Parse the 请求 to determine backend destination
-3. Forward the 请求 to the backend
-4. Wait用于the backend 响应
-5. Return the 响应 to the 客户端
+1. 监听客户端发来的请求
+2. 解析请求，确定要转发到哪个后端服务器
+3. 将请求转发给后端服务器
+4. 等待后端服务器的响应
+5. 将响应返回给客户端
 
-Handle connection errors和timeouts gracefully.
+需要妥善处理连接错误和超时的情况。
 
 ## 概念说明
 
-### What is a 代理?
+### 什么是代理？
 
-A 代理 sits between clients和servers, intercepting和forwarding requests. Proxies can add functionality like caching, load balancing, security,和logging without modifying 客户端 or 服务端 code.
+代理（Proxy）位于客户端和服务端之间，拦截并转发请求。通过代理，可以在不修改客户端或服务端代码的前提下，添加缓存、负载均衡、安全验证、日志记录等功能。你可以把代理想象成一个"中间人"——客户端把请求交给中间人，中间人再帮忙去找真正的服务端拿结果。
 
-### Forward vs Reverse 代理
+### 正向代理与反向代理
 
-A forward 代理 acts on behalf of clients (e.g., corporate firewall). A reverse 代理 acts on behalf of servers (e.g., NGINX in front of application servers). We will build a reverse 代理.
+正向代理（Forward Proxy）代表客户端发起请求，例如公司防火墙后面的代理服务器。反向代理（Reverse Proxy）代表服务端接收请求，例如放在应用服务器前面的 NGINX。本题要构建的是一个反向代理。
 
 ## 涉及概念
 
@@ -49,15 +43,15 @@ A forward 代理 acts on behalf of clients (e.g., corporate firewall). A reverse
 
 ## 实现提示
 
-- Accept incoming requests
-- Forward to backend 服务端
-- Return 响应 to 客户端
+- 接收客户端发来的请求
+- 将请求转发给后端服务器
+- 将后端的响应返回给客户端
 
 ## 测试用例
 
-### 1. Forward request
+### 1. 转发请求
 
-代理 forwards GET /api/data to backend和returns 响应 to 客户端
+代理将 GET /api/data 请求转发到后端，并把响应返回给客户端。
 
 输入：
 
@@ -75,7 +69,7 @@ A forward 代理 acts on behalf of clients (e.g., corporate firewall). A reverse
 
 ## 参考资料
 
-- [Proxy Patterns](https://en.wikipedia.org/wiki/Proxy_pattern)：Overview of 代理 design patterns
+- [Proxy Patterns](https://en.wikipedia.org/wiki/Proxy_pattern)：代理设计模式概述
 
 ## 本地文件
 

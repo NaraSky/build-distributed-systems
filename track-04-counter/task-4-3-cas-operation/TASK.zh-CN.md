@@ -1,33 +1,26 @@
-# 实现 Compare-And-Swap (CAS) Operation
+# 实现比较并交换操作
 
-英文标题：Implement Compare-And-Swap (CAS) Operation
 网页：<https://builddistributedsystem.com/tracks/counter/tasks/task-4-3-cas-operation>
 
 课程：4. 计数器：分布式状态与 CRDT
 任务序号：3
-短标题：Compare-And-Swap
-难度：intermediate
-子主题：The Lost Update Problem
+短标题：比较并交换
+难度：进阶
+子主题：丢失更新问题
 
 ## 中文导读
 
-本题要求你完成 `实现 Compare-And-Swap (CAS) Operation`。
-
-重点关注：`CAS`、`optimistic concurrency`、`atomic operations`。
-
-建议先按提示逐步实现：Read current value, compute new, CAS to update。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题让你用比较并交换操作来实现计数器，从而解决丢失更新问题。比较并交换是一种原子操作，只有当前值与预期值匹配时才执行更新，否则就重试。这是无锁编程中最基础也最重要的原语之一。
 
 ## 题目说明
 
-Implement your 计数器使用Compare-And-Swap (CAS) operations. CAS atomically updates a value only if it matches an expected value, preventing lost updates.
+使用比较并交换（Compare-And-Swap，简称 CAS）操作来实现计数器。CAS 会在更新前检查值是否与预期一致：如果一致就执行更新，如果不一致说明有其他节点已经修改了这个值，此时需要重新读取并重试。通过这种方式可以防止丢失更新。
 
 ## 概念说明
 
-### Compare-And-Swap
+### 比较并交换
 
-CAS is the foundation of lock-free algorithms. It atomically checks if a value equals an expected value and, if so, updates it. If the check fails, someone else modified the value和you must 重试.
+CAS 是无锁算法的基石。它的工作原理可以类比为"乐观地尝试修改"：先读取当前值，计算新值，然后告诉系统"如果当前值还是我之前读到的那个，就把它改成新值"。如果检查失败，说明在你读取之后有其他人修改了这个值，你需要重新来过。这种"先尝试、失败就重试"的策略就是乐观并发控制（Optimistic Concurrency）的核心思想。
 
 ## 涉及概念
 
@@ -37,13 +30,13 @@ CAS is the foundation of lock-free algorithms. It atomically checks if a value e
 
 ## 实现提示
 
-- Read current value, compute new, CAS to update
-- 重试 on CAS 故障
--处理the race between read和CAS
+- 先读取当前值，计算新值，然后用 CAS 更新
+- 如果 CAS 失败，需要重试
+- 注意处理读取和 CAS 之间的竞态条件
 
 ## 测试用例
 
-### 1. CAS-based 计数器
+### 1. 基于 CAS 的计数器
 
 输入：
 

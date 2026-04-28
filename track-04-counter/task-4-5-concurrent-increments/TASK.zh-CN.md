@@ -1,33 +1,26 @@
-#处理Concurrent Increments Across Multiple Nodes
+# 处理多节点并发递增
 
-英文标题：Handle并发Increments Across Multiple Nodes
 网页：<https://builddistributedsystem.com/tracks/counter/tasks/task-4-5-concurrent-increments>
 
 课程：4. 计数器：分布式状态与 CRDT
 任务序号：5
-短标题：Concurrent Updates
-难度：advanced
-子主题：The Lost Update Problem
+短标题：并发更新
+难度：高级
+子主题：丢失更新问题
 
 ## 中文导读
 
-本题要求你完成 `Handle并发Increments Across Multiple Nodes`。
-
-重点关注：`concurrent operations`、`distributed testing`、`verification`。
-
-建议先按提示逐步实现：Periodically gossip your G-计数器 state。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题让你在高并发负载下测试 G-Counter 的正确性。多个节点会同时进行递增操作，最终的读取值必须等于所有递增量的总和。这是对你 CRDT 实现的真正考验，你需要让节点之间通过 gossip 协议同步状态。
 
 ## 题目说明
 
-Test your G-计数器 under heavy concurrent load. Multiple 节点 will simultaneously increment和the final value must equal the sum of all increments.
+在高并发负载下测试你的 G-Counter。多个节点会同时进行递增操作，最终读取到的值必须等于所有递增操作的总和。
 
 ## 概念说明
 
-### Eventual Consistency
+### 最终一致性
 
-With proper CRDT implementation, all 节点 will eventually converge to the same value. The G-计数器 guarantees this even under 网络 partitions和arbitrary 消息 delays.
+如果 CRDT 实现正确，所有节点最终都会收敛到相同的值。G-Counter 能保证这一点，即使在网络分区和消息延迟任意的情况下也不例外。就像各地的投票站分别统计选票，最终汇总时一定能得到正确的总数。
 
 ## 涉及概念
 
@@ -37,13 +30,13 @@ With proper CRDT implementation, all 节点 will eventually converge to the same
 
 ## 实现提示
 
-- Periodically gossip your G-计数器 state
-- Merge received states into yours
-- All 节点 should converge to same value
+- 定期通过 gossip 协议将你的 G-Counter 状态广播给其他节点
+- 收到其他节点的状态时，将其合并到本地状态中
+- 所有节点最终应该收敛到相同的值
 
 ## 测试用例
 
-### 1. Local increments accumulate correctly
+### 1. 本地递增正确累加
 
 输入：
 

@@ -1,44 +1,38 @@
-#处理Client 重试和去重
+# 处理客户端重试与请求去重
 
-英文标题：Handle Client Retry和Deduplication
+英文标题：Handle Client Retry and Deduplication
 网页：<https://builddistributedsystem.com/tracks/store/tasks/task-7-4-client-dedup>
 
-课程：7. 存储：线性一致 KV Store
+课程：7. 存储：线性一致键值存储
 任务序号：4
 短标题：Client Dedup
-难度：intermediate
-子主题：Linearizable 键值 存储
+难度：进阶
+子主题：线性一致键值存储
 
 ## 中文导读
 
-本题要求你完成 `Handle Client 重试和去重`。
-
-重点关注：`idempotency`、`client sessions`、`deduplication`。
-
-建议先按提示逐步实现：客户端 assigns unique ID to each 请求。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现客户端请求的去重机制。在分布式系统中，网络不可靠会导致客户端重试请求，而如果服务端不做去重，同一个操作可能被执行多次。这道题让你理解如何通过序列号和会话跟踪，把"至少一次"的消息投递转变为安全的"恰好一次"语义。
 
 ## 题目说明
 
-Handle 客户端 retries without duplicate execution:
+实现客户端重试去重机制，防止同一请求被重复执行：
 
-1. 客户端 assigns sequence number to each 请求
-2. 服务端 tracks (client_id -> latest_seq, 响应)
-3. If 请求 seq <= latest_seq, return cached 响应
-4. Otherwise, process和缓存 new 响应
+1. 客户端为每个请求分配一个序列号
+2. 服务端维护一张表，记录每个客户端的最新序列号和对应的响应：(client_id -> latest_seq, response)
+3. 如果收到的请求序列号小于等于已记录的最新序列号，直接返回缓存的响应
+4. 否则，正常处理请求，并缓存新的响应
 
-This makes at-least-once delivery safe用于non-idempotent operations.
+这样即使客户端多次发送同一请求，非幂等操作也不会被重复执行，保证了"至少一次"投递模式下的安全性。
 
 ## 概念说明
 
-### Exactly-Once Semantics
+### 恰好一次语义
 
-网络 issues cause retries. Without deduplication, a PUT might execute twice. By tracking 客户端 sessions和sequence numbers, we can detect和skip duplicates.
+网络问题会导致客户端重试。如果没有去重机制，一个 PUT 操作可能会被执行两次。通过跟踪客户端会话（Session）和序列号，我们可以检测并跳过重复的请求。这就好比快递员送包裹，收件人签收后快递员又来送了一次同一个包裹，收件人应该告诉快递员"我已经签收过了"，而不是再签收一次。
 
-### Session State
+### 会话状态的持久化
 
-The deduplication table must survive Leader changes. Store it in the replicated state machine. Periodically garbage collect old sessions.
+去重表必须在领导者切换时仍然有效。因此需要将去重表存储在可复制的状态机中，让所有节点都持有相同的去重信息。另外，要定期清理过期的会话数据，避免去重表无限增长。
 
 ## 涉及概念
 
@@ -48,13 +42,13 @@ The deduplication table must survive Leader changes. Store it in the replicated 
 
 ## 实现提示
 
-- 客户端 assigns unique ID to each 请求
-- 服务端 tracks latest 响应 per 客户端
-- Duplicate 请求 returns cached 响应
+- 客户端为每个请求分配唯一标识
+- 服务端记录每个客户端的最近一次响应
+- 收到重复请求时直接返回缓存的响应
 
 ## 测试用例
 
-### 1. First request executes
+### 1. 首次请求正常执行
 
 输入：
 

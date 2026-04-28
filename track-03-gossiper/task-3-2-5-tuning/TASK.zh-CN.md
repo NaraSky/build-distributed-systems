@@ -1,38 +1,32 @@
-# Tune Gossip Parameters用于Maelstrom 广播
+# 调优 Gossip 参数以应对 Maelstrom 广播测试
 
-英文标题：Tune Gossip Parameters用于Maelstrom Broadcast
+英文标题：Tune Gossip Parameters for Maelstrom Broadcast
 网页：<https://builddistributedsystem.com/tracks/gossiper/tasks/task-3-2-5-tuning>
 
 课程：3. 传播者：Gossip 信息传播
 任务序号：10
-短标题：Gossip Tuning
-难度：advanced
-子主题：Gossip Protocol
+短标题：Gossip 调优
+难度：高级
+子主题：Gossip 协议
 
 ## 中文导读
 
-本题要求你完成 `Tune Gossip Parameters用于Maelstrom 广播`。
-
-重点关注：`parameter tuning`、`messages-per-op`、`latency tradeoff`、`gossip optimization`。
-
-建议先按提示逐步实现：消息-per-op = total 消息 sent / total 广播 operations。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题是 Gossip 协议系列的综合实践——Maelstrom 广播测试要求在网络分区条件下，每次操作产生的消息数不超过 30 条。你需要实现可配置的 Gossip 参数，并通过统计接口跟踪消息效率。这是把前面学到的理论知识应用到实际性能调优的过程。
 
 ## 题目说明
 
-The Maelstrom 广播 workload requires 消息-per-op < 30 under 网络 partitions. Your task is to implement configurable gossip parameters和track 消息 efficiency.
+Maelstrom 广播测试要求在网络分区的情况下，每次操作产生的消息数（messages-per-op）小于 30。你的任务是实现可配置的 Gossip 参数，并跟踪消息传递效率。
 
-Implement a `configure` handler to set gossip parameters:
-```JSON
-请求:  {"type": "configure", "msg_id": 1, "fanout": 3, "gossip_interval_ms": 200}
-响应: {"type": "configure_ok", "in_reply_to": 1}
+实现 `configure` 处理器来设置 Gossip 参数：
+```json
+Request:  {"type": "configure", "msg_id": 1, "fanout": 3, "gossip_interval_ms": 200}
+Response: {"type": "configure_ok", "in_reply_to": 1}
 ```
 
-And a `gossip_stats` handler to report efficiency:
-```JSON
-请求:  {"type": "gossip_stats", "msg_id": 2}
-响应: {"type": "gossip_stats_ok", "in_reply_to": 2, 
+以及 `gossip_stats` 处理器来报告效率指标：
+```json
+Request:  {"type": "gossip_stats", "msg_id": 2}
+Response: {"type": "gossip_stats_ok", "in_reply_to": 2, 
            "broadcasts_received": 10, "gossip_messages_sent": 45,
            "messages_per_op": 4.5, "unique_messages": 10}
 ```
@@ -46,15 +40,15 @@ And a `gossip_stats` handler to report efficiency:
 
 ## 实现提示
 
-- 消息-per-op = total 消息 sent / total 广播 operations
-- Lower fanout = fewer 消息 but slower convergence
-- Higher gossip interval = fewer rounds but more latency
-- The sweet spot balances 消息 overhead vs delivery reliability
-- Track both metrics和expose them via a stats endpoint
+- 每次操作消息数 = 总发送消息数 / 总广播操作数
+- 扇出值越小，消息越少，但收敛越慢
+- Gossip 间隔越长，轮次越少，但延迟越高
+- 最佳参数是在消息开销和投递可靠性之间找到的平衡点
+- 同时跟踪两项指标，并通过统计接口对外暴露
 
 ## 测试用例
 
-### 1. Configure updates fanout
+### 1. 配置更新扇出值
 
 输入：
 
@@ -70,7 +64,7 @@ And a `gossip_stats` handler to report efficiency:
 {"src": "n1", "dest": "c1", "body": {"type": "configure_ok", "in_reply_to": 2, "msg_id": 1}}
 ```
 
-### 2. Stats，包含zero broadcasts
+### 2. 零广播时的统计信息
 
 输入：
 
@@ -88,7 +82,7 @@ And a `gossip_stats` handler to report efficiency:
 
 ## 参考资料
 
-- [Fly.io Gossip Glomers - Broadcast](https://fly.io/dist-sys/3a/)：Fly.io 分布式系统 challenge用于广播 workloads
+- [Fly.io Gossip Glomers - Broadcast](https://fly.io/dist-sys/3a/)：Fly.io 分布式系统广播挑战题
 
 ## 本地文件
 

@@ -1,45 +1,39 @@
-# 实现 At-Least-Once Delivery
+# 实现至少一次投递
 
 英文标题：Implement At-Least-Once Delivery
 网页：<https://builddistributedsystem.com/tracks/queues/tasks/task-15-3-at-least-once>
 
 课程：15. 队列
 任务序号：3
-短标题：At-Least-Once
-难度：intermediate
-子主题：At-Most-Once和At-Least-Once Delivery
+短标题：至少一次投递
+难度：进阶
+子主题：至多一次与至少一次投递
 
 ## 中文导读
 
-本题要求你完成 `实现 At-Least-Once Delivery`。
-
-重点关注：`at-least-once`、`acknowledgment`、`redelivery`。
-
-建议先按提示逐步实现：Do not remove until acknowledged。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你实现"至少一次投递"（At-Least-Once Delivery）语义，确保每条消息至少被消费者处理一次，绝不丢失。核心思路是：消费者取出消息后不立即删除，而是等消费者明确确认后才从队列中移除；如果超时未确认，就重新投递。这是生产环境中最常用的投递保证之一。
 
 ## 题目说明
 
-Guarantee at-least-once delivery:
+保证至少一次投递：
 
-1. Consumer receives 消息 (not removed from 队列)
-2. 消息 marked as "in-flight"，包含timestamp
-3. Consumer processes和sends acknowledgment
-4. 队列 removes 消息 on ack
-5. If no ack within 超时, redeliver 消息
+1. 消费者接收消息后，消息不会立即从队列中移除
+2. 消息被标记为"处理中"状态，并记录时间戳
+3. 消费者处理完成后，发送确认（ACK）
+4. 队列收到确认后，才将消息从队列中删除
+5. 如果在超时时间内没有收到确认，队列会重新投递该消息
 
-Consumer must be idempotent to handle potential duplicates.
+由于消息可能被重复投递，消费者必须具备幂等性，能够正确处理重复收到的消息。
 
 ## 概念说明
 
-### At-Least-Once Delivery
+### 至少一次投递
 
-At-least-once means every 消息 is delivered at least once, possibly more. If an ack is lost, the 消息 is redelivered. This requires idempotent consumers that handle duplicates gracefully.
+至少一次投递意味着每条消息至少会被投递一次，但可能会投递多次。举个例子：消费者处理完消息后发出了确认，但这个确认在网络传输中丢失了，队列以为消费者没处理，就会重新投递。因此，消费者必须是幂等的——即使重复处理同一条消息，最终结果也不会出错。
 
-### Visibility 超时
+### 可见性超时
 
-When a consumer receives a 消息, it becomes invisible to others用于a 超时 period. If not acknowledged, it reappears. This prevents multiple consumers processing the same 消息 simultaneously.
+当消费者取出一条消息后，这条消息会在一段时间内对其他消费者"不可见"。如果在超时时间内没有被确认，消息就会重新变为"可见"，可以被其他消费者取走。这就像图书馆借书一样——你借走了一本书，别人暂时看不到；如果你超期不还，图书馆就会把它重新上架。
 
 ## 涉及概念
 
@@ -49,15 +43,15 @@ When a consumer receives a 消息, it becomes invisible to others用于a 超时 
 
 ## 实现提示
 
-- Do not remove until acknowledged
-- Redeliver after 超时
-- Track in-flight 消息
+- 消息在被确认之前不要从队列中移除
+- 超时后自动重新投递消息
+- 需要跟踪哪些消息正在被处理中
 
 ## 测试用例
 
-### 1. Redeliver on 超时
+### 1. 超时后重新投递
 
-Consumer receives 消息 m1，包含1s ack 超时. Consumer does not send ack within 超时. After 超时, 消息 should be redelivered to same or different consumer. Verify 消息 is not lost和redelivered at-least-once.
+消费者接收到消息 m1，确认超时时间为 1 秒。消费者在超时时间内没有发送确认。超时后，消息应该被重新投递给同一个或另一个消费者。验证消息不会丢失，并且至少被投递一次。
 
 输入：
 

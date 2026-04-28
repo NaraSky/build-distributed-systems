@@ -1,43 +1,37 @@
-# 构建 B-Tree 索引
+# 构建 B 树索引
 
 英文标题：Build B-Tree Index
 网页：<https://builddistributedsystem.com/tracks/indexes/tasks/task-13-2-btree>
 
 课程：13. 索引
 任务序号：2
-短标题：B-Tree 索引
-难度：intermediate
+短标题：B 树索引
+难度：进阶
 
 ## 中文导读
 
-本题要求你完成 `构建 B-Tree 索引`。
-
-重点关注：`B-tree`、`balanced tree`、`range queries`。
-
-建议先按提示逐步实现：节点 contain multiple keys。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现一个 B 树（B-Tree）索引，它既能支持精确查找，也能支持范围查询。B 树是几乎所有关系型数据库（如 MySQL、PostgreSQL）默认使用的索引结构。与哈希索引不同，B 树通过保持有序性来同时支持等值查询和范围查询，是数据库领域最重要的数据结构之一。
 
 ## 题目说明
 
-Implement a B-Tree 索引 supporting both point和range queries:
+实现一个支持精确查找和范围查询的 B 树索引：
 
-1. Internal 节点 contain keys和child pointers
-2. Leaf 节点 contain keys和data pointers
-3. Insert splits full 节点
-4. All leaves at same depth (balanced)
+1. 内部节点（Internal Node）包含键和子节点指针
+2. 叶子节点（Leaf Node）包含键和数据指针
+3. 插入时，如果节点已满则进行分裂
+4. 所有叶子节点处于同一深度（保持平衡）
 
-B-Trees minimize disk I/O，包含high fanout - each read returns many keys.
+B 树通过高扇出（每个节点存储多个键）来最小化磁盘读取次数——每次磁盘读取都能获得许多键。
 
 ## 概念说明
 
-### B-Trees
+### B 树
 
-B-Trees are optimized用于存储 systems. Each 节点 contains many keys (high fanout), reducing tree height. A tree，包含millions of keys might be only 3-4 levels deep, requiring 3-4 disk reads用于any lookup.
+B 树是为存储系统优化的数据结构。每个节点包含多个键（高扇出），这使得树的高度很低。一棵包含数百万个键的 B 树可能只有 3 到 4 层深，这意味着任何一次查找只需要 3 到 4 次磁盘读取。你可以把 B 树想象成一棵非常"矮胖"的树——每个节点都有很多分支，所以不需要太多层就能覆盖大量数据。
 
-### B-Tree vs B+Tree
+### B 树与 B+ 树
 
-In a B+Tree (most common in databases), all data lives in leaves,和leaves are linked用于efficient range scans. Internal 节点 contain only keys用于routing.
+在 B+ 树（数据库中最常用的变种）中，所有实际数据都存储在叶子节点中，而且叶子节点之间通过链表相连，方便高效地进行范围扫描。内部节点只包含用于路由的键。
 
 ## 涉及概念
 
@@ -47,13 +41,13 @@ In a B+Tree (most common in databases), all data lives in leaves,和leaves are l
 
 ## 实现提示
 
-- 节点 contain multiple keys
-- Keep tree balanced用于O(日志 n)
--处理节点 splits on insert
+- 每个节点包含多个键
+- 保持树的平衡以确保 O(log n) 的查找时间
+- 插入时处理节点分裂
 
 ## 测试用例
 
-### 1. B-Tree insert和search
+### 1. B 树插入与查找
 
 输入：
 
@@ -73,7 +67,7 @@ In a B+Tree (most common in databases), all data lives in leaves,和leaves are l
 
 ## 参考资料
 
-- [B-Tree Visualization](https://www.cs.usfca.edu/~galles/visualization/BTree.html)：Interactive B-tree visualization
+- [B-Tree Visualization](https://www.cs.usfca.edu/~galles/visualization/BTree.html)：交互式 B 树可视化工具
 
 ## 本地文件
 

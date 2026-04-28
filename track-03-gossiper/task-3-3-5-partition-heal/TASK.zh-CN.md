@@ -1,34 +1,28 @@
-# Simulate Network Partition和Healing
+# 模拟网络分区与恢复
 
-英文标题：Simulate Network Partition和Healing
+英文标题：Simulate Network Partition and Healing
 网页：<https://builddistributedsystem.com/tracks/gossiper/tasks/task-3-3-5-partition-heal>
 
 课程：3. 传播者：Gossip 信息传播
 任务序号：15
-短标题：Partition Heal
-难度：advanced
+短标题：分区恢复
+难度：高级
 子主题：Topology-Aware Gossip
 
 ## 中文导读
 
-本题要求你完成 `Simulate Network Partition和Healing`。
-
-重点关注：`network partition`、`partition healing`、`convergence`、`split brain`。
-
-建议先按提示逐步实现：A partition blocks all 消息 between two groups of 节点。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题让你模拟网络分区（Network Partition）及其恢复过程。网络分区就像一堵墙把集群劈成两半，两边各自运行、互不相通。当这堵墙消失（分区恢复）后，两边需要通过八卦传播重新同步各自产生的数据。这是理解分布式系统中"脑裂"问题和最终一致性的重要练习。
 
 ## 题目说明
 
-网络 partitions split the 集群 into isolated groups. After the partition heals, gossip must merge the diverged states. Your task is to simulate this.
+网络分区（Network Partition）会将集群分割成若干个互相隔离的组。分区恢复后，八卦传播必须将各组在分区期间产生的不同状态合并起来。你的任务就是模拟这个过程。
 
-Implement:
-1. `partition` - Block 消息 to specified 节点
-2. `heal` - Unblock all 节点  
-3. `partition_status` - Report current partition state
+需要实现以下功能：
+1. `partition` - 屏蔽发往指定节点的消息
+2. `heal` - 解除所有屏蔽
+3. `partition_status` - 报告当前的分区状态
 
-```JSON
+```json
 请求:  {"type": "partition", "msg_id": 1, "blocked": ["n3", "n4"]}
 响应: {"type": "partition_ok", "in_reply_to": 1}
 
@@ -48,15 +42,15 @@ Implement:
 
 ## 实现提示
 
-- A partition blocks all 消息 between two groups of 节点
-- Each side continues to gossip internally
-- On healing, cross-partition gossip resumes和states converge
-- Track time-to-convergence after partition heals
-- Implement partition as a blocked-destinations set
+- 分区会阻断两组节点之间的所有消息传递
+- 分区期间，每一侧的节点继续在内部进行八卦传播
+- 分区恢复后，跨分区的八卦传播恢复，各侧的状态逐渐趋于一致
+- 记录分区恢复后达到一致所需的时间
+- 可以用一个"被屏蔽的目标节点集合"来实现分区效果
 
 ## 测试用例
 
-### 1. Partition blocks specified nodes
+### 1. 分区正确屏蔽指定节点
 
 输入：
 
@@ -74,7 +68,7 @@ Implement:
 {"src": "n1", "dest": "c1", "body": {"type": "partition_status_ok", "blocked": ["n2"], "is_partitioned": true, "messages_dropped": 0, "in_reply_to": 3, "msg_id": 2}}
 ```
 
-### 2. Heal removes all blocks
+### 2. 恢复操作解除所有屏蔽
 
 输入：
 
@@ -96,7 +90,7 @@ Implement:
 
 ## 参考资料
 
-- [Jepsen: Network Partitions](https://jepsen.io/analyses)：Jepsen analyses of how databases handle 网络 partitions
+- [Jepsen: Network Partitions](https://jepsen.io/analyses)：Jepsen 对各种数据库在网络分区下表现的分析报告
 
 ## 本地文件
 

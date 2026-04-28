@@ -1,63 +1,57 @@
-# 实现 Authentication和Authorization at Gateway
+# 在网关层实现认证与授权
 
-英文标题：Implement Authentication和Authorization at Gateway
+英文标题：Implement Authentication and Authorization at Gateway
 网页：<https://builddistributedsystem.com/tracks/proxies/tasks/task-21-2-2-auth-gateway>
 
 课程：12. 代理
 任务序号：7
-短标题：Gateway Auth
-难度：advanced
-子主题：API Gateway
+短标题：网关认证
+难度：高级
+子主题：API 网关
 
 ## 中文导读
 
-本题要求你完成 `实现 Authentication和Authorization at Gateway`。
-
-重点关注：`API gateway authentication`、`JWT validation`、`OAuth2`、`authorization`、`centralized security`。
-
-建议先按提示逐步实现：Validate JWT tokens at the gateway before routing to backend。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你在 API 网关层实现集中式的认证（Authentication）和授权（Authorization）。在微服务架构中，如果每个服务都各自实现一套认证逻辑，既重复又容易出错。通过在网关层统一处理认证和授权，后端服务可以专注于业务逻辑，而安全控制只需在一个地方维护。
 
 ## 题目说明
 
-API gateways centralize authentication和authorization logic, securing all backend services without duplicating auth code in each service.
+API 网关可以将认证和授权逻辑集中管理，在不需要每个后端服务都重复编写认证代码的情况下，保障所有服务的安全。
 
-**Authentication flow**:
+**认证流程**：
 ```
-1. 客户端 sends 请求，包含auth token
+1. 客户端发送携带认证令牌的请求
    Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
 
-2. Gateway validates token signature和expiration
-   - Decode JWT without verifying signature (get header)
-   - Verify signature使用public key
-   - Check expiration (exp claim)
-   - Extract user claims (sub, name, roles, permissions)
+2. 网关验证令牌的签名和有效期
+   - 解码 JWT（先获取头部信息，不验证签名）
+   - 使用公钥验证签名
+   - 检查过期时间（exp 字段）
+   - 提取用户声明信息（sub、name、roles、permissions）
 
-3. Gateway enforces authorization
-   - Check if user has required permissions
-   - If authorized: add user context headers, forward to backend
-   - If unauthorized: return 401/403 immediately
+3. 网关执行授权检查
+   - 检查用户是否拥有所需权限
+   - 如果授权通过：添加用户上下文头部，转发给后端
+   - 如果授权失败：立即返回 401/403 错误
 
-4. Backend receives 请求，包含user context
+4. 后端收到带有用户上下文的请求
    X-User-ID: user123
    X-User-Role: admin
    X-User-Permissions: read,write,delete
 ```
 
-**JWT validation**:
+**JWT 验证逻辑**：
 ```typescript
 function validateJWT(token: string): JWTClaims {
   try {
-    // Decode和verify signature
+    // 解码并验证签名
     const claims = jwt.verify(token, publicKey);
 
-    // Check expiration
+    // 检查是否过期
     if (claims.exp < Date.now() / 1000) {
       throw new Error("Token expired");
     }
 
-    // Check issuer
+    // 检查签发者
     if (claims.iss !== "https://auth.example.com") {
       throw new Error("Invalid issuer");
     }
@@ -69,19 +63,19 @@ function validateJWT(token: string): JWTClaims {
 }
 ```
 
-**Example gateway auth**:
-```JSON
-// 请求，包含valid JWT:
-请求:  {"type": "api_request", "msg_id": 1, "method": "GET", "path": "/api/users/123", "headers": {"Authorization": "Bearer eyJhbGciOiJIUzI1NiIs..."}}
-响应: {"type": "api_response", "in_reply_to": 1, "status": 200, "service": "users-service", "user_context": {"user_id": "user123", "role": "admin", "permissions": ["read", "write"]}}
+**网关认证示例**：
+```json
+// 携带有效 JWT 的请求：
+Request:  {"type": "api_request", "msg_id": 1, "method": "GET", "path": "/api/users/123", "headers": {"Authorization": "Bearer eyJhbGciOiJIUzI1NiIs..."}}
+Response: {"type": "api_response", "in_reply_to": 1, "status": 200, "service": "users-service", "user_context": {"user_id": "user123", "role": "admin", "permissions": ["read", "write"]}}
 
-// 请求，包含expired token:
-请求:  {"type": "api_request", "msg_id": 2, "method": "GET", "path": "/api/users/123", "headers": {"Authorization": "Bearer expired_token..."}}
-响应: {"type": "api_response", "in_reply_to": 2, "status": 401, "error": "Token expired"}
+// 携带过期令牌的请求：
+Request:  {"type": "api_request", "msg_id": 2, "method": "GET", "path": "/api/users/123", "headers": {"Authorization": "Bearer expired_token..."}}
+Response: {"type": "api_response", "in_reply_to": 2, "status": 401, "error": "Token expired"}
 
-// 请求 without permission:
-请求:  {"type": "api_request", "msg_id": 3, "method": "DELETE", "path": "/api/users/123", "headers": {"Authorization": "Bearer user_token..."}, "required_permission": "delete"}
-响应: {"type": "api_response", "in_reply_to": 3, "status": 403, "error": "Insufficient permissions: required [delete], have [read]"}
+// 权限不足的请求：
+Request:  {"type": "api_request", "msg_id": 3, "method": "DELETE", "path": "/api/users/123", "headers": {"Authorization": "Bearer user_token..."}, "required_permission": "delete"}
+Response: {"type": "api_response", "in_reply_to": 3, "status": 403, "error": "Insufficient permissions: required [delete], have [read]"}
 ```
 
 ## 涉及概念
@@ -95,17 +89,17 @@ function validateJWT(token: string): JWTClaims {
 
 ## 实现提示
 
-- Validate JWT tokens at the gateway before routing to backend
-- Extract user claims (sub, roles, permissions) from token
-- Enforce authorization: check permissions before allowing access
-- Support multiple auth schemes: API keys, JWT, OAuth2 tokens
-- Add user context headers to downstream requests
+- 在将请求路由到后端之前，先在网关层验证 JWT 令牌
+- 从令牌中提取用户声明信息（sub、roles、permissions）
+- 执行授权检查：在允许访问之前确认用户拥有所需权限
+- 支持多种认证方案：API 密钥、JWT、OAuth2 令牌
+- 在转发给下游服务的请求中添加用户上下文头部
 
 ## 测试用例
 
-### 1. Valid JWT passes through gateway
+### 1. 有效 JWT 通过网关
 
-Valid JWT should result in 200 OK 响应，包含user_context headers added.
+有效的 JWT 应该返回 200 OK 响应，并附带用户上下文头部。
 
 输入：
 
@@ -120,9 +114,9 @@ Valid JWT should result in 200 OK 响应，包含user_context headers added.
 {"src": "gateway", "dest": "client", "body": {"type": "init_ok", "in_reply_to": 1}}
 ```
 
-### 2. Invalid JWT returns 401
+### 2. 无效 JWT 返回 401
 
-Invalid JWT signature should return 401 Unauthorized.
+无效的 JWT 签名应返回 401 未授权错误。
 
 输入：
 
@@ -138,7 +132,7 @@ Invalid JWT signature should return 401 Unauthorized.
 
 ## 参考资料
 
-- [API Gateway Authentication](https://auth0.com/docs/secure-applications/architecture-scenarios/api-gateway)：Auth0 documentation on API Gateway authentication patterns
+- [API Gateway Authentication](https://auth0.com/docs/secure-applications/architecture-scenarios/api-gateway)：Auth0 上关于 API 网关认证模式的文档
 
 ## 本地文件
 

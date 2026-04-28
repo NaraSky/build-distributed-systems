@@ -1,38 +1,32 @@
-# 实现 Event-Driven Read模式l Updates
+# 实现事件驱动的读取模型更新
 
-英文标题：Implement Event-Driven Read模式l Updates
+英文标题：Implement Event-Driven Read Model Updates
 网页：<https://builddistributedsystem.com/tracks/reactor/tasks/task-27-2-4-event-driven-updates>
 
 课程：29. 反应器：事件溯源与 CQRS
 任务序号：9
-短标题：Event-Driven Updates
-难度：intermediate
+短标题：事件驱动更新
+难度：进阶
 子主题：CQRS (Command Query Responsibility Segregation)
 
 ## 中文导读
 
-本题要求你完成 `实现 Event-Driven Read模式l Updates`。
-
-重点关注：`event bus`、`projector`、`subscription`、`idempotent updates`、`eventual consistency`。
-
-建议先按提示逐步实现：subscribe registers the projector to receive the listed event types from the event bus。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你实现事件驱动的读取模型更新机制。在 CQRS 架构中，命令端产生事件，查询端必须监听这些事件来保持读取模型的同步。这个"监听并更新"的组件叫做投影器。它需要处理两个关键问题：一是订阅感兴趣的事件类型，二是保证幂等性，即同一个事件被重复投递时不会重复处理。
 
 ## 题目说明
 
-In CQRS, the command side emits events和the query side must react to those events to keep its read models up-to-date. An **event-driven projector** subscribes to the event bus和updates one or more read models whenever a relevant event arrives.
+在 CQRS 中，命令端产生事件，查询端必须对这些事件做出响应，以保持读取模型的实时更新。**事件驱动的投影器（Projector）** 订阅事件总线，每当相关事件到达时就更新一个或多个读取模型。
 
-Implement a 节点 that acts as a projector，包含subscription和idempotent update support:
+你需要实现一个具备订阅和幂等更新能力的投影器节点：
 
-```JSON
-// Register interest in specific event types
+```json
+// 注册对特定事件类型的订阅
 { "type": "subscribe", "msg_id": 1,
   "event_types": ["UserCreated", "UserUpdated"] }
 -> { "type": "subscribed", "in_reply_to": 1,
     "event_types": ["UserCreated", "UserUpdated"] }
 
-// Event arrives: update all relevant read models
+// 事件到达：更新所有相关的读取模型
 { "type": "event", "msg_id": 2,
   "event": {"type": "UserCreated",
              "payload": {"id": "user-123", "name": "John"}} }
@@ -40,7 +34,7 @@ Implement a 节点 that acts as a projector，包含subscription和idempotent up
     "event_id": "evt-123",
     "updated_models": ["user_listing", "user_by_email"] }
 
-// Same event_id arrives again: skip it
+// 相同的事件再次到达：跳过处理
 { "type": "event", "msg_id": 3,
   "event": {"type": "UserCreated", "id": "evt-123",
              "payload": {"id": "user-123"}} }
@@ -48,7 +42,11 @@ Implement a 节点 that acts as a projector，包含subscription和idempotent up
     "event_id": "evt-123", "reason": "already_processed" }
 ```
 
-Idempotency is critical: the event bus may deliver the same event more than once. Always check the event_id before applying any update.
+幂等性至关重要：事件总线可能多次投递同一个事件。在应用任何更新之前，务必先检查事件标识。
+
+## 概念说明
+
+想象投影器就像一个新闻编辑：它订阅了特定类型的新闻源（事件类型），每收到一条新闻就更新对应的专栏（读取模型）。但如果同一条新闻被重复投递了，编辑不会傻傻地发两遍，而是识别出这是重复的直接跳过。这就是幂等性的含义。
 
 ## 涉及概念
 
@@ -60,17 +58,17 @@ Idempotency is critical: the event bus may deliver the same event more than once
 
 ## 实现提示
 
-- subscribe registers the projector to receive the listed event types from the event bus
-- When an event arrives, update every read model that cares about that event type
-- Track processed event IDs; return event_skipped用于duplicates (idempotency)
-- updated_models lists the names of all read models that were actually updated
-- 最终一致性: read models may lag slightly behind the write model
+- 订阅操作注册投影器，使其能从事件总线接收指定类型的事件
+- 当事件到达时，更新所有关注该事件类型的读取模型
+- 记录已处理的事件标识；对重复事件返回跳过响应（保证幂等性）
+- updated_models 列出所有实际被更新的读取模型名称
+- 最终一致性：读取模型可能会比写入模型略有延迟
 
 ## 测试用例
 
-### 1. Subscribe to events
+### 1. 订阅事件
 
-Should acknowledge subscription to both event types.
+应确认成功订阅了两种事件类型。
 
 输入：
 
@@ -84,9 +82,9 @@ Should acknowledge subscription to both event types.
 {"type": "subscribed", "in_reply_to": 1, "event_types": ["UserCreated", "UserUpdated"]}
 ```
 
-### 2. Update read models on event
+### 2. 收到事件后更新读取模型
 
-UserCreated should update both user_listing和user_by_email read models.
+UserCreated 事件应同时更新 user_listing 和 user_by_email 两个读取模型。
 
 输入：
 
@@ -102,7 +100,7 @@ UserCreated should update both user_listing和user_by_email read models.
 
 ## 参考资料
 
-- [CQRS Pattern](https://martinfowler.com/bliki/CQRS.html)：Event-driven read model updates in CQRS
+- [CQRS Pattern](https://martinfowler.com/bliki/CQRS.html)：CQRS 中事件驱动的读取模型更新
 
 ## 本地文件
 

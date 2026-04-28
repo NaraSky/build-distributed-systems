@@ -1,4 +1,4 @@
-# 实现 服务 Mesh Observability
+# 实现服务网格可观测性
 
 英文标题：Implement Service Mesh Observability
 网页：<https://builddistributedsystem.com/tracks/orchestrator/tasks/task-26-2-5-observability>
@@ -6,48 +6,42 @@
 课程：28. 编排器：容器调度与服务网格
 任务序号：10
 短标题：Observability
-难度：intermediate
-子主题：服务 Mesh
+难度：进阶
+子主题：Service Mesh
 
 ## 中文导读
 
-本题要求你完成 `实现 服务 Mesh Observability`。
-
-重点关注：`metrics`、`distributed tracing`、`access logs`、`service graph`、`golden signals`。
-
-建议先按提示逐步实现：record stores one 请求 metric: service name, duration_ms,和HTTP status code。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现一个处理三大可观测性信号的节点。服务网格中的可观测性（Observability）意味着自动从每个边车代理收集指标、追踪和日志，无需修改应用代码。这三大支柱结合在一起，让你能快速了解系统正在发生什么、诊断问题出在哪里。可以把它想象成给你的分布式系统装上了"透视眼"和"心电图"。
 
 ## 题目说明
 
-Observability in a service mesh means collecting metrics, traces,和logs from every sidecar 代理 automatically, without changing application code. The three pillars together let you understand what is happening和diagnose problems quickly.
+服务网格中的可观测性意味着自动从每个边车代理收集指标（Metrics）、追踪（Traces）和日志（Logs），无需修改应用代码。这三大支柱结合在一起，让你能了解系统正在发生什么，并快速诊断问题。
 
-Implement a 节点 that handles all three observability signals:
+请实现一个处理三大可观测性信号的节点：
 
-```JSON
-// Record a 请求 metric (latency + status code)
+```json
+// 记录一个请求指标（延迟 + 状态码）
 { "type": "record", "msg_id": 1,
   "service": "api", "duration_ms": 150, "status": 200 }
 -> { "type": "metrics_recorded", "in_reply_to": 1,
     "service": "api", "request_count": 1 }
 
-// Create a distributed trace，包含a span
+// 创建一个分布式追踪及其调用段
 { "type": "trace", "msg_id": 2,
   "operation": "GET /api/users" }
 -> { "type": "trace_created", "in_reply_to": 2,
     "trace_id": "<uuid>", "span_id": "<uuid>" }
 
-// Query access logs by service
+// 按服务查询访问日志
 { "type": "query", "msg_id": 3,
   "filter": {"source_service": "api", "target_service": "database"} }
 -> { "type": "access_logs", "in_reply_to": 3,
     "logs": [{"source_service": "api", "target_service": "database", "count": 50}] }
 
-// Generate service dependency graph
+// 生成服务依赖关系图
 { "type": "generate", "msg_id": 4 }
 -> { "type": "service_graph", "in_reply_to": 4,
-    "节点": ["api", "database", "缓存"],
+    "nodes": ["api", "database", "cache"],
     "edges": [{"source": "api", "target": "database", "request_count": 500}] }
 ```
 
@@ -61,17 +55,17 @@ Implement a 节点 that handles all three observability signals:
 
 ## 实现提示
 
-- record stores one 请求 metric: service name, duration_ms,和HTTP status code
-- trace creates a trace，包含a unique trace_id和a span用于the given operation
-- query returns access logs filtered by source_service and/or target_service
-- generate builds a service graph: 节点 are service names, edges are (source, target, count) pairs
-- request_count increments by 1用于every record call用于that service
+- `record` 存储一条请求指标：服务名称、耗时和 HTTP 状态码
+- `trace` 创建一个包含唯一 `trace_id` 和调用段（Span）的追踪
+- `query` 返回按源服务和目标服务过滤的访问日志
+- `generate` 构建服务依赖关系图：节点是服务名称，边是（源服务、目标服务、请求数量）的组合
+- 每次调用 `record` 时，对应服务的 `request_count` 递增 1
 
 ## 测试用例
 
-### 1. Collect 服务 metrics
+### 1. 收集服务指标
 
-Should record the metric和return the updated 请求 count.
+应记录指标并返回更新后的请求计数。
 
 输入：
 
@@ -85,9 +79,9 @@ Should record the metric和return the updated 请求 count.
 {"type": "metrics_recorded", "in_reply_to": 1, "service": "api", "request_count": 1}
 ```
 
-### 2. 创建 distributed trace
+### 2. 创建分布式追踪
 
-Should create a trace，包含unique trace_id和span_id.
+应创建一个包含唯一 trace_id 和 span_id 的追踪。
 
 输入：
 
@@ -103,7 +97,7 @@ Should create a trace，包含unique trace_id和span_id.
 
 ## 参考资料
 
-- [Observability in a Service Mesh](https://istio.io/latest/docs/concepts/observability/)：How Istio collects metrics, traces,和logs from sidecars
+- [Observability in a Service Mesh](https://istio.io/latest/docs/concepts/observability/)：Istio 如何从边车代理自动收集指标、追踪和日志
 
 ## 本地文件
 

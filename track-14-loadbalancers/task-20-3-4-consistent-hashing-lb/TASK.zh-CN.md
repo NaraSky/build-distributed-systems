@@ -1,29 +1,25 @@
-# 实现 Consistent Hashing用于Load Balancing
+# 实现一致性哈希负载均衡
 
-英文标题：Implement Consistent Hashing用于Load Balancing
+英文标题：Implement Consistent Hashing for Load Balancing
 网页：<https://builddistributedsystem.com/tracks/loadbalancers/tasks/task-20-3-4-consistent-hashing-lb>
 
 课程：14. 负载均衡器
 任务序号：14
 短标题：Consistent Hashing LB
-难度：advanced
-子主题：高级 Balancing Algorithms
+难度：高级
+子主题：高级均衡算法
 
 ## 中文导读
 
-本题要求你完成 `实现 Consistent Hashing用于Load Balancing`。
-
-重点关注：`consistent hashing`、`session affinity`、`cache coherency`、`minimal disruption`、`backend additions/removals`。
-
-建议先按提示逐步实现：Hash client_id or session_id to a point on the hash ring。
+本题要求你实现基于一致性哈希（Consistent Hashing）的负载均衡。核心目标是让同一个客户端的请求始终路由到同一个后端，这在缓存和会话场景下非常重要。普通的取模哈希在后端数量变化时会导致几乎所有映射失效，而一致性哈希通过"哈希环"的设计，在后端增减时只影响少量客户端的路由，大大减少了缓存失效和会话丢失的问题。
 
 协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
 
 ## 题目说明
 
-Consistent hashing用于load balancing ensures that the same 客户端 always routes to the same backend. This is useful用于caching layers where session state or 缓存 locality matters.
+一致性哈希负载均衡确保同一客户端始终路由到同一后端。这在缓存层中非常有用，因为会话状态或缓存的局部性很重要。
 
-**Why consistent hashing用于LB?**
+**为什么负载均衡需要一致性哈希**：
 ```
 Problem: modulo hashing routes change when backends change
   client_1 → hash("client_1") % 3 = backend-1
@@ -31,7 +27,7 @@ Problem: modulo hashing routes change when backends change
 
   Add backend-4:
   client_1 → hash("client_1") % 4 = backend-3 ❌ Different!
-  All clients remap = 缓存 cold miss
+  All clients remap = cache cold miss
 
 Solution: consistent hashing
   client_1 → hash ring → backend-1
@@ -42,10 +38,12 @@ Solution: consistent hashing
   Only 25% of clients remap
 ```
 
-**Algorithm**:
+上面的例子说明了问题：使用取模哈希时，新增一台后端就会导致所有客户端的映射关系改变，缓存全部失效。而一致性哈希只会影响约 25% 的客户端。
+
+**算法实现**：
 ```typescript
 function routeClient(clientId: string, backends: Backend[]): string {
-  // Hash 客户端 ID to point on ring
+  // Hash client ID to point on ring
   const clientPoint = hash(clientId) % 2^32;
 
   // Place backends on ring
@@ -57,8 +55,8 @@ function routeClient(clientId: string, backends: Backend[]): string {
   // Sort by point
   backendPoints.sort((a, b) => a.point - b.point);
 
-  // Find first backend clockwise from 客户端 point
- 用于(const bp of backendPoints) {
+  // Find first backend clockwise from client point
+  for (const bp of backendPoints) {
     if (bp.point >= clientPoint) {
       return bp.backend;
     }
@@ -69,24 +67,24 @@ function routeClient(clientId: string, backends: Backend[]): string {
 }
 ```
 
-**Example consistent hashing**:
-```JSON
+**一致性哈希示例**：
+```json
 // Hash ring (simplified):
 // 0°    : backend-1
 // 120°  : backend-2
 // 240°  : backend-3
 
-// 客户端 requests:
-请求:  {"type": "http_request", "msg_id": 1, "client_id": "alice", "path": "/api/data", "algorithm": "consistent-hash"}
-响应: {"type": "http_response", "in_reply_to": 1, "backend": "backend-2", "hash_ring_position": 45}
+// Client requests:
+Request:  {"type": "http_request", "msg_id": 1, "client_id": "alice", "path": "/api/data", "algorithm": "consistent-hash"}
+Response: {"type": "http_response", "in_reply_to": 1, "backend": "backend-2", "hash_ring_position": 45}
 
-// Same 客户端 always routes to same backend:
-请求:  {"type": "http_request", "msg_id": 2, "client_id": "alice", "path": "/api/data", "algorithm": "consistent-hash"}
-响应: {"type": "http_response", "in_reply_to": 2, "backend": "backend-2", "hash_ring_position": 45}
+// Same client always routes to same backend:
+Request:  {"type": "http_request", "msg_id": 2, "client_id": "alice", "path": "/api/data", "algorithm": "consistent-hash"}
+Response: {"type": "http_response", "in_reply_to": 2, "backend": "backend-2", "hash_ring_position": 45}
 
-// Different 客户端 routes to potentially different backend:
-请求:  {"type": "http_request", "msg_id": 3, "client_id": "bob", "path": "/api/data", "algorithm": "consistent-hash"}
-响应: {"type": "http_response", "in_reply_to": 3, "backend": "backend-1", "hash_ring_position": 300}
+// Different client routes to potentially different backend:
+Request:  {"type": "http_request", "msg_id": 3, "client_id": "bob", "path": "/api/data", "algorithm": "consistent-hash"}
+Response: {"type": "http_response", "in_reply_to": 3, "backend": "backend-1", "hash_ring_position": 300}
 ```
 
 ## 涉及概念
@@ -99,17 +97,17 @@ function routeClient(clientId: string, backends: Backend[]): string {
 
 ## 实现提示
 
-- Hash client_id or session_id to a point on the hash ring
-- Route to the first backend clockwise from that point
-- Same 客户端 always routes to same backend (sticky routing)
-- When backend added, only 1/N of clients remap
-- Use virtual 节点用于better distribution
+- 将客户端标识或会话标识哈希到哈希环上的一个点
+- 沿顺时针方向找到第一个后端，将请求路由到它
+- 同一客户端始终路由到同一后端（粘性路由）
+- 新增后端时，只有约 1/N 的客户端需要重新映射
+- 使用虚拟节点以获得更均匀的分布
 
 ## 测试用例
 
-### 1. Same client always routes to same backend
+### 1. 同一客户端始终路由到同一后端
 
-All 3 requests from alice should route to the same backend.
+来自 alice 的所有 3 个请求都应路由到同一个后端。
 
 输入：
 
@@ -126,9 +124,9 @@ All 3 requests from alice should route to the same backend.
 {"src": "lb", "dest": "client", "body": {"type": "init_ok", "in_reply_to": 1}}
 ```
 
-### 2. Backend addition causes minimal remapping
+### 2. 新增后端时最小化重新映射
 
-Adding b4 should only remap ~25% of clients (1-3 clients), not all 10.
+新增 b4 后，只应有约 25% 的客户端（10 个中的 1-3 个）被重新映射，而不是全部 10 个。
 
 输入：
 
@@ -145,7 +143,7 @@ Adding b4 should only remap ~25% of clients (1-3 clients), not all 10.
 
 ## 参考资料
 
-- [Consistent Hashing用于Load Balancing](https://www.nginx.com/blog/nginx-load-balancing-algorithms/)：NGINX documentation on consistent hashing load balancing
+- [Consistent Hashing for Load Balancing](https://www.nginx.com/blog/nginx-load-balancing-algorithms/)：关于一致性哈希负载均衡的详细说明
 
 ## 本地文件
 

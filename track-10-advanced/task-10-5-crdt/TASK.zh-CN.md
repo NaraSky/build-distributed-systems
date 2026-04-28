@@ -1,4 +1,4 @@
-# 实现 CRDTs
+# 实现无冲突复制数据类型
 
 英文标题：Implement CRDTs
 网页：<https://builddistributedsystem.com/tracks/advanced/tasks/task-10-5-crdt>
@@ -6,28 +6,22 @@
 课程：10. 高级主题
 任务序号：5
 短标题：CRDTs
-难度：advanced
-子主题：高级 Paradigms
+难度：高级
+子主题：高级范式
 
 ## 中文导读
 
-本题要求你完成 `实现 CRDTs`。
-
-重点关注：`CRDT`、`eventual consistency`、`conflict-free`。
-
-建议先按提示逐步实现：Merge must be commutative, associative, idempotent。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你实现无冲突复制数据类型（CRDT），包括只增计数器（G-Counter）、只增集合（G-Set）和可观察删除集合（OR-Set）。CRDT 的核心特点是：多个副本可以独立并发更新，合并时保证不会产生冲突。这是实现最终一致性系统的利器，常用于协同编辑、分布式缓存等场景。
 
 ## 题目说明
 
-Build CRDTs用于conflict-free 复制: G-计数器 (grow-only 计数器), G-Set, OR-Set.
+实现用于无冲突复制的 CRDT 数据结构：只增计数器（G-Counter，只能递增的计数器）、只增集合（G-Set）和可观察删除集合（OR-Set，添加操作优先于删除操作）。
 
 ## 概念说明
 
-### CRDTs
+### 无冲突复制数据类型
 
-Conflict-free Replicated Data Types allow concurrent updates that merge without conflicts. Merge is associative, commutative, idempotent.
+无冲突复制数据类型（CRDT）允许多个副本并发更新，合并时不会产生冲突。合并操作满足三个数学性质：结合律（Associative）、交换律（Commutative）和幂等性（Idempotent）。简单来说，无论数据以什么顺序、合并多少次，最终结果都是一样的。
 
 ## 涉及概念
 
@@ -37,15 +31,15 @@ Conflict-free Replicated Data Types allow concurrent updates that merge without 
 
 ## 实现提示
 
-- Merge must be commutative, associative, idempotent
-- G-计数器: only increment
-- OR-Set: add wins over remove
+- 合并操作必须满足交换律、结合律和幂等性
+- 只增计数器：只能递增，不能递减
+- 可观察删除集合：添加操作优先于删除操作
 
 ## 测试用例
 
-### 1. G-计数器 increment和merge
+### 1. 只增计数器的递增与合并
 
-Multi-节点 test: n1 increments (count n1->1), n2 increments (count n2->1). When 节点 sync, they merge their counters. Query n1用于total value, should return 2 (sum of all 节点 counts).
+多节点测试：n1 递增一次（计数器 n1 变为 1），n2 递增一次（计数器 n2 变为 1）。当节点同步时，它们合并各自的计数器。查询 n1 的总值，应返回 2（所有节点计数之和）。
 
 输入：
 
@@ -58,7 +52,7 @@ Multi-节点 test: n1 increments (count n1->1), n2 increments (count n2->1). Whe
 
 ## 参考资料
 
-- [CRDTs Paper](https://hal.inria.fr/inria-00555588)：Comprehensive study of CRDTs
+- [CRDTs Paper](https://hal.inria.fr/inria-00555588)：CRDT 的综合研究论文
 
 ## 本地文件
 

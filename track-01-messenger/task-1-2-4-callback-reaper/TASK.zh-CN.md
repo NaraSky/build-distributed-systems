@@ -1,48 +1,58 @@
-# 实现 回调 清理器用于Leaked RPCs
+# 实现回调清理器：处理泄漏的 RPC
 
-英文标题：Implement Callback Reaper用于Leaked RPCs
+英文标题：Implement Callback Reaper for Leaked RPCs
 网页：<https://builddistributedsystem.com/tracks/messenger/tasks/task-1-2-4-callback-reaper>
 
 课程：1. 信使：消息通信基础
 任务序号：9
-短标题：回调 清理器
-难度：intermediate
-子主题：RPC和the Request-Response模式l
+短标题：回调清理器
+难度：进阶
+子主题：RPC 与请求-响应模型
 
 ## 中文导读
 
-本题要求你完成 `实现 回调 清理器用于Leaked RPCs`。
+当节点发出一个异步 RPC 请求后，如果对方崩溃了或者网络把消息弄丢了，注册的回调函数就会永远留在内存里，造成资源泄漏。这道题要求你实现一个"回调清理器（Callback Reaper）"，定期扫描并清理超时的回调。
 
-重点关注：`resource cleanup`、`memory leaks`、`periodic tasks`、`garbage collection`。
-
-建议先按提示逐步实现：Store the timestamp when each callback is registered。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这是分布式系统中非常实际的问题——任何需要等待远端响应的系统，都必须考虑"等不到回复怎么办"。学会处理资源泄漏，是写出健壮分布式程序的基本功。
 
 ## 题目说明
 
-When a 节点 sends an async RPC but the recipient crashes or the 网络 drops the 消息, the callback stays in memory forever. This is a **resource leak** that can eventually consume all available memory.
+当一个节点（Node）发送异步 RPC 请求时，会注册一个回调函数（Callback），等对方回复后再执行。但如果对方节点崩溃了，或者网络把消息丢了，这个回调就永远不会被触发，却一直占着内存。这就是**资源泄漏（Resource Leak）**，随着时间推移，可能耗尽所有可用内存。
 
-Your task is to implement a **callback reaper** that:
+你的任务是实现一个**回调清理器**，它需要：
 
-1. Records the timestamp when each callback is registered
-2. Periodically scans用于callbacks older than a threshold (default: 2 seconds)
-3. Removes expired callbacks和invokes them，包含a 超时 error
-4. Reports how many callbacks were reaped
+1. 在注册每个回调时记录时间戳
+2. 定期扫描所有回调，找出超过阈值（默认 2 秒）的回调
+3. 删除过期的回调，并以超时错误调用它们（通知调用方"超时了"）
+4. 报告清理了多少个回调
 
-Implement a `pending_count` 消息 type that returns the number of currently pending callbacks:
+需要实现 `pending_count` 消息类型，用于查询当前有多少个等待中的回调：
 
-```JSON
-请求:  {"type": "pending_count", "msg_id": 1}
-响应: {"type": "pending_count_ok", "in_reply_to": 1, "count": 5}
+```json
+Request:  {"type": "pending_count", "msg_id": 1}
+Response: {"type": "pending_count_ok", "in_reply_to": 1, "count": 5}
 ```
 
-Also implement a `send_fire_forget` 消息 type that sends an RPC without expecting a reply (to simulate leaked callbacks):
+还需要实现 `send_fire_forget` 消息类型，用于发送一个不期望回复的 RPC（模拟会泄漏的回调）：
 
-```JSON
-请求:  {"type": "send_fire_forget", "msg_id": 1, "target": "n2", "payload": {"type": "echo", "echo": "lost"}}
-响应: {"type": "send_fire_forget_ok", "in_reply_to": 1, "pending": 1}
+```json
+Request:  {"type": "send_fire_forget", "msg_id": 1, "target": "n2", "payload": {"type": "echo", "echo": "lost"}}
+Response: {"type": "send_fire_forget_ok", "in_reply_to": 1, "pending": 1}
 ```
+
+## 概念说明
+
+### 资源泄漏
+
+打个比方：你给朋友寄了一封信，然后一直站在邮箱旁边等回信。如果朋友搬家了（节点崩溃）或者信在路上丢了（网络丢包），你就会一直等下去，永远占着邮箱旁边的位置。在程序里，这个"占着的位置"就是回调函数占用的内存。
+
+### 回调清理器的工作原理
+
+回调清理器就像一个定时巡逻的保安：每隔一段时间检查一次，把等待时间超过阈值的回调标记为"超时"，然后清理掉。被清理的回调会收到一个超时错误通知，这样上层代码就知道"对方没有回复，需要采取其他措施"。
+
+### 为什么不能直接丢弃
+
+直接删除超时回调而不通知调用方是不行的，因为调用方可能还在等结果。正确的做法是：清理回调的同时，用一个超时错误来调用它，让调用方知道发生了什么。
 
 ## 涉及概念
 
@@ -53,15 +63,15 @@ Also implement a `send_fire_forget` 消息 type that sends an RPC without expect
 
 ## 实现提示
 
-- Store the timestamp when each callback is registered
-- Periodically scan the callbacks dictionary用于expired entries
-- Use time.time() to get the current timestamp in seconds
-- A reaper interval of 500ms is a good starting point
-- When reaping, invoke the callback，包含an error or None to signal 超时
+- 在注册每个回调时，同时记录当前时间戳
+- 定期扫描回调字典，找出已过期的条目
+- 可以使用 `System.currentTimeMillis()` 获取当前时间（毫秒）
+- 清理器的扫描间隔设为 500 毫秒是一个合理的起点
+- 清理回调时，用一个错误值或 null 来调用它，以表示超时
 
 ## 测试用例
 
-### 1. Pending count starts at zero
+### 1. 待处理回调数初始为零
 
 输入：
 
@@ -77,7 +87,7 @@ Also implement a `send_fire_forget` 消息 type that sends an RPC without expect
 {"src": "n1", "dest": "c1", "body": {"type": "pending_count_ok", "count": 0, "in_reply_to": 2, "msg_id": 1}}
 ```
 
-### 2. Fire-and-forget increases pending count
+### 2. 发射后不管的消息会增加待处理回调数
 
 输入：
 
@@ -96,7 +106,7 @@ Also implement a `send_fire_forget` 消息 type that sends an RPC without expect
 
 ## 参考资料
 
-- [Resource Leaks in Distributed Systems](https://sre.google/sre-book/handling-overload/)：Google SRE book chapter on managing resource limits和overload
+- [Resource Leaks in Distributed Systems](https://sre.google/sre-book/handling-overload/)：Google SRE 手册中关于资源限制和过载管理的章节
 
 ## 本地文件
 

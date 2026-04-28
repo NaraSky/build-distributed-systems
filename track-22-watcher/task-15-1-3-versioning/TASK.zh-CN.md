@@ -1,44 +1,38 @@
-# 实现 Optimistic Concurrency，包含Version Checks
+# 实现基于版本号的乐观并发控制
 
-英文标题：Implement Optimistic Concurrency，包含Version Checks
+英文标题：Implement Optimistic Concurrency with Version Checks
 网页：<https://builddistributedsystem.com/tracks/watcher/tasks/task-15-1-3-versioning>
 
 课程：22. 观察者：ZooKeeper/etcd 模型
 任务序号：3
 短标题：Version Checks
-难度：intermediate
-子主题：The ZNode Data模式l
+难度：进阶
+子主题：The ZNode Data Model
 
 ## 中文导读
 
-本题要求你完成 `实现 Optimistic Concurrency，包含Version Checks`。
-
-重点关注：`optimistic concurrency`、`version check`、`BadVersion`、`compare-and-swap`、`conflict detection`。
-
-建议先按提示逐步实现：SetData(path, data, version) only succeeds if current version == specified version。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现基于版本号的乐观并发控制。简单来说，就是"先读后写，写的时候检查版本号有没有变"。如果在你读和写之间，别人已经改过这个节点了，你的写操作就会失败，你需要重新读取再重试。这就是 ZooKeeper 版的比较并交换（CAS）操作。
 
 ## 题目说明
 
-ZooKeeper uses version-based optimistic concurrency control. Every `SetData`和`Delete` must specify the expected version. If the version does not match the current version, the operation fails，包含`BadVersion`.
+ZooKeeper 使用基于版本号的乐观并发控制。每次执行 `SetData` 和 `Delete` 操作时都必须指定期望的版本号。如果版本号与当前版本不匹配，操作会失败并返回 `BadVersion` 错误。
 
-**How it works**:
-1. 客户端 reads ZNode: gets data和version (e.g., version=5)
-2. 客户端 modifies the data locally
-3. 客户端 sends `SetData(path, new_data, version=5)`
-4. 服务端 checks: if current version == 5, apply update和set version=6
-5. If another 客户端 updated between steps 1和3, the version is now 6,和the operation fails，包含`BadVersion`
-6. The 客户端 must re-read (get version=6)和重试
+**工作原理**：
+1. 客户端读取 ZNode：获得数据和版本号（例如 version=5）
+2. 客户端在本地修改数据
+3. 客户端发送 `SetData(path, new_data, version=5)`
+4. 服务端检查：如果当前版本 == 5，则执行更新并将版本号设为 6
+5. 如果在第 1 步和第 3 步之间有其他客户端更新了数据，版本号已变为 6，操作会失败并返回 `BadVersion`
+6. 客户端需要重新读取（获得 version=6）再重试
 
-This is the ZooKeeper equivalent of a **compare-and-swap** (CAS) operation.
+这就是 ZooKeeper 中的**比较并交换（CAS）**操作。
 
-```JSON
-请求:  {"type": "znode_set", "msg_id": 1, "path": "/cfg", "data": "new", "version": 0}
-响应: {"type": "znode_set_ok", "in_reply_to": 1, "new_version": 1}
+```json
+Request:  {"type": "znode_set", "msg_id": 1, "path": "/cfg", "data": "new", "version": 0}
+Response: {"type": "znode_set_ok", "in_reply_to": 1, "new_version": 1}
 
-请求:  {"type": "znode_set", "msg_id": 2, "path": "/cfg", "data": "newer", "version": 0}
-响应: {"type": "error", "in_reply_to": 2, "code": "BadVersion", "text": "expected version 0, current version 1"}
+Request:  {"type": "znode_set", "msg_id": 2, "path": "/cfg", "data": "newer", "version": 0}
+Response: {"type": "error", "in_reply_to": 2, "code": "BadVersion", "text": "expected version 0, current version 1"}
 ```
 
 ## 涉及概念
@@ -51,17 +45,17 @@ This is the ZooKeeper equivalent of a **compare-and-swap** (CAS) operation.
 
 ## 实现提示
 
-- SetData(path, data, version) only succeeds if current version == specified version
-- On success, version increments to version+1
-- On version mismatch, return BadVersion error — the 客户端 must re-read和重试
-- This is an optimistic concurrency control (OCC) mechanism — no locks needed
-- version=-1 is a wildcard that bypasses the version check
+- SetData(path, data, version) 只有在当前版本号等于指定版本号时才会成功
+- 成功时，版本号递增为 version+1
+- 版本号不匹配时，返回 BadVersion 错误，客户端需要重新读取并重试
+- 这是乐观并发控制（OCC）机制，不需要加锁
+- version=-1 是通配符，跳过版本检查
 
 ## 测试用例
 
-### 1. Correct version allows update
+### 1. 正确的版本号允许更新
 
-znode_set_ok should show new_version: 1.
+znode_set_ok 应当显示 new_version: 1。
 
 输入：
 
@@ -77,9 +71,9 @@ znode_set_ok should show new_version: 1.
 {"src": "n1", "dest": "c0", "body": {"type": "init_ok", "in_reply_to": 1, "msg_id": 0}}
 ```
 
-### 2. Wrong version returns BadVersion
+### 2. 错误的版本号返回 BadVersion
 
-Second set，包含version 0 should return BadVersion error (current is now 1).
+第二次使用 version 0 进行更新应当返回 BadVersion 错误（当前版本已经是 1）。
 
 输入：
 
@@ -98,7 +92,7 @@ Second set，包含version 0 should return BadVersion error (current is now 1).
 
 ## 参考资料
 
-- [ZooKeeper Versioning](https://zookeeper.apache.org/doc/current/zookeeperProgrammers.html#sc_zkStatStructure)：ZooKeeper documentation on stat structure和version-based CAS
+- [ZooKeeper Versioning](https://zookeeper.apache.org/doc/current/zookeeperProgrammers.html#sc_zkStatStructure)：ZooKeeper 关于状态结构和基于版本号的 CAS 机制的官方文档
 
 ## 本地文件
 

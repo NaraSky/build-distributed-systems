@@ -1,4 +1,4 @@
-# 实现 Traffic Splitting in 服务 Mesh
+# 实现服务网格中的流量分割
 
 英文标题：Implement Traffic Splitting in Service Mesh
 网页：<https://builddistributedsystem.com/tracks/orchestrator/tasks/task-26-2-3-traffic-splitting>
@@ -6,51 +6,49 @@
 课程：28. 编排器：容器调度与服务网格
 任务序号：8
 短标题：Traffic Splitting
-难度：intermediate
-子主题：服务 Mesh
+难度：进阶
+子主题：Service Mesh
 
 ## 中文导读
 
-本题要求你完成 `实现 Traffic Splitting in 服务 Mesh`。
-
-重点关注：`canary deployment`、`traffic splitting`、`A/B testing`、`blue-green deployment`、`weighted routing`。
-
-建议先按提示逐步实现：Weighted routing: pick a random number 0-99; route to v2 if < v2_percentage, else v1。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现一个按分流规则路由请求的节点。发布新版本时，一次性把所有用户切过去风险很大。流量分割让你可以渐进式地放量，比如先把 5% 的流量导到新版本看看效果，没问题再逐步放大。这是安全上线新版本的核心技术。
 
 ## 题目说明
 
-Traffic splitting lets you roll out a new version gradually instead of switching all users at once. You can send a small percentage to the new version (canary), route specific users by 请求 headers (A/B test), or split 50/50 (blue-green).
+流量分割（Traffic Splitting）让你可以渐进式地发布新版本，而不是一次性切换所有用户。你可以将少量流量导向新版本进行试探（这叫金丝雀部署），根据请求头路由特定用户到不同版本（用于做对比实验），或者按 50/50 分流（蓝绿部署）。
 
-Implement a 节点 that routes requests according to splitting rules:
+请实现一个按分流规则路由请求的节点：
 
-```JSON
-// Weighted split: 80% to v1, 20% to v2
+```json
+// 按权重分流：80% 到 v1，20% 到 v2
 { "type": "route", "msg_id": 1 }
 { traffic_split: {"v1": 80, "v2": 20} }
 -> { "type": "routed", "in_reply_to": 1,
     "version": "v1", "reason": "weighted_routing" }
 
-// Header-based routing overrides weight
+// 基于请求头的路由优先于权重分流
 { "type": "route", "msg_id": 2,
   "headers": {"x-beta": "true"} }
 -> { "type": "routed", "in_reply_to": 2,
     "version": "v2", "reason": "header_match" }
 
-// Update canary percentage (v1 + v2 = 100)
+// 更新金丝雀比例（v1 + v2 = 100）
 { "type": "update_canary", "msg_id": 3,
   "service": "api", "percentage": 50 }
 -> { "type": "canary_updated", "in_reply_to": 3,
     "service": "api", "v1": 50, "v2": 50 }
 
-// Stable A/B assignment per user
+// 每个用户的实验分组稳定不变
 { "type": "assign_variant", "msg_id": 4, "user_id": "user-123" }
 -> { "type": "variant_assigned", "in_reply_to": 4,
     "user_id": "user-123", "variant": "A" }
 ```
 
-A/B variant assignment must be deterministic: the same user_id must always receive the same variant.
+实验分组必须是确定性的：同一个用户标识必须始终被分配到同一个实验组。
+
+## 概念说明
+
+流量分割就像一个十字路口的交通管制：你可以控制多少比例的车辆走新修的路，多少走老路。金丝雀部署的名字来源于矿井中的金丝雀，矿工先派金丝雀下井探测有没有毒气，没问题了自己再下去。类似地，先让少量流量去"探路"，确认新版本没问题后再全量切换。
 
 ## 涉及概念
 
@@ -62,17 +60,17 @@ A/B variant assignment must be deterministic: the same user_id must always recei
 
 ## 实现提示
 
-- Weighted routing: pick a random number 0-99; route to v2 if < v2_percentage, else v1
-- Header-based routing: check 请求 headers用于a match before falling back to weighted
-- update_canary changes the v1/v2 split percentages; v1 + v2 must always sum to 100
-- A/B test assignment: hash(user_id) % 2 gives a stable deterministic variant per user
-- Header match takes priority over weighted split when both rules are active
+- 按权重路由：生成一个 0 到 99 的随机数，如果小于新版本的百分比则路由到新版本，否则路由到老版本
+- 基于请求头的路由：先检查请求头是否匹配，不匹配时再回退到权重路由
+- `update_canary` 修改新老版本的分流比例，两者之和必须等于 100
+- 实验分组：通过 `hash(user_id) % 2` 为每个用户生成稳定的确定性分组
+- 请求头匹配的优先级高于权重分流
 
 ## 测试用例
 
-### 1. Weighted traffic split
+### 1. 按权重分割流量
 
-Should route to v1 (80% weight).
+应路由到 v1（80% 权重）。
 
 输入：
 
@@ -86,9 +84,9 @@ Should route to v1 (80% weight).
 {"type": "routed", "in_reply_to": 1, "version": "v1", "reason": "weighted_routing"}
 ```
 
-### 2. Header-based routing
+### 2. 基于请求头的路由
 
-x-beta header should route to v2.
+带有 x-beta 头的请求应路由到 v2。
 
 输入：
 
@@ -104,7 +102,7 @@ x-beta header should route to v2.
 
 ## 参考资料
 
-- [Canary Deployments](https://martinfowler.com/bliki/CanaryRelease.html)：Gradual traffic shifting用于safe production rollouts
+- [Canary Deployments](https://martinfowler.com/bliki/CanaryRelease.html)：通过渐进式流量切换安全地发布到生产环境
 
 ## 本地文件
 

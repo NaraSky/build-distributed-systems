@@ -1,46 +1,40 @@
-# Ensure 日志 Matching Property
+# 确保日志匹配属性
 
 英文标题：Ensure Log Matching Property
 网页：<https://builddistributedsystem.com/tracks/consensus/tasks/task-6-2-log-matching>
 
 课程：6. 共识：Raft 与日志复制
 任务序号：2
-短标题：日志 Matching
-难度：advanced
-子主题：Raft 日志 复制
+短标题：日志匹配
+难度：高级
+子主题：Raft 日志复制
 
 ## 中文导读
 
-本题要求你完成 `Ensure 日志 Matching Property`。
-
-重点关注：`log matching`、`consistency check`、`conflict resolution`。
-
-建议先按提示逐步实现：Check prevLogIndex和prevLogTerm match。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你在跟随者（Follower）端实现日志匹配的安全性检查。当跟随者收到领导者发来的 AppendEntries 请求时，必须先验证日志是否一致，再决定是否接受新条目。这个机制是 Raft 保证所有节点日志最终一致的关键所在。
 
 ## 题目说明
 
-Implement the 日志 Matching safety property:
+实现日志匹配（Log Matching）安全属性：
 
-On the Follower side:
-1. Receive AppendEntries，包含prevLogIndex, prevLogTerm
-2. If entry at prevLogIndex has different term, reject
-3. If entries conflict，包含existing, delete from conflict point
-4. Append new entries
-5. Update commitIndex if Leader's is higher
+在跟随者端：
+1. 接收 AppendEntries 请求，其中包含 prevLogIndex 和 prevLogTerm
+2. 如果跟随者在 prevLogIndex 位置的日志条目的任期号不同，则拒绝该请求
+3. 如果新条目与已有条目冲突，则从冲突点开始删除旧条目
+4. 追加新的日志条目
+5. 如果领导者的 commitIndex 更高，则更新本地的 commitIndex
 
-This ensures all committed entries are identical across 节点.
+这一机制确保所有已提交的日志条目在各节点上完全一致。
 
 ## 概念说明
 
-### 日志 Matching Invariant
+### 日志匹配不变式
 
-If two 节点 have entries，包含the same 索引和term, their logs are identical up to that point. This is achieved by rejecting AppendEntries when prev doesn't match, then backtracking until match is found.
+如果两个节点在同一索引位置拥有相同任期号的日志条目，那么它们从头到该位置的所有日志都是完全一致的。实现方式是：当 AppendEntries 中的前一条日志不匹配时，跟随者会拒绝请求，领导者则不断回退，直到找到匹配的位置。
 
-### Conflict Resolution
+### 冲突解决
 
-When logs diverge (after Leader changes), the new Leader's 日志 wins. Followers truncate conflicting entries和accept the Leader's. Committed entries are never truncated - that's the Election Restriction safety.
+当日志出现分歧时（比如领导者更换后），新领导者的日志具有最高优先级。跟随者会截断冲突的日志条目，接受领导者的版本。已提交的条目永远不会被截断——这正是选举限制（Election Restriction）安全性所保障的。
 
 ## 涉及概念
 
@@ -50,13 +44,13 @@ When logs diverge (after Leader changes), the new Leader's 日志 wins. Follower
 
 ## 实现提示
 
-- Check prevLogIndex和prevLogTerm match
-- If conflict, truncate和replace
-- Never overwrite committed entries
+- 检查 prevLogIndex 和 prevLogTerm 是否匹配
+- 如果发生冲突，截断并替换旧条目
+- 永远不要覆盖已提交的日志条目
 
 ## 测试用例
 
-### 1. Accept matching entries
+### 1. 接受匹配的日志条目
 
 输入：
 

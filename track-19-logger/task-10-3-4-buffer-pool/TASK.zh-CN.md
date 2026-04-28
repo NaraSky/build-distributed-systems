@@ -1,49 +1,43 @@
-# 实现 a Buffer Pool，包含LRU Eviction
+# 实现带 LRU 淘汰策略的缓冲池
 
-英文标题：Implement a Buffer Pool，包含LRU Eviction
+英文标题：Implement a Buffer Pool with LRU Eviction
 网页：<https://builddistributedsystem.com/tracks/logger/tasks/task-10-3-4-buffer-pool>
 
 课程：19. 日志器：WAL、LSM 与分布式日志
 任务序号：14
 短标题：Buffer Pool
-难度：advanced
+难度：高级
 子主题：B-Tree on Disk
 
 ## 中文导读
 
-本题要求你完成 `实现 a Buffer Pool，包含LRU Eviction`。
-
-重点关注：`buffer pool`、`LRU eviction`、`page cache`、`dirty pages`、`hit rate`。
-
-建议先按提示逐步实现：The buffer pool caches frequently accessed B-Tree pages in memory to avoid disk I/O。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你实现一个缓冲池（Buffer Pool），把频繁访问的 B 树页面缓存在内存中，并在内存满时使用 LRU（最近最少使用）策略淘汰旧页面。这正是 PostgreSQL、MySQL 等生产数据库实现高性能的核心机制——磁盘读写比内存慢约 1000 倍，缓冲池就是弥补这一差距的桥梁。
 
 ## 题目说明
 
-Disk I/O is 1000x slower than memory access. The buffer pool bridges this gap by caching frequently accessed B-Tree pages in RAM. This is how every production database (PostgreSQL, MySQL, Oracle) achieves acceptable performance.
+磁盘读写的速度比内存访问慢大约 1000 倍。缓冲池（Buffer Pool）通过将频繁访问的 B 树页面缓存到内存中来弥补这一差距。所有生产级数据库（PostgreSQL、MySQL、Oracle）都依赖缓冲池来达到可接受的性能。
 
-Buffer pool design:
-1. **Fixed-size memory region**: holds N pages (e.g. 100 pages * 4KB = 400KB)
-2. **Page table**: maps (page_id -> frame_number)用于O(1) lookup
-3. **LRU eviction**: when a new page is needed but the pool is full, evict the least recently used page
-4. **Dirty page tracking**: pages modified in memory are marked "dirty". Before evicting a dirty page, flush it to disk.
-5. **Hit rate monitoring**: track the ratio of 缓存 hits to total reads. High hit rates (>95%) mean the working set fits in memory.
+缓冲池的设计要点：
+1. **固定大小的内存区域**：可容纳 N 个页面（例如 100 个页面 * 4KB = 400KB）
+2. **页表**：建立 page_id 到 frame_number 的映射，实现 O(1) 查找
+3. **LRU 淘汰策略**：当需要加载新页面但缓冲池已满时，淘汰最近最少使用的页面
+4. **脏页追踪**：在内存中被修改过的页面标记为"脏页（Dirty Page）"。淘汰脏页之前，必须先将它写回磁盘
+5. **命中率监控**：追踪缓存命中次数与总读取次数的比值。高命中率（大于 95%）说明工作集可以装入内存
 
-The eviction policy is critical:
-- LRU works well用于most workloads but is vulnerable to sequential scans (a full table scan can evict the entire 缓存)
-- MySQL uses a "young"和"old" sublist to protect against this
-- PostgreSQL uses a 时钟 sweep algorithm (approximated LRU)
+淘汰策略的选择至关重要：
+- LRU 对大多数负载表现良好，但面对顺序扫描时容易失效（一次全表扫描可能把整个缓存冲掉）
+- MySQL 使用"年轻"和"老年"两个子链表来防止这种情况
+- PostgreSQL 使用时钟扫描算法（近似 LRU）
 
-```JSON
-请求:  {"type": "buffer_pool_config", "msg_id": 1, "max_pages": 100, "page_size_bytes": 4096}
-响应: {"type": "buffer_pool_config_ok", "in_reply_to": 1, "total_memory_bytes": 409600}
+```json
+Request:  {"type": "buffer_pool_config", "msg_id": 1, "max_pages": 100, "page_size_bytes": 4096}
+Response: {"type": "buffer_pool_config_ok", "in_reply_to": 1, "total_memory_bytes": 409600}
 
-请求:  {"type": "buffer_pool_read", "msg_id": 2, "page_id": 42}
-响应: {"type": "buffer_pool_read_ok", "in_reply_to": 2, "cache_hit": false, "disk_read": true}
+Request:  {"type": "buffer_pool_read", "msg_id": 2, "page_id": 42}
+Response: {"type": "buffer_pool_read_ok", "in_reply_to": 2, "cache_hit": false, "disk_read": true}
 
-请求:  {"type": "buffer_pool_stats", "msg_id": 3}
-响应: {"type": "buffer_pool_stats_ok", "in_reply_to": 3, "total_reads": 1000, "cache_hits": 850, "hit_rate": 0.85, "dirty_pages": 12, "evictions": 50}
+Request:  {"type": "buffer_pool_stats", "msg_id": 3}
+Response: {"type": "buffer_pool_stats_ok", "in_reply_to": 3, "total_reads": 1000, "cache_hits": 850, "hit_rate": 0.85, "dirty_pages": 12, "evictions": 50}
 ```
 
 ## 涉及概念
@@ -56,15 +50,15 @@ The eviction policy is critical:
 
 ## 实现提示
 
-- The buffer pool caches frequently accessed B-Tree pages in memory to avoid disk I/O
-- Use LRU (Least Recently Used) to decide which pages to evict when the pool is full
-- Dirty pages (modified but not yet flushed) must be written to disk BEFORE eviction
-- Hit rate = 缓存 hits / total reads. A good buffer pool achieves 95%+ hit rates
-- This is exactly how PostgreSQL和MySQL manage their shared buffer pool
+- 缓冲池将频繁访问的 B 树页面缓存在内存中，以减少磁盘读写
+- 使用 LRU（最近最少使用）算法决定当缓冲池满时淘汰哪个页面
+- 脏页（已修改但尚未写回磁盘的页面）在被淘汰之前必须先写回磁盘
+- 命中率 = 缓存命中次数 / 总读取次数。好的缓冲池应达到 95% 以上的命中率
+- 这正是 PostgreSQL 和 MySQL 管理共享缓冲池的方式
 
 ## 测试用例
 
-### 1. Configure buffer pool size
+### 1. 配置缓冲池大小
 
 输入：
 
@@ -80,7 +74,7 @@ The eviction policy is critical:
 {"src": "n1", "dest": "c1", "body": {"type": "buffer_pool_config_ok", "in_reply_to": 2, "total_memory_bytes": 409600, "msg_id": 1}}
 ```
 
-### 2. First read is a 缓存 miss
+### 2. 首次读取应为缓存未命中
 
 输入：
 
@@ -100,7 +94,7 @@ The eviction policy is critical:
 
 ## 参考资料
 
-- [CMU 15-445 Buffer Pool Management](https://15445.courses.cs.cmu.edu/fall2023/slides/05-bufferpool.pdf)：Carnegie Mellon database course lecture on buffer pool design和eviction policies
+- [CMU 15-445 Buffer Pool Management](https://15445.courses.cs.cmu.edu/fall2023/slides/05-bufferpool.pdf)：卡内基梅隆大学数据库课程关于缓冲池设计和淘汰策略的讲义
 
 ## 本地文件
 

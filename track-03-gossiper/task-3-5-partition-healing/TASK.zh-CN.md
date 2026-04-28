@@ -1,33 +1,29 @@
-#处理Network Partition Healing和Resynchronization
+# 处理网络分区恢复与数据重新同步
 
-英文标题：Handle Network Partition Healing和Resynchronization
+英文标题：Handle Network Partition Healing and Resynchronization
 网页：<https://builddistributedsystem.com/tracks/gossiper/tasks/task-3-5-partition-healing>
 
 课程：3. 传播者：Gossip 信息传播
 任务序号：5
-短标题：Partition Healing
-难度：advanced
-子主题：Naive 广播 (Flooding)
+短标题：分区恢复
+难度：高级
+子主题：朴素广播（洪泛）
 
 ## 中文导读
 
-本题要求你完成 `Handle Network Partition Healing和Resynchronization`。
-
-重点关注：`network partitions`、`resynchronization`、`anti-entropy`。
-
-建议先按提示逐步实现：Detect when partitions heal。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题模拟的是一个真实场景：网络分区（Network Partition）恢复后，之前被隔离的节点重新连接，它们之间的数据该如何同步？你需要实现反熵（Anti-Entropy）机制，确保分区恢复后所有节点最终达成一致。这是分布式系统中最棘手也最重要的问题之一。
 
 ## 题目说明
 
-Handle the scenario where 网络 partitions heal和previously isolated 节点 reconnect. Implement anti-entropy mechanisms to synchronize 消息 sets between 节点 that were separated.
+处理网络分区恢复后节点重新连接的场景。实现反熵机制，在曾经被分隔开的节点之间同步消息集合。
+
+想象两个办公室之间的网线断了一段时间，各自收到了不同的消息。网线修好后，两边需要互相交换这段时间内各自收到的消息，确保双方最终拥有完全一致的信息。
 
 ## 概念说明
 
-### Anti-Entropy
+### 反熵
 
-Anti-entropy protocols periodically compare state between 节点和resolve differences. When partitions heal, 节点 must reconcile their 消息 sets to ensure 最终一致性.
+反熵（Anti-Entropy）协议会定期比较各节点之间的状态，并解决差异。当网络分区恢复后，节点必须协调各自的消息集合，以确保最终一致性（Eventual Consistency）。
 
 ## 涉及概念
 
@@ -37,14 +33,14 @@ Anti-entropy protocols periodically compare state between 节点和resolve diffe
 
 ## 实现提示
 
-- Detect when partitions heal
-- Exchange 消息 sets，包含reconnected 节点
-- Use Merkle trees用于efficient sync
-- Reply，包含broadcast_ok before forwarding to neighbors to ensure deterministic output ordering
+- 检测分区何时恢复
+- 与重新连接的节点交换消息集合
+- 可以使用默克尔树（Merkle Tree）来实现高效同步
+- 先回复 `broadcast_ok`，再转发给邻居节点，以确保输出的顺序是确定性的
 
 ## 测试用例
 
-### 1. Nodes sync after partition heals
+### 1. 分区恢复后节点间同步数据
 
 输入：
 
@@ -70,7 +66,7 @@ Anti-entropy protocols periodically compare state between 节点和resolve diffe
 
 ## 参考资料
 
-- [Anti-Entropy Protocols](https://www.cs.cornell.edu/home/rvr/papers/flowgossip.pdf)：Research on anti-entropy和synchronization
+- [Anti-Entropy Protocols](https://www.cs.cornell.edu/home/rvr/papers/flowgossip.pdf)：关于反熵与同步机制的研究论文
 
 ## 本地文件
 

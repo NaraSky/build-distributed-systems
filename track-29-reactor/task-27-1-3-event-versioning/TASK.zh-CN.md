@@ -1,34 +1,28 @@
-# 实现 Event Versioning和Migration
+# 实现事件版本控制与迁移
 
-英文标题：Implement Event Versioning和Migration
+英文标题：Implement Event Versioning and Migration
 网页：<https://builddistributedsystem.com/tracks/reactor/tasks/task-27-1-3-event-versioning>
 
 课程：29. 反应器：事件溯源与 CQRS
 任务序号：3
-短标题：Event Versioning
-难度：advanced
+短标题：事件版本控制
+难度：高级
 子主题：Event Sourcing
 
 ## 中文导读
 
-本题要求你完成 `实现 Event Versioning和Migration`。
-
-重点关注：`event versioning`、`schema evolution`、`upcasting`、`backward compatibility`、`migration`。
-
-建议先按提示逐步实现：Upcasting transforms an old event version to the target version in-place。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你实现事件的版本控制和迁移功能。随着业务发展，事件的数据结构不可避免地会发生变化，比如新增字段、重命名字段等。但事件是不可变的，不能回去修改旧数据，因此需要一种"向上转换"机制，在读取旧事件时自动将其升级到最新格式。这是事件溯源在生产环境中必须解决的问题。
 
 ## 题目说明
 
-Event schemas change over time as requirements evolve. A field gets added, renamed, or split. Because old events are immutable, you cannot change them in place — instead you **upcast** them: transform older versions to the current schema on read.
+随着需求的演进，事件的数据结构（Schema）会发生变化：可能新增了一个字段、重命名了一个字段，或者把一个字段拆分成了两个。由于旧事件是不可变的，你不能直接修改它们。解决办法是使用**向上转换（Upcasting）**：在读取旧版本事件时，将其转换为当前版本的格式。
 
-Implement a 节点 that handles event schema migration through upcasting:
+你需要实现一个通过向上转换来处理事件版本迁移的节点：
 
-```JSON
-// Upcast a single event from v1 to v2
-// v1 UserCreated has: id, name
-// v2 UserCreated adds: email (default "")
+```json
+// 将单个事件从 v1 升级到 v2
+// v1 的 UserCreated 包含: id, name
+// v2 的 UserCreated 新增: email（默认值为空字符串）
 { "type": "upcast", "msg_id": 1,
   "event": {"event_type": "UserCreated", "version": 1,
             "event_data": {"id": 1, "name": "John"}},
@@ -37,7 +31,7 @@ Implement a 节点 that handles event schema migration through upcasting:
     "event": {"event_type": "UserCreated", "version": 2,
               "event_data": {"id": 1, "name": "John", "email": ""}} }
 
-// Migrate a batch of events to the target version
+// 批量迁移事件到目标版本
 { "type": "migrate_batch", "msg_id": 2,
   "events": [
     {"event_type": "UserCreated", "version": 1, "event_data": {"id": 1}}
@@ -47,7 +41,11 @@ Implement a 节点 that handles event schema migration through upcasting:
     "count": 1, "target_version": 2 }
 ```
 
-Your upcaster must handle multi-step migration (e.g. v1 -> v2 -> v3) by chaining single-version upgrades. Each step adds or defaults the fields introduced in that version.
+你的向上转换器必须支持多步迁移（例如 v1 -> v2 -> v3），通过链式调用单步升级来实现。每一步升级都会添加或设置该版本引入的新字段的默认值。
+
+## 概念说明
+
+向上转换可以类比为手机系统升级：你的旧版手机系统可能没有某个功能的设置项，升级到新版本时，系统会自动为这些新功能填入默认设置。事件版本控制的思路完全一样：旧事件缺少的字段，在读取时自动补上默认值。
 
 ## 涉及概念
 
@@ -59,17 +57,17 @@ Your upcaster must handle multi-step migration (e.g. v1 -> v2 -> v3) by chaining
 
 ## 实现提示
 
-- Upcasting transforms an old event version to the target version in-place
-- When upcasting from v1 to v2, fill missing fields，包含sensible defaults (empty string, 0, etc.)
-- migrate_batch iterates over the events array和upcasts each one
-- count in the migrate_batch 响应 is the total number of events processed
-- Events already at the target version should be returned unchanged
+- 向上转换在读取时将旧版本事件就地转换为目标版本
+- 从 v1 升级到 v2 时，为缺失的字段填入合理的默认值（空字符串、0 等）
+- 批量迁移遍历事件数组，逐个执行向上转换
+- 批量迁移响应中的计数值是已处理的事件总数
+- 已经处于目标版本的事件应原样返回，不做修改
 
 ## 测试用例
 
-### 1. Upcast event to new version
+### 1. 向上转换事件到新版本
 
-Should add missing email field，包含default empty string when upcasting v1->v2.
+从 v1 升级到 v2 时，应为缺失的 email 字段添加默认空字符串。
 
 输入：
 
@@ -83,9 +81,9 @@ Should add missing email field，包含default empty string when upcasting v1->v
 {"type": "upcasted", "in_reply_to": 1, "event": {"event_type": "UserCreated", "version": 2, "event_data": {"id": 1, "name": "John", "email": ""}}}
 ```
 
-### 2. Migrate batch of events
+### 2. 批量迁移事件
 
-Should migrate all events和return count.
+应迁移所有事件并返回处理数量。
 
 输入：
 
@@ -101,7 +99,7 @@ Should migrate all events和return count.
 
 ## 参考资料
 
-- [Event Versioning Patterns](https://leanpub.com/esversioning/read)：Greg Young's guide to versioning events in event-sourced systems
+- [Event Versioning Patterns](https://leanpub.com/esversioning/read)：Greg Young 关于事件溯源系统中事件版本控制的指南
 
 ## 本地文件
 

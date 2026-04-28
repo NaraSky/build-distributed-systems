@@ -1,44 +1,38 @@
-#处理Client Request Routing
+# 处理客户端请求路由
 
 英文标题：Handle Client Request Routing
 网页：<https://builddistributedsystem.com/tracks/store/tasks/task-7-2-client-routing>
 
-课程：7. 存储：线性一致 KV Store
+课程：7. 存储：线性一致键值存储
 任务序号：2
 短标题：Client Routing
-难度：intermediate
-子主题：Linearizable 键值 存储
+难度：进阶
+子主题：线性一致键值存储
 
 ## 中文导读
 
-本题要求你完成 `Handle Client Request Routing`。
-
-重点关注：`leader routing`、`redirect`、`client sessions`。
-
-建议先按提示逐步实现：Only Leader can process writes。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现客户端请求的路由机制：当客户端把请求发到了非领导者节点时，系统需要把请求正确地引导到领导者。这是分布式键值存储中非常实际的问题，因为客户端并不总是知道谁是当前的领导者。
 
 ## 题目说明
 
-Route 客户端 requests to the Leader:
+实现客户端请求到领导者的路由逻辑：
 
-1. 客户端 sends 请求 to any 节点
-2. If 节点 is Leader, process 请求
-3. If not Leader, return redirect，包含Leader hint
-4. 客户端 follows redirect
+1. 客户端可以向集群中的任意节点发送请求
+2. 如果当前节点就是领导者，直接处理请求
+3. 如果当前节点不是领导者，返回重定向响应，并附带领导者的地址提示
+4. 客户端根据重定向信息，重新向领导者发送请求
 
-Handle the case when Leader is unknown (election in progress).
+还需要处理领导者未知的情况（比如正在进行选举时）。
 
 ## 概念说明
 
-### Client Routing
+### 客户端路由
 
-Only the Raft Leader can process writes. Clients must find the Leader. Options: redirect to Leader, 代理 through Leader, or use 客户端 library that tracks Leader.
+在 Raft 中，只有领导者能处理写请求。因此客户端必须找到领导者。常见的做法有三种：将客户端重定向到领导者、通过当前节点代理转发请求到领导者、或者让客户端库自己记住领导者是谁。
 
-### Leader Discovery
+### 领导者发现
 
-节点 learn the Leader from AppendEntries. When redirecting, include the current known Leader. Clients may need to 重试 if Leader changes during the 请求.
+节点通过接收 AppendEntries 消息来得知谁是领导者。当需要重定向客户端时，把当前已知的领导者信息告诉客户端。但需要注意，如果请求处理过程中领导者发生了变更，客户端可能需要重试。
 
 ## 涉及概念
 
@@ -48,15 +42,15 @@ Only the Raft Leader can process writes. Clients must find the Leader. Options: 
 
 ## 实现提示
 
-- Only Leader can process writes
-- Redirect clients to Leader
-- Track Leader ID
+- 只有领导者能处理写操作
+- 非领导者节点需要将客户端重定向到领导者
+- 需要记录当前领导者的标识
 
 ## 测试用例
 
-### 1. Leader processes request
+### 1. 领导者直接处理请求
 
-Leader processes read 请求 locally without redirecting
+验证领导者收到读请求后能直接在本地处理，无需重定向。
 
 输入：
 

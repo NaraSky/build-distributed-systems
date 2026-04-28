@@ -1,41 +1,35 @@
-# 实现 Line-Delimited Framing (Redis RESP Style)
+# 实现行分隔分帧（Redis RESP 风格）
 
 英文标题：Implement Line-Delimited Framing (Redis RESP Style)
 网页：<https://builddistributedsystem.com/tracks/networker/tasks/task-5-2-2-line-delimited>
 
 课程：17. 网络器：TCP 与协议基础
 任务序号：7
-短标题：Line-Delimited Framing
-难度：intermediate
-子主题：消息 Framing和Serialization
+短标题：行分隔分帧
+难度：进阶
+子主题：消息分帧与序列化
 
 ## 中文导读
 
-本题要求你完成 `实现 Line-Delimited Framing (Redis RESP Style)`。
-
-重点关注：`line-delimited`、`RESP protocol`、`CRLF`、`partial reads`、`buffer management`。
-
-建议先按提示逐步实现：消息 are terminated by \r\n (CRLF)。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题让你实现另一种常见的消息分帧方式：行分隔（Line-Delimited）。不同于长度前缀方案，这种方式用特殊字符 `\r\n` 来标记一条消息的结束，Redis 的 RESP 协议、HTTP/1.1 的请求头以及 SMTP 协议都采用了这种方式。核心难点在于 TCP 不保证一次读取就能拿到完整的一行，`\r\n` 甚至可能被拆分到两次读取中，所以你必须正确地缓冲和拼接数据。
 
 ## 题目说明
 
-Implement line-delimited framing where 消息 end，包含`\r\n`. This is the approach used by Redis RESP, HTTP/1.1 headers,和SMTP.
+实现行分隔分帧，每条消息以 `\r\n` 结尾。这种方式被 Redis RESP 协议、HTTP/1.1 请求头和 SMTP 协议所采用。
 
-The challenge: TCP doesn't guarantee that a full line arrives in one read. You must buffer partial reads correctly.
+核心挑战在于：TCP 不保证一次读取就能拿到完整的一行数据。你必须正确处理部分读取的情况，使用缓冲区来拼接数据。
 
-Implement handlers:
+实现以下消息处理器：
 
-```JSON
-请求:  {"type": "line_encode", "msg_id": 1, "消息": "PING"}
-响应: {"type": "line_encode_ok", "in_reply_to": 1, "encoded": "PING\r\n", "bytes": 6}
+```json
+Request:  {"type": "line_encode", "msg_id": 1, "message": "PING"}
+Response: {"type": "line_encode_ok", "in_reply_to": 1, "encoded": "PING\r\n", "bytes": 6}
 
-请求:  {"type": "line_decode", "msg_id": 2, "buffer": "PING\r\nPONG\r\n"}
-响应: {"type": "line_decode_ok", "in_reply_to": 2, "消息": ["PING", "PONG"], "remaining": ""}
+Request:  {"type": "line_decode", "msg_id": 2, "buffer": "PING\r\nPONG\r\n"}
+Response: {"type": "line_decode_ok", "in_reply_to": 2, "messages": ["PING", "PONG"], "remaining": ""}
 
-请求:  {"type": "line_decode", "msg_id": 3, "buffer": "PING\r\nPON"}
-响应: {"type": "line_decode_ok", "in_reply_to": 3, "消息": ["PING"], "remaining": "PON"}
+Request:  {"type": "line_decode", "msg_id": 3, "buffer": "PING\r\nPON"}
+Response: {"type": "line_decode_ok", "in_reply_to": 3, "messages": ["PING"], "remaining": "PON"}
 ```
 
 ## 涉及概念
@@ -48,15 +42,15 @@ Implement handlers:
 
 ## 实现提示
 
-- 消息 are terminated by \r\n (CRLF)
-- Buffer incoming bytes until you find a complete \r\n
--处理the case where \r\n is split across two TCP reads
-- This is similar to how Redis RESP protocol works
-- Return an error用于消息 that exceed a maximum length limit
+- 消息以 \r\n（回车换行，即 CRLF）作为终止符
+- 持续缓冲收到的字节，直到找到完整的 \r\n
+- 需要处理 \r\n 被拆分到两次 TCP 读取中的情况
+- 这与 Redis RESP 协议的工作方式类似
+- 对于超过最大长度限制的消息应返回错误
 
 ## 测试用例
 
-### 1. Encode a line 消息
+### 1. 编码一条行消息
 
 输入：
 
@@ -72,7 +66,7 @@ Implement handlers:
 {"src": "n1", "dest": "c1", "body": {"type": "line_encode_ok", "in_reply_to": 2, "encoded": "PING\r\n", "bytes": 6, "msg_id": 1}}
 ```
 
-### 2. Decode multiple complete lines
+### 2. 解码多条完整的行
 
 输入：
 
@@ -90,7 +84,7 @@ Implement handlers:
 
 ## 参考资料
 
-- [Redis Serialization Protocol (RESP)](https://redis.io/docs/reference/protocol-spec/)：Redis protocol specification使用CRLF-delimited framing
+- [Redis Serialization Protocol (RESP)](https://redis.io/docs/reference/protocol-spec/)：Redis 协议规范，采用 CRLF 行分隔的分帧方式
 
 ## 本地文件
 

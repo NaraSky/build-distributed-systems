@@ -1,4 +1,4 @@
-# 构建 Stream Processing Pipeline
+# 构建流处理管道
 
 英文标题：Build Stream Processing Pipeline
 网页：<https://builddistributedsystem.com/tracks/advanced/tasks/task-10-4-streaming>
@@ -6,28 +6,22 @@
 课程：10. 高级主题
 任务序号：4
 短标题：Streaming
-难度：intermediate
-子主题：高级 Paradigms
+难度：进阶
+子主题：高级范式
 
 ## 中文导读
 
-本题要求你完成 `构建 Stream Processing Pipeline`。
-
-重点关注：`streaming`、`windowing`、`exactly-once`。
-
-建议先按提示逐步实现：Tumbling vs sliding windows。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你构建一个支持窗口（Window）功能的流处理器。与批处理一次处理全部数据不同，流处理对数据进行持续不断的实时处理。你需要实现滚动窗口和滑动窗口，以及基于事件时间的处理。这是理解实时数据处理系统（如 Flink、Kafka Streams）的基础。
 
 ## 题目说明
 
-Build stream processor，包含windowing. Support tumbling和sliding windows，包含event-time processing.
+构建一个带窗口功能的流处理器。支持滚动窗口（Tumbling Window）和滑动窗口（Sliding Window），以及基于事件时间（Event-Time）的处理。
 
 ## 概念说明
 
-### Stream Processing
+### 流处理
 
-Unlike batch, stream processes data continuously. Windows aggregate over time. Watermarks handle late data in event-time processing.
+与批处理不同，流处理对数据进行持续处理。窗口（Window）机制将一段时间内的事件聚合在一起。水位线（Watermark）用于在事件时间处理中应对迟到的数据。你可以把窗口想象成一个个时间段的"桶"，事件按时间落入对应的桶中，然后对每个桶里的事件进行统计。
 
 ## 涉及概念
 
@@ -37,13 +31,13 @@ Unlike batch, stream processes data continuously. Windows aggregate over time. W
 
 ## 实现提示
 
-- Tumbling vs sliding windows
--处理late arrivals
-- Watermarks用于event-time
+- 区分滚动窗口和滑动窗口：滚动窗口不重叠，滑动窗口可以重叠
+- 处理迟到的事件
+- 使用水位线来判断事件时间的推进
 
 ## 测试用例
 
-### 1. 添加 event to window
+### 1. 将事件添加到窗口
 
 输入：
 
@@ -61,7 +55,7 @@ Unlike batch, stream processes data continuously. Windows aggregate over time. W
 
 ## 参考资料
 
-- [Streaming 101](https://www.oreilly.com/ideas/the-world-beyond-batch-streaming-101)：Streaming concepts
+- [Streaming 101](https://www.oreilly.com/ideas/the-world-beyond-batch-streaming-101)：流处理的核心概念
 
 ## 本地文件
 

@@ -1,37 +1,39 @@
-# 实现 Two-Phase Commit用于队列和Database
+# 实现队列与数据库的两阶段提交
 
-英文标题：Implement Two-Phase Commit用于Queue和Database
+英文标题：Implement Two-Phase Commit for Queue and Database
 网页：<https://builddistributedsystem.com/tracks/queues/tasks/task-29-2-5-two-phase-commit>
 
 课程：15. 队列
 任务序号：10
-短标题：Two-Phase Commit
-难度：advanced
-子主题：Exactly-Once Delivery
+短标题：两阶段提交
+难度：高级
+子主题：精确一次投递
 
 ## 中文导读
 
-本题要求你完成 `实现 Two-Phase Commit用于队列和Database`。
-
-重点关注：`two-phase commit`、`2PC`、`distributed transactions`、`queue coordination`、`database coordination`。
-
-建议先按提示逐步实现：Phase 1: Prepare - both participants vote to commit。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你实现两阶段提交（Two-Phase Commit，简称 2PC），用来协调队列和数据库之间的原子提交。两阶段提交就像婚礼上的宣誓——牧师先问双方"你愿意吗"（准备阶段），只有双方都说"我愿意"才正式宣布结婚（提交阶段），只要有一方说"不"就取消（回滚阶段）。这是分布式事务最经典的协调协议。
 
 ## 题目说明
 
-Two-phase commit (2PC) coordinates atomic commits across multiple 分布式系统, ensuring all participants commit or rollback together.
+两阶段提交（2PC）协调多个分布式系统之间的原子提交，确保所有参与者要么全部提交，要么全部回滚。
 
-**Problem**: Coordinate commits across 队列和database. Scenario: 1) Consumer receives 消息, 2) Consumer updates database, 3) Consumer commits database, 4) Consumer crashes before ACK, 5) 队列 re-delivers 消息, 6) Database already updated (duplicate!). Solution: Two-phase commit.
+**要解决的问题**：如何协调队列和数据库的提交。典型问题场景：
+1. 消费者接收到消息
+2. 消费者更新了数据库
+3. 消费者提交了数据库事务
+4. 消费者在发送确认之前崩溃
+5. 队列重新投递消息
+6. 数据库已经更新过了，导致重复操作
 
-**Phase 1 - Prepare**: 队列 prepares to ACK 消息, Database prepares to commit 事务, Both vote YES or NO.
+解决方案就是两阶段提交。
 
-**Phase 2 - Commit/Rollback**: If both vote YES: Commit both, If any votes NO: Rollback both.
+**第一阶段 - 准备**：队列准备确认消息，数据库准备提交事务，双方各自投票"同意"或"拒绝"。
 
-**Benefits**: Atomic commit across systems, No partial updates, Exactly-once semantics, 故障-tolerant coordination.
+**第二阶段 - 提交或回滚**：如果双方都投了"同意"，则全部提交；如果任何一方投了"拒绝"，则全部回滚。
 
-**Two-phase commit coordinator**:
+**优势**：跨系统的原子提交、不会出现部分更新、实现精确一次语义、容错的协调机制。
+
+**两阶段提交协调器**：
 
 ```typescript
 interface Participant {
@@ -51,12 +53,12 @@ class TwoPhaseCommitCoordinator {
         this.participants.set(participant.id, participant);
     }
 
-    // Execute distributed 事务
+    // Execute distributed transaction
     async executeTransaction(
         transactionId: string,
         operations: Map<string, () => Promise<void>>
     ): Promise<boolean> {
-        // Initialize 事务 state
+        // Initialize transaction state
         const state: TransactionState = {
             id: transactionId,
             status: 'pending',
@@ -84,15 +86,15 @@ class TwoPhaseCommitCoordinator {
         transactionId: string,
         operations: Map<string, () => Promise<void>>
     ): Promise<boolean> {
-        console.日志(`事务 ${transactionId}: Prepare phase`);
+        console.log(`Transaction ${transactionId}: Prepare phase`);
 
         const state = this.transactions.get(transactionId)!;
         state.status = 'preparing';
 
         // Prepare all participants
-       用于(const [participantId, participant] of this.participants) {
+        for (const [participantId, participant] of this.participants) {
             try {
-                console.日志(`Preparing participant ${participantId}`);
+                console.log(`Preparing participant ${participantId}`);
 
                 // Execute prepare operation
                 const operation = operations.get(participantId);
@@ -107,12 +109,12 @@ class TwoPhaseCommitCoordinator {
                 state.votes.set(participantId, vote);
 
                 if (!vote) {
-                    console.日志(`Participant ${participantId} voted NO`);
+                    console.log(`Participant ${participantId} voted NO`);
                     state.status = 'prepare_failed';
                     return false;
                 }
 
-                console.日志(`Participant ${participantId} voted YES`);
+                console.log(`Participant ${participantId} voted YES`);
 
             } catch (error) {
                 console.error(`Participant ${participantId} prepare failed:`, error);
@@ -123,23 +125,23 @@ class TwoPhaseCommitCoordinator {
         }
 
         state.status = 'prepared';
-        console.日志(`事务 ${transactionId}: All participants voted YES`);
+        console.log(`Transaction ${transactionId}: All participants voted YES`);
         return true;
     }
 
     // Phase 2: Commit
     private async commitPhase(transactionId: string): Promise<void> {
-        console.日志(`事务 ${transactionId}: Commit phase`);
+        console.log(`Transaction ${transactionId}: Commit phase`);
 
         const state = this.transactions.get(transactionId)!;
         state.status = 'committing';
 
         // Commit all participants
-       用于(const [participantId, participant] of this.participants) {
+        for (const [participantId, participant] of this.participants) {
             try {
-                console.日志(`Committing participant ${participantId}`);
+                console.log(`Committing participant ${participantId}`);
                 await participant.commit(transactionId);
-                console.日志(`Participant ${participantId} committed`);
+                console.log(`Participant ${participantId} committed`);
             } catch (error) {
                 console.error(`Participant ${participantId} commit failed:`, error);
                 // Note: In real 2PC, commit failures require recovery
@@ -147,7 +149,7 @@ class TwoPhaseCommitCoordinator {
         }
 
         state.status = 'committed';
-        console.日志(`事务 ${transactionId}: Committed`);
+        console.log(`Transaction ${transactionId}: Committed`);
 
         // Cleanup
         this.transactions.delete(transactionId);
@@ -155,19 +157,19 @@ class TwoPhaseCommitCoordinator {
 
     // Rollback phase
     private async rollbackPhase(transactionId: string): Promise<void> {
-        console.日志(`事务 ${transactionId}: Rollback phase`);
+        console.log(`Transaction ${transactionId}: Rollback phase`);
 
         const state = this.transactions.get(transactionId)!;
         state.status = 'rolling_back';
 
         // Rollback all participants
-       用于(const [participantId, participant] of this.participants) {
+        for (const [participantId, participant] of this.participants) {
             try {
                 // Only rollback participants that voted YES
                 if (state.votes.get(participantId) === true) {
-                    console.日志(`Rolling back participant ${participantId}`);
+                    console.log(`Rolling back participant ${participantId}`);
                     await participant.rollback(transactionId);
-                    console.日志(`Participant ${participantId} rolled back`);
+                    console.log(`Participant ${participantId} rolled back`);
                 }
             } catch (error) {
                 console.error(`Participant ${participantId} rollback failed:`, error);
@@ -175,7 +177,7 @@ class TwoPhaseCommitCoordinator {
         }
 
         state.status = 'rolled_back';
-        console.日志(`事务 ${transactionId}: Rolled back`);
+        console.log(`Transaction ${transactionId}: Rolled back`);
 
         // Cleanup
         this.transactions.delete(transactionId);
@@ -190,73 +192,73 @@ interface TransactionState {
 }
 ```
 
-**队列 participant**:
+**队列参与者**：
 
 ```typescript
 class QueueParticipant implements Participant {
-    id = '队列';
-    private 队列: MessageQueue;
-    private preparedMessages: Map<string, 消息> = new Map();
+    id = 'queue';
+    private queue: MessageQueue;
+    private preparedMessages: Map<string, Message> = new Map();
 
-    constructor(队列: MessageQueue) {
-        this.队列 = 队列;
+    constructor(queue: MessageQueue) {
+        this.queue = queue;
     }
 
-    // Prepare to ACK 消息
+    // Prepare to ACK message
     async prepare(transactionId: string): Promise<boolean> {
-        console.日志(`队列: Prepare用于事务 ${transactionId}`);
+        console.log(`Queue: Prepare for transaction ${transactionId}`);
 
         try {
-            // Check if 消息 exists和can be ACKed
-            const 消息 = this.preparedMessages.get(transactionId);
+            // Check if message exists and can be ACKed
+            const message = this.preparedMessages.get(transactionId);
 
-            if (!消息) {
-                console.日志(`队列: No 消息用于事务 ${transactionId}`);
+            if (!message) {
+                console.log(`Queue: No message for transaction ${transactionId}`);
                 return false;
             }
 
-            // Reserve 消息 (don't ACK yet)
-            console.日志(`队列: 消息 reserved用于事务 ${transactionId}`);
+            // Reserve message (don't ACK yet)
+            console.log(`Queue: Message reserved for transaction ${transactionId}`);
             return true;
 
         } catch (error) {
-            console.error(`队列: Prepare failed用于事务 ${transactionId}:`, error);
+            console.error(`Queue: Prepare failed for transaction ${transactionId}:`, error);
             return false;
         }
     }
 
     // Commit ACK
     async commit(transactionId: string): Promise<void> {
-        console.日志(`队列: Commit用于事务 ${transactionId}`);
+        console.log(`Queue: Commit for transaction ${transactionId}`);
 
-        const 消息 = this.preparedMessages.get(transactionId);
+        const message = this.preparedMessages.get(transactionId);
 
-        if (消息) {
-            // ACK the 消息
-            await this.队列.ack(消息.id, 消息.offset);
-            console.日志(`队列: 消息 ${消息.id} ACKed`);
+        if (message) {
+            // ACK the message
+            await this.queue.ack(message.id, message.offset);
+            console.log(`Queue: Message ${message.id} ACKed`);
             this.preparedMessages.delete(transactionId);
         }
     }
 
     // Rollback (release reservation)
     async rollback(transactionId: string): Promise<void> {
-        console.日志(`队列: Rollback用于事务 ${transactionId}`);
+        console.log(`Queue: Rollback for transaction ${transactionId}`);
 
-        // Release 消息 (will be re-delivered)
+        // Release message (will be re-delivered)
         this.preparedMessages.delete(transactionId);
-        console.日志(`队列: 消息 released用于事务 ${transactionId}`);
+        console.log(`Queue: Message released for transaction ${transactionId}`);
     }
 
-    // Prepare 消息用于事务
-    prepareMessage(transactionId: string, 消息: 消息): void {
-        this.preparedMessages.set(transactionId, 消息);
-        console.日志(`队列: 消息 prepared用于事务 ${transactionId}`);
+    // Prepare message for transaction
+    prepareMessage(transactionId: string, message: Message): void {
+        this.preparedMessages.set(transactionId, message);
+        console.log(`Queue: Message prepared for transaction ${transactionId}`);
     }
 }
 ```
 
-**Database participant**:
+**数据库参与者**：
 
 ```typescript
 class DatabaseParticipant implements Participant {
@@ -268,60 +270,60 @@ class DatabaseParticipant implements Participant {
         this.database = database;
     }
 
-    // Prepare 事务
+    // Prepare transaction
     async prepare(transactionId: string): Promise<boolean> {
-        console.日志(`Database: Prepare用于事务 ${transactionId}`);
+        console.log(`Database: Prepare for transaction ${transactionId}`);
 
         try {
-            // Start 事务
+            // Start transaction
             const trx = await this.database.beginTransaction();
 
-            // Store 事务用于later commit/rollback
+            // Store transaction for later commit/rollback
             this.transactions.set(transactionId, trx);
 
-            console.日志(`Database: 事务 prepared用于${transactionId}`);
+            console.log(`Database: Transaction prepared for ${transactionId}`);
             return true;
 
         } catch (error) {
-            console.error(`Database: Prepare failed用于事务 ${transactionId}:`, error);
+            console.error(`Database: Prepare failed for transaction ${transactionId}:`, error);
             return false;
         }
     }
 
-    // Commit 事务
+    // Commit transaction
     async commit(transactionId: string): Promise<void> {
-        console.日志(`Database: Commit用于事务 ${transactionId}`);
+        console.log(`Database: Commit for transaction ${transactionId}`);
 
         const trx = this.transactions.get(transactionId);
 
         if (trx) {
             await trx.commit();
             this.transactions.delete(transactionId);
-            console.日志(`Database: 事务 ${transactionId} committed`);
+            console.log(`Database: Transaction ${transactionId} committed`);
         }
     }
 
-    // Rollback 事务
+    // Rollback transaction
     async rollback(transactionId: string): Promise<void> {
-        console.日志(`Database: Rollback用于事务 ${transactionId}`);
+        console.log(`Database: Rollback for transaction ${transactionId}`);
 
         const trx = this.transactions.get(transactionId);
 
         if (trx) {
             await trx.rollback();
             this.transactions.delete(transactionId);
-            console.日志(`Database: 事务 ${transactionId} rolled back`);
+            console.log(`Database: Transaction ${transactionId} rolled back`);
         }
     }
 
-    // Get 事务用于operations
+    // Get transaction for operations
     getTransaction(transactionId: string): DatabaseTransaction | undefined {
         return this.transactions.get(transactionId);
     }
 }
 ```
 
-**Exactly-once consumer，包含2PC**:
+**结合两阶段提交的精确一次消费者**：
 
 ```typescript
 class ExactlyOnceConsumerWith2PC {
@@ -329,9 +331,9 @@ class ExactlyOnceConsumerWith2PC {
     private queueParticipant: QueueParticipant;
     private databaseParticipant: DatabaseParticipant;
 
-    constructor(队列: MessageQueue, database: Database) {
+    constructor(queue: MessageQueue, database: Database) {
         this.coordinator = new TwoPhaseCommitCoordinator();
-        this.queueParticipant = new QueueParticipant(队列);
+        this.queueParticipant = new QueueParticipant(queue);
         this.databaseParticipant = new DatabaseParticipant(database);
 
         // Register participants
@@ -339,15 +341,15 @@ class ExactlyOnceConsumerWith2PC {
         this.coordinator.registerParticipant(this.databaseParticipant);
     }
 
-    // Consume 消息，包含exactly-once semantics
-    async consume(消息: 消息): Promise<boolean> {
-        const transactionId = `tx-${消息.id}`;
-        console.日志(`Processing 消息 ${消息.id}，包含2PC`);
+    // Consume message with exactly-once semantics
+    async consume(message: Message): Promise<boolean> {
+        const transactionId = `tx-${message.id}`;
+        console.log(`Processing message ${message.id} with 2PC`);
 
-        // Prepare 队列 participant
-        this.queueParticipant.prepareMessage(transactionId, 消息);
+        // Prepare queue participant
+        this.queueParticipant.prepareMessage(transactionId, message);
 
-        // Define 事务 operations
+        // Define transaction operations
         const operations = new Map<string, () => Promise<void>>();
 
         // Database operation
@@ -355,39 +357,39 @@ class ExactlyOnceConsumerWith2PC {
             const trx = this.databaseParticipant.getTransaction(transactionId);
 
             if (!trx) {
-                throw new Error('No 事务 found');
+                throw new Error('No transaction found');
             }
 
             // Process business logic
-            await this.processMessage(消息, trx);
+            await this.processMessage(message, trx);
         });
 
-        // Execute 2PC 事务
+        // Execute 2PC transaction
         const success = await this.coordinator.executeTransaction(transactionId, operations);
 
         if (success) {
-            console.日志(`消息 ${消息.id} processed exactly once`);
+            console.log(`Message ${message.id} processed exactly once`);
         } else {
-            console.日志(`消息 ${消息.id} processing failed, will 重试`);
+            console.log(`Message ${message.id} processing failed, will retry`);
         }
 
         return success;
     }
 
-    // Process 消息 (implement in subclass)
-    protected async processMessage(消息: 消息, trx: DatabaseTransaction): Promise<void> {
+    // Process message (implement in subclass)
+    protected async processMessage(message: Message, trx: DatabaseTransaction): Promise<void> {
         // Default implementation
-        console.日志(`Processing 消息: ${JSON.stringify(消息)}`);
+        console.log(`Processing message: ${JSON.stringify(message)}`);
     }
 }
 ```
 
-**Example 2PC scenarios**:
+**两阶段提交场景示例**：
 
-```JSON
+```json
 // Scenario 1: Successful commit
 {
-  "事务": "tx-msg-1",
+  "transaction": "tx-msg-1",
   "phase_1": {
     "queue_prepare": true,
     "database_prepare": true,
@@ -402,7 +404,7 @@ class ExactlyOnceConsumerWith2PC {
 
 // Scenario 2: Database prepare fails
 {
-  "事务": "tx-msg-2",
+  "transaction": "tx-msg-2",
   "phase_1": {
     "queue_prepare": true,
     "database_prepare": false,
@@ -426,17 +428,17 @@ class ExactlyOnceConsumerWith2PC {
 
 ## 实现提示
 
-- Phase 1: Prepare - both participants vote to commit
-- Phase 2: Commit - coordinator sends final commit decision
-- Coordinator: Manages the 事务 across participants
-- Participants: 队列和database must support prepare/commit
-- 故障 handling: 超时和rollback on failures
+- 第一阶段（准备）：所有参与者投票决定是否可以提交
+- 第二阶段（提交）：协调器发送最终的提交决定
+- 协调器：管理跨参与者的事务生命周期
+- 参与者：队列和数据库都必须支持准备和提交操作
+- 故障处理：超时和失败时执行回滚
 
 ## 测试用例
 
-### 1. Execute successful 2PC
+### 1. 执行成功的两阶段提交
 
-Should execute successful 2PC 事务.
+应当成功执行两阶段提交事务。
 
 输入：
 
@@ -450,9 +452,9 @@ Should execute successful 2PC 事务.
 {"type": "committed", "in_reply_to": 1, "transaction_id": "tx-1", "phase": "commit_complete"}
 ```
 
-### 2.处理prepare failure
+### 2. 处理准备阶段失败
 
-Should rollback on prepare 故障.
+应当在准备阶段失败时执行回滚。
 
 输入：
 
@@ -468,7 +470,7 @@ Should rollback on prepare 故障.
 
 ## 参考资料
 
-- [Two-Phase Commit](https://www.datastax.com/dev/blog/what-is-two-phase-commit)：Two-phase commit protocol
+- [Two-Phase Commit](https://www.datastax.com/dev/blog/what-is-two-phase-commit)：两阶段提交协议详解
 
 ## 本地文件
 

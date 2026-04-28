@@ -1,43 +1,37 @@
-# Prove Lamport 时钟 Causality和Its Limitation
+# 验证 Lamport 时钟的因果性及其局限
 
-英文标题：Prove Lamport Clock Causality和Its Limitation
+英文标题：Prove Lamport Clock Causality and Its Limitation
 网页：<https://builddistributedsystem.com/tracks/timekeeper/tasks/task-4-2-2-causality-proof>
 
 课程：16. 时间守卫：逻辑时钟
 任务序号：7
-短标题：Causality Proof
-难度：advanced
-子主题：Lamport Clocks
+短标题：因果性验证
+难度：高级
+子主题：Lamport 时钟
 
 ## 中文导读
 
-本题要求你完成 `Prove Lamport 时钟 Causality和Its Limitation`。
-
-重点关注：`happened-before`、`causality`、`concurrent events`、`Lamport limitation`。
-
-建议先按提示逐步实现：If A happened-before B, then L(A) < L(B) - this is guaranteed。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题让你深入理解 Lamport 时钟的能力边界。Lamport 时钟保证：如果事件 A 因果地发生在事件 B 之前，那么 A 的时间戳一定小于 B 的时间戳。但反过来不成立——时间戳小不代表有因果关系，两个事件可能完全无关（并发）。你需要构建一个系统来记录事件及其因果链，并对比 Lamport 时间戳推断的关系与实际因果关系之间的差异。
 
 ## 题目说明
 
-Lamport clocks guarantee: if event A **happened-before** event B, then L(A) < L(B). But the converse is NOT true - L(A) < L(B) does NOT mean A caused B. Events may be **concurrent** (neither caused the other).
+Lamport 时钟提供如下保证：如果事件 A **先于（Happened-Before）** 事件 B 发生，则 `L(A) < L(B)`。但反过来不成立——`L(A) < L(B)` 并不意味着 A 导致了 B。两个事件可能是**并发的（Concurrent）**，即互不影响。
 
-Your task is to build a system that:
-1. Records events，包含Lamport timestamps
-2. Tracks the actual causal chain (send/receive links)
-3. Compares what Lamport timestamps tell us vs actual causality
+你的任务是构建一个系统，能够：
+1. 记录事件及其 Lamport 时间戳
+2. 跟踪实际的因果链（即发送和接收的关联关系）
+3. 对比 Lamport 时间戳所暗示的顺序与实际因果关系
 
-Implement:
-```JSON
-请求:  {"type": "record_event", "msg_id": 1, "event_id": "e1", "caused_by": null}
-响应: {"type": "record_event_ok", "in_reply_to": 1, "时钟": 1}
+实现以下消息处理器：
+```json
+Request:  {"type": "record_event", "msg_id": 1, "event_id": "e1", "caused_by": null}
+Response: {"type": "record_event_ok", "in_reply_to": 1, "clock": 1}
 
-请求:  {"type": "record_event", "msg_id": 2, "event_id": "e2", "caused_by": "e1"}
-响应: {"type": "record_event_ok", "in_reply_to": 2, "时钟": 2}
+Request:  {"type": "record_event", "msg_id": 2, "event_id": "e2", "caused_by": "e1"}
+Response: {"type": "record_event_ok", "in_reply_to": 2, "clock": 2}
 
-请求:  {"type": "check_causality", "msg_id": 3, "event_a": "e1", "event_b": "e2"}
-响应: {"type": "check_causality_ok", "in_reply_to": 3,
+Request:  {"type": "check_causality", "msg_id": 3, "event_a": "e1", "event_b": "e2"}
+Response: {"type": "check_causality_ok", "in_reply_to": 3,
            "lamport_says": "a_before_b", "actual": "a_before_b", "correct": true}
 ```
 
@@ -50,15 +44,15 @@ Implement:
 
 ## 实现提示
 
-- If A happened-before B, then L(A) < L(B) - this is guaranteed
-- The converse is NOT true: L(A) < L(B) does NOT imply A happened-before B
-- Construct a counterexample，包含two independent 节点 that never communicate
-- 节点 n1 ticks once (L=1), 节点 n2 ticks twice (L=2) - L(n1) < L(n2) but they are concurrent
-- Report whether two events are causal or concurrent based on Lamport timestamps alone
+- 如果 A 先于 B 发生，则 `L(A) < L(B)`——这是 Lamport 时钟的保证
+- 反过来不成立：`L(A) < L(B)` 不能说明 A 先于 B 发生
+- 可以构造一个反例：两个从不通信的独立节点
+- 例如节点 n1 执行一次 tick（L=1），节点 n2 执行两次 tick（L=2），此时 `L(n1) < L(n2)` 但两者是并发的
+- 需要报告两个事件究竟是因果相关还是并发的
 
 ## 测试用例
 
-### 1. Record two causal events
+### 1. 记录两个有因果关系的事件
 
 输入：
 
@@ -76,7 +70,7 @@ Implement:
 {"src": "n1", "dest": "c1", "body": {"type": "record_event_ok", "in_reply_to": 3, "clock": 2, "msg_id": 2}}
 ```
 
-### 2. Check causality of causal pair
+### 2. 检查因果事件对的因果关系
 
 输入：
 
@@ -98,7 +92,7 @@ Implement:
 
 ## 参考资料
 
-- [Happened-Before Relation](https://en.wikipedia.org/wiki/Happened-before)：Wikipedia explanation of the happened-before partial order
+- [Happened-Before Relation](https://en.wikipedia.org/wiki/Happened-before)：关于"先于"偏序关系的维基百科解释
 
 ## 本地文件
 

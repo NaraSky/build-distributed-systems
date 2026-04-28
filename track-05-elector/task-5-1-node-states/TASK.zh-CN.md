@@ -1,33 +1,26 @@
-# 实现节点States (Leader, Follower, Candidate)
+# 实现节点状态：领导者、跟随者、候选人
 
-英文标题：Implement节点States (Leader, Follower, Candidate)
 网页：<https://builddistributedsystem.com/tracks/elector/tasks/task-5-1-node-states>
 
-课程：5. 选举器：Leader Election
+课程：5. 选举器：领导者选举
 任务序号：1
-短标题：Node States
-难度：intermediate
-子主题：Raft Leader 选举
+短标题：节点状态
+难度：进阶
+子主题：Raft 领导者选举
 
 ## 中文导读
 
-本题要求你完成 `实现节点States (Leader, Follower, Candidate)`。
-
-重点关注：`state machine`、`leader election`、`Raft roles`。
-
-建议先按提示逐步实现：Define an enum用于states。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题让你实现 Raft 协议中的三种节点状态：领导者、跟随者和候选人。这是 Raft 领导者选举的基础，理解这三种状态之间的转换关系，是理解整个 Raft 协议的第一步。每个节点启动时都是跟随者，只有通过选举才能成为领导者。
 
 ## 题目说明
 
-Implement the three states from Raft: Leader, Follower,和Candidate. Each 节点 starts as a Follower. Candidates 请求 votes. Leaders coordinate the 集群.
+实现 Raft 协议中的三种状态：领导者（Leader）、跟随者（Follower）和候选人（Candidate）。每个节点启动时处于跟随者状态。候选人向其他节点请求投票。领导者负责协调整个集群。
 
 ## 概念说明
 
-### Raft Roles
+### Raft 角色
 
-In Raft, every 节点 is in one of three states: Follower (passive, responds to leaders), Candidate (seeking to become Leader), or Leader (handles all 客户端 requests). This clear state machine simplifies reasoning about the protocol.
+在 Raft 协议中，每个节点始终处于三种状态之一：跟随者（被动响应领导者的请求）、候选人（正在竞选成为领导者）或领导者（处理所有客户端请求）。这种清晰的状态机设计大大简化了对协议的理解和推理。可以类比为一个团队：平时大家都是普通成员（跟随者），需要选队长时有人站出来竞选（候选人），选上了就是队长（领导者）。
 
 ## 涉及概念
 
@@ -37,13 +30,13 @@ In Raft, every 节点 is in one of three states: Follower (passive, responds to 
 
 ## 实现提示
 
-- Define an enum用于states
-- All 节点 start as followers
-- State transitions happen on specific events
+- 定义一个枚举类型来表示三种状态
+- 所有节点启动时都是跟随者
+- 状态转换在特定事件发生时触发
 
 ## 测试用例
 
-### 1.节点starts as follower
+### 1. 节点启动时为跟随者状态
 
 输入：
 
@@ -61,7 +54,7 @@ In Raft, every 节点 is in one of three states: Follower (passive, responds to 
 
 ## 参考资料
 
-- [Raft Paper](https://raft.github.io/raft.pdf)：In Search of an Understandable 共识 Algorithm
+- [Raft Paper](https://raft.github.io/raft.pdf)：Raft 论文，寻找一种易于理解的共识算法
 
 ## 本地文件
 

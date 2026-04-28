@@ -1,45 +1,41 @@
-# 实现 选举 Restriction用于Safety
+# 实现选举限制以保证安全性
 
-英文标题：Implement Election Restriction用于Safety
+英文标题：Implement Election Restriction for Safety
 网页：<https://builddistributedsystem.com/tracks/consensus/tasks/task-6-5-safety>
 
 课程：6. 共识：Raft 与日志复制
 任务序号：5
-短标题：Safety
-难度：advanced
-子主题：Raft 日志 复制
+短标题：安全性
+难度：高级
+子主题：Raft 日志复制
 
 ## 中文导读
 
-本题要求你完成 `实现 选举 Restriction用于Safety`。
-
-重点关注：`election restriction`、`safety`、`up-to-date`。
-
-建议先按提示逐步实现：Voter checks Candidate 日志 is up-to-date。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现 Raft 的选举限制（Election Restriction）机制。在选举过程中，投票者需要判断候选人的日志是否足够"新"，只有日志足够新的候选人才能赢得选举。这个限制是 Raft 安全性的核心保障——它确保新当选的领导者一定拥有所有已提交的日志条目，从而不会丢失数据。
 
 ## 题目说明
 
-Implement the Election Restriction to ensure safety:
+实现选举限制以保证安全性：
 
-A Candidate must have an "up-to-date" 日志 to win election:
-1. Voter compares own 日志 to Candidate's
-2. If Candidate lastLogTerm > voter lastLogTerm: Candidate is ahead
-3. If same term, compare lastLogIndex
-4. Only grant vote if Candidate is at least as up-to-date
+候选人（Candidate）必须拥有"足够新"的日志才能赢得选举：
+1. 投票者将自己的日志与候选人的日志进行比较
+2. 如果候选人的 lastLogTerm 大于投票者的 lastLogTerm，说明候选人的日志更新
+3. 如果任期号相同，则比较 lastLogIndex
+4. 只有当候选人的日志至少和投票者一样新时，才投赞成票
 
-This ensures the elected Leader has all committed entries.
+这一规则确保当选的领导者一定拥有所有已提交的日志条目。
 
 ## 概念说明
 
-### 选举 Restriction
+### 选举限制
 
-This is the key safety property of Raft. By only electing candidates，包含up-to-date logs, we ensure no committed entries are lost. The Leader completeness property follows from this.
+这是 Raft 最关键的安全性属性。通过只选举日志足够新的候选人，我们确保已提交的日志条目永远不会丢失。领导者完整性（Leader Completeness）属性正是由此而来。
 
-### Comparison Logic
+打个比方：选班长时，只有笔记记得最全的同学才有资格当选。这样一来，新班长的笔记一定包含了之前所有"确认通过"的内容。
 
-Higher term always wins. If same term, longer 日志 wins. This captures "more up-to-date" precisely. A Leader elected under these rules has everything committed before it.
+### 比较逻辑
+
+任期号大的一方胜出。如果任期号相同，日志更长的一方胜出。这精确地定义了"更新"的含义。按照这个规则选出的领导者，一定包含在其当选之前所有已提交的日志。
 
 ## 涉及概念
 
@@ -49,13 +45,13 @@ Higher term always wins. If same term, longer 日志 wins. This captures "more u
 
 ## 实现提示
 
-- Voter checks Candidate 日志 is up-to-date
-- Compare last 日志 term first, then 索引
-- Reject vote if Candidate 日志 is behind
+- 投票者需要检查候选人的日志是否足够新
+- 先比较最后一条日志的任期号，再比较索引
+- 如果候选人的日志落后于投票者，则拒绝投票
 
 ## 测试用例
 
-### 1. Grant vote to higher term
+### 1. 对更高任期的候选人投赞成票
 
 输入：
 
@@ -75,7 +71,7 @@ Higher term always wins. If same term, longer 日志 wins. This captures "more u
 
 ## 参考资料
 
-- [Raft Safety](https://raft.github.io/raft.pdf)：Raft paper section on safety
+- [Raft Safety](https://raft.github.io/raft.pdf)：Raft 论文中关于安全性的章节
 
 ## 本地文件
 

@@ -1,45 +1,41 @@
-# 实现 B-Tree Insert，包含Node Splits
+# 实现 B 树插入与节点分裂
 
-英文标题：Implement B-Tree Insert，包含Node Splits
 网页：<https://builddistributedsystem.com/tracks/logger/tasks/task-10-3-2-btree-insert>
 
 课程：19. 日志器：WAL、LSM 与分布式日志
 任务序号：12
-短标题：B-Tree Insert
-难度：advanced
-子主题：B-Tree on Disk
+短标题：B 树插入
+难度：高级
+子主题：磁盘上的 B 树
 
 ## 中文导读
 
-本题要求你完成 `实现 B-Tree Insert，包含Node Splits`。
+上一题你实现了 B 树的查找功能，这道题让你实现插入操作。插入的难点在于：当一个节点装满了怎么办？答案是"分裂"——把满了的节点一分为二，把中间的键提升到父节点。如果父节点也满了，就继续往上分裂，直到根节点。这种递归分裂机制保证了 B 树永远保持平衡。
 
-重点关注：`insert`、`node split`、`root split`、`balancing`、`overflow handling`。
-
-建议先按提示逐步实现：To insert, first find the correct leaf 节点 (same as search)。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+理解节点分裂是掌握 B 树的关键，也是理解数据库索引维护开销的基础。
 
 ## 题目说明
 
-B-Tree insertion maintains the tree's balance invariant: all leaf 节点 are always at the same depth. The key mechanism is the **节点 split** — when a 节点 overflows, it splits into two 节点和promotes the middle key to the parent.
+B 树的插入操作需要始终维护一个核心不变量：所有叶子节点必须在同一深度。实现这一点的关键机制是**节点分裂（Node Split）**——当一个节点装不下更多的键时，它会一分为二，并把中间的键提升给父节点。
 
-Insert algorithm:
-1. **Find** the correct leaf 节点 (binary search from root, same as lookup)
-2. **Insert** the key in sorted position within the leaf
-3. **Split if full**: if the leaf exceeds the maximum number of keys:
-   a. Split the 节点 into two halves
-   b. The middle key is promoted to the parent
-   c. The parent now has a new child和a new key — it may also need to split
-4. **Root split**: if the root itself overflows, create a new root，包含the middle key和two children. The tree height increases by 1.
+插入算法的具体步骤：
 
-This recursive splitting ensures that the tree remains perfectly balanced — every path from root to leaf has the same length.
+1. **查找**：从根节点开始，用二分查找定位到正确的叶子节点（这个过程和查找操作完全一样）
+2. **插入**：把新键按排序位置插入叶子节点
+3. **溢出则分裂**：如果叶子节点的键数量超过了上限：
+   a. 把节点分成左右两半
+   b. 把中间的键提升到父节点
+   c. 父节点因此多了一个键和一个子节点——它也可能因此溢出并需要分裂
+4. **根节点分裂**：如果根节点本身也溢出了，就创建一个新的根节点，用中间键作为分隔，原来的两半作为左右子节点。此时树的高度增加 1 层。
 
-```JSON
-请求:  {"type": "btree_insert", "msg_id": 1, "key": "user:50", "value": "Charlie"}
-响应: {"type": "btree_insert_ok", "in_reply_to": 1, "splits": 0, "new_depth": 3}
+这种递归的分裂机制确保了 B 树始终保持完美平衡——从根到任意叶子的路径长度都相同。你可以把它想象成一个书架：每格放满了就拆成两格，如果整个书架都满了，就再加一层。
 
-请求:  {"type": "btree_insert", "msg_id": 2, "key": "user:75", "value": "Dave"}
-响应: {"type": "btree_insert_ok", "in_reply_to": 2, "splits": 1, "split_keys": ["user:60"], "new_depth": 3}
+```json
+Request:  {"type": "btree_insert", "msg_id": 1, "key": "user:50", "value": "Charlie"}
+Response: {"type": "btree_insert_ok", "in_reply_to": 1, "splits": 0, "new_depth": 3}
+
+Request:  {"type": "btree_insert", "msg_id": 2, "key": "user:75", "value": "Dave"}
+Response: {"type": "btree_insert_ok", "in_reply_to": 2, "splits": 1, "split_keys": ["user:60"], "new_depth": 3}
 ```
 
 ## 涉及概念
@@ -52,15 +48,15 @@ This recursive splitting ensures that the tree remains perfectly balanced — ev
 
 ## 实现提示
 
-- To insert, first find the correct leaf 节点 (same as search)
-- If the leaf has room, insert the key in sorted order
-- If the leaf is full, SPLIT it: create two 节点, push the middle key up to the parent
-- The parent may also overflow和split, recursively up to the root
-- Root split: the root splits into two children, a new root is created，包含the middle key -> tree grows by 1 level
+- 插入时，先用查找的方式定位到正确的叶子节点
+- 如果叶子节点还有空间，直接按排序位置插入新键即可
+- 如果叶子节点已满，执行分裂：创建两个节点，将中间键向上推给父节点
+- 父节点也可能因此满溢并需要分裂，这个过程会一路递归向上直到根节点
+- 根节点分裂时：根节点一分为二成为两个子节点，创建新的根节点持有中间键，树的高度增加 1 层
 
 ## 测试用例
 
-### 1. Insert into non-full leaf
+### 1. 向未满的叶子节点插入
 
 输入：
 
@@ -76,7 +72,7 @@ This recursive splitting ensures that the tree remains perfectly balanced — ev
 {"src": "n1", "dest": "c1", "body": {"type": "btree_insert_ok", "in_reply_to": 2, "splits": 0, "msg_id": 1}}
 ```
 
-### 2. Inserted key is retrievable
+### 2. 插入后能成功查找到该键
 
 输入：
 
@@ -96,7 +92,7 @@ This recursive splitting ensures that the tree remains perfectly balanced — ev
 
 ## 参考资料
 
-- [B-Tree Insertion Algorithm](https://en.wikipedia.org/wiki/B-tree#Insertion)：Detailed explanation of B-Tree insertion，包含节点 splitting algorithm
+- [B-Tree Insertion Algorithm](https://en.wikipedia.org/wiki/B-tree#Insertion)：维基百科上对 B 树插入算法和节点分裂机制的详细讲解
 
 ## 本地文件
 

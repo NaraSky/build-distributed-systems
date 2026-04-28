@@ -1,46 +1,39 @@
-# 添加 Eviction Strategies (LRU, TTL)
+# 实现缓存淘汰策略
 
-英文标题：Add Eviction Strategies (LRU, TTL)
 网页：<https://builddistributedsystem.com/tracks/caches/tasks/task-11-4-eviction>
 
 课程：11. 缓存
 任务序号：4
-短标题：Eviction
-难度：intermediate
+短标题：缓存淘汰
+难度：进阶
 
 ## 中文导读
 
-本题要求你完成 `添加 Eviction Strategies (LRU, TTL)`。
-
-重点关注：`LRU`、`TTL`、`eviction`、`cache capacity`。
-
-建议先按提示逐步实现：Track access time用于LRU。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现缓存淘汰（Eviction）策略来管理有限的内存空间。缓存不可能无限增长，当缓存满了又需要存入新数据时，必须决定淘汰哪些旧数据。这是面试高频考点，也是真实系统中必须面对的问题。
 
 ## 题目说明
 
-Implement 缓存 eviction policies to manage limited memory. When the 缓存 is full和a new entry must be added, an eviction policy decides what to remove.
+实现缓存淘汰策略来管理有限的内存空间。当缓存已满且需要加入新条目时，淘汰策略决定移除哪些数据。
 
-Implement two eviction strategies:
-1. TTL (Time-To-Live): Remove entries after they expire
-2. LRU (Least Recently Used): Remove entries not accessed recently
+你需要实现两种淘汰策略：
+1. 过期淘汰（TTL）：数据过期后自动移除
+2. 最近最少使用淘汰（LRU，Least Recently Used）：移除最长时间未被访问的数据
 
-Combine them: honor TTL,和when at capacity, evict LRU entries.
+将两者结合使用：优先淘汰已过期的数据，当缓存容量不足时，淘汰最近最少使用的数据。
 
 ## 概念说明
 
-### Why Eviction?
+### 为什么需要淘汰策略
 
-Memory is finite. Without eviction, caches would grow unbounded. Eviction policies determine which entries to remove when space is needed.
+内存是有限的。如果没有淘汰机制，缓存会无限增长直到内存耗尽。淘汰策略决定了在空间不足时应该移除哪些条目。
 
-### LRU (Least Recently Used)
+### 最近最少使用淘汰
 
-LRU evicts the entry that has not been accessed用于the longest time. The assumption is that recently accessed data will be accessed again (temporal locality). LRU is the most common eviction policy.
+最近最少使用淘汰（LRU）会移除最长时间没有被访问过的条目。它的假设是：最近被访问的数据在未来很可能再次被访问，这就是所谓的时间局部性。LRU 是实践中最常用的淘汰策略。
 
-### LFU (Least Frequently Used)
+### 最不经常使用淘汰
 
-LFU tracks access counts和evicts entries，包含the lowest frequency. This works well用于stable access patterns but can keep old cold entries that were once popular.
+最不经常使用淘汰（LFU，Least Frequently Used）记录每个条目的访问次数，优先淘汰访问频率最低的条目。这种策略适合访问模式比较稳定的场景，但缺点是可能保留曾经很热门但现在已经冷却的数据。
 
 ## 涉及概念
 
@@ -51,15 +44,15 @@ LFU tracks access counts和evicts entries，包含the lowest frequency. This wor
 
 ## 实现提示
 
-- Track access time用于LRU
-- Use ordered dict or doubly-linked list
-- Evict when capacity is reached
+- 记录每个条目的最后访问时间，用于实现 LRU
+- 可以使用有序字典或双向链表来维护访问顺序
+- 当缓存达到容量上限时触发淘汰
 
 ## 测试用例
 
-### 1. LRU eviction
+### 1. LRU 淘汰
 
-LRU 缓存，包含max_size=3. Sequence: set(a,1), set(b,2), set(c,3) [缓存 full], get(a), get(c) [a和c accessed recently], set(d,4) [should evict b as least recently used]. Verify b is evicted, a和c remain in 缓存, d is added.
+LRU 缓存容量为 3。操作序列：写入 a=1、b=2、c=3（缓存已满），读取 a、读取 c（a 和 c 被标记为最近访问），写入 d=4（此时应淘汰 b，因为 b 是最近最少使用的）。验证 b 被淘汰，a 和 c 仍在缓存中，d 已被加入。
 
 输入：
 
@@ -75,7 +68,7 @@ LRU 缓存，包含max_size=3. Sequence: set(a,1), set(b,2), set(c,3) [缓存 fu
 
 ## 参考资料
 
-- [LRU Cache Implementation](https://leetcode.com/problems/lru-cache/)：LeetCode LRU 缓存 problem
+- [LRU Cache Implementation](https://leetcode.com/problems/lru-cache/)：力扣上的 LRU 缓存实现题
 
 ## 本地文件
 

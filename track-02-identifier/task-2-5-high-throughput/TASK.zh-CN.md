@@ -1,81 +1,74 @@
-# Optimize用于High-吞吐量 ID Generation
+# 优化高吞吐量 ID 生成
 
-英文标题：Optimize用于High-Throughput ID Generation
 网页：<https://builddistributedsystem.com/tracks/identifier/tasks/task-2-5-high-throughput>
 
 课程：2. 标识符：分布式唯一 ID
 任务序号：5
-短标题：High 吞吐量
-难度：intermediate
-子主题：Why 唯一 IDs Are Hard
+短标题：高吞吐量
+难度：进阶
+子主题：为什么唯一 ID 这么难
 
 ## 中文导读
 
-本题要求你完成 `Optimize用于High-吞吐量 ID Generation`。
-
-重点关注：`performance`、`throughput`、`optimization`。
-
-建议先按提示逐步实现：Minimize lock contention。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你对 ID 生成器进行性能优化。在真实系统中（比如 Twitter），每秒需要生成数百万个 ID。你需要让你的实现在高并发场景下不成为瓶颈，目标是单节点每秒生成 10,000 个以上的 ID。
 
 ## 题目说明
 
-Optimize your ID generator用于maximum throughput. Real systems like Twitter generate millions of IDs per second. Your implementation should handle high concurrency without becoming a bottleneck.
+优化你的 ID 生成器，使其达到最大吞吐量。像 Twitter 这样的真实系统每秒要生成数百万个 ID。你的实现需要在高并发场景下不成为系统瓶颈。
 
-Optimization strategies:
+优化策略：
 
-1. **Minimize lock contention** in multi-threaded scenarios
-2. Use **atomic operations** where possible
-3. Consider **pre-generating IDs** in batches
-4. Profile和measure your throughput
+1. **减少锁竞争** -- 在多线程场景下尽量减少对同一把锁的争用
+2. 尽可能使用**原子操作**
+3. 考虑**预生成 ID** -- 批量提前生成以备使用
+4. 对你的实现进行性能测试和测量
 
-**Target**:处理10,000+ ID generations per second on a single 节点.
+**目标**：单个节点每秒处理 10,000 次以上的 ID 生成请求。
 
 ## 概念说明
 
-## 吞吐量 Optimization
+### 吞吐量优化
 
-ID generation is often on the **critical path**. Every database insert, every 消息, every event needs an ID. Even small inefficiencies multiply across millions of operations.
+ID 生成通常处于**关键路径**上。每次数据库插入、每条消息、每个事件都需要一个 ID。即使是很小的效率损失，乘以数百万次操作后也会变得很严重。
 
-### Bottleneck Analysis
+### 瓶颈分析
 
 ```text
 def generate_id():
-   ，包含lock:           # ← Contention point
+    with lock:           # ← Contention point
         timestamp = now()
         sequence += 1
         return id
 ```
 
-Every concurrent 请求 must acquire the same lock, serializing all ID generation.
+每个并发请求都必须获取同一把锁，这意味着所有 ID 生成操作被串行化了。就好比所有人都要排队通过同一扇门，门再大也会成为瓶颈。
 
-### Optimization Techniques
+### 优化技巧
 
   
-    Technique
-    Benefit
-    Complexity
+    技巧
+    优势
+    复杂度
   
   
-    Separate locks用于msg_id和id_gen
-    Reduces contention
-    Low
+    为 msg_id 和 id_gen 使用不同的锁
+    减少竞争
+    低
   
   
-    Atomic counters
-    Lock-free increment
-    Medium
+    原子计数器
+    无锁递增
+    中
   
   
-    Pre-allocated ID ranges
-    Batch amortization
-    High
+    预分配 ID 范围
+    批量摊销开销
+    高
   
 
-### Go's Advantage
+### Go 语言的优势
 
-Go's `sync/atomic` package provides lock-free primitives:
+Go 的 `sync/atomic` 包提供了无锁原语：
 
 ```text
 import "sync/atomic"
@@ -87,7 +80,7 @@ func getNext() int64 {
 }
 ```
 
-This is significantly faster than mutex-based approaches under high contention.
+在高竞争场景下，这比基于互斥锁的方案快得多。
 
 ## 涉及概念
 
@@ -97,13 +90,13 @@ This is significantly faster than mutex-based approaches under high contention.
 
 ## 实现提示
 
-- Minimize lock contention
-- Consider lock-free approaches
-- Batch ID generation if possible
+- 尽量减少锁竞争
+- 考虑使用无锁方案
+- 如果可以，批量生成 ID
 
 ## 测试用例
 
-### 1. Generate single ID
+### 1. 生成单个 ID
 
 输入：
 
@@ -121,8 +114,8 @@ This is significantly faster than mutex-based approaches under high contention.
 
 ## 参考资料
 
-- [Python Threading Best Practices](https://docs.python.org/3/library/threading.html)：Python documentation on threading primitives
-- [Go Atomic Operations](https://pkg.go.dev/sync/atomic)：Go documentation on atomic operations用于lock-free programming
+- [Python Threading Best Practices](https://docs.python.org/3/library/threading.html)：Python 线程原语的官方文档
+- [Go Atomic Operations](https://pkg.go.dev/sync/atomic)：Go 原子操作的官方文档，用于无锁编程
 
 ## 本地文件
 

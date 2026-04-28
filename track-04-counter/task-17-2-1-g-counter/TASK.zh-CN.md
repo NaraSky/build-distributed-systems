@@ -1,64 +1,57 @@
-# 实现 a G-计数器 (Grow-Only CRDT)
+# 实现只增计数器
 
-英文标题：Implement a G-Counter (Grow-Only CRDT)
 网页：<https://builddistributedsystem.com/tracks/counter/tasks/task-17-2-1-g-counter>
 
 课程：4. 计数器：分布式状态与 CRDT
 任务序号：6
-短标题：G-计数器
-难度：intermediate
-子主题：G-计数器和PN-计数器
+短标题：G-Counter
+难度：进阶
+子主题：G-Counter 与 PN-Counter
 
 ## 中文导读
 
-本题要求你完成 `实现 a G-计数器 (Grow-Only CRDT)`。
-
-重点关注：`G-Counter`、`CRDT`、`vector of counters`、`element-wise max`、`convergence`。
-
-建议先按提示逐步实现：Each 节点 maintains a vector of N integers (one slot per 节点)。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你从零实现一个只增计数器（G-Counter），它是最简单的无冲突复制数据类型。每个节点维护一个整数向量，只递增属于自己的那一格，读取时把所有格加起来就是总值。理解只增计数器是掌握所有无冲突复制数据类型的起点。
 
 ## 题目说明
 
-A G-计数器 (Grow-only 计数器) is the simplest CRDT. Each 节点 maintains a vector of N integers, one per 节点. A 节点 only increments its own slot,和the total value is the sum of all slots.
+只增计数器（G-Counter，Grow-only Counter）是最简单的无冲突复制数据类型（CRDT，Conflict-free Replicated Data Type）。它的设计思路非常直观：集群中有多少个节点（Node），就维护一个多长的整数向量。每个节点只能修改自己对应的那一格，想要获取计数器的总值时，把向量中所有格的数字加起来即可。
 
-**Data structure**: vector of N integers, where N = number of 节点.
+**数据结构**：一个长度为 N 的整数向量，N 等于节点总数。
 
-**Operations**:
-- `increment()`: `counters[my_node_id] += 1`
-- `value()`: `sum(counters)`
-- `merge(other)`: `counters[i] = max(counters[i], other.counters[i])`用于all i
+**支持的操作**：
+- `increment()`：把自己那一格加一，即 `counters[my_node_id] += 1`
+- `value()`：把所有格的值加起来，即 `sum(counters)`
+- `merge(other)`：把两个向量逐格比较，每格取较大值，即 `counters[i] = max(counters[i], other.counters[i])`
 
-**Why it works**: each 节点 independently increments its own slot. The merge function (element-wise max) is commutative, associative,和idempotent — making it a valid CRDT that always converges regardless of 消息 ordering or duplication.
+**为什么这样设计就能保证正确？** 因为每个节点只修改自己的格，不会和别人冲突。合并函数采用"逐格取最大值"的方式，满足交换律（谁先谁后无所谓）、结合律（多次合并顺序无所谓）和幂等性（重复合并不影响结果）。这三个性质保证了无论消息以什么顺序到达、是否有重复，所有节点最终都会收敛到同一个值。
 
-```JSON
-请求:  {"type": "increment", "msg_id": 1}
-响应: {"type": "increment_ok", "in_reply_to": 1, "local_value": 1}
+```json
+Request:  {"type": "increment", "msg_id": 1}
+Response: {"type": "increment_ok", "in_reply_to": 1, "local_value": 1}
 
-请求:  {"type": "read", "msg_id": 2}
-响应: {"type": "read_ok", "in_reply_to": 2, "value": 5}
+Request:  {"type": "read", "msg_id": 2}
+Response: {"type": "read_ok", "in_reply_to": 2, "value": 5}
 ```
 
 ## 涉及概念
 
-- `G-Counter`
-- `CRDT`
-- `vector of counters`
-- `element-wise max`
-- `convergence`
+- G-Counter
+- CRDT
+- vector of counters
+- element-wise max
+- convergence
 
 ## 实现提示
 
-- Each 节点 maintains a vector of N integers (one slot per 节点)
-- 节点 I only increments its own slot: counters[I] += 1
-- Value = sum of all slots across the vector
-- Merge = element-wise max of two vectors
-- This guarantees convergence: merge is commutative, associative,和idempotent
+- 每个节点维护一个长度为 N 的整数向量，每个节点对应一格
+- 节点 I 只递增自己的那一格：`counters[I] += 1`
+- 总值等于向量中所有格的数字之和
+- 合并时对两个向量逐格取最大值
+- 这保证了最终收敛：合并操作满足交换律、结合律和幂等性
 
 ## 测试用例
 
-### 1. Increment increases local 计数器
+### 1. 递增操作更新本地计数器
 
 输入：
 
@@ -76,7 +69,7 @@ A G-计数器 (Grow-only 计数器) is the simplest CRDT. Each 节点 maintains 
 {"src": "n1", "dest": "c1", "body": {"type": "read_ok", "in_reply_to": 3, "value": 1, "msg_id": 2}}
 ```
 
-### 2. Multiple increments accumulate
+### 2. 多次递增正确累加
 
 输入：
 
@@ -100,7 +93,7 @@ A G-计数器 (Grow-only 计数器) is the simplest CRDT. Each 节点 maintains 
 
 ## 参考资料
 
-- [CRDTs: G-Counter](https://crdt.tech/glossary)：CRDT glossary，包含G-计数器 definition和properties
+- [CRDTs: G-Counter](https://crdt.tech/glossary)：CRDT 术语表，包含只增计数器的定义和性质
 
 ## 本地文件
 

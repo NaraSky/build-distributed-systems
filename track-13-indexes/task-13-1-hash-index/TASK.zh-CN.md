@@ -1,43 +1,37 @@
-# 实现 Hash 索引
+# 实现哈希索引
 
 英文标题：Implement Hash Index
 网页：<https://builddistributedsystem.com/tracks/indexes/tasks/task-13-1-hash-index>
 
 课程：13. 索引
 任务序号：1
-短标题：Hash 索引
-难度：intermediate
+短标题：哈希索引
+难度：进阶
 
 ## 中文导读
 
-本题要求你完成 `实现 Hash 索引`。
-
-重点关注：`indexing`、`hash table`、`O(1) lookup`。
-
-建议先按提示逐步实现：Map keys to data locations。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现一个哈希索引（Hash Index），它将键映射到数据文件中的偏移量。索引是数据库系统的核心组件之一——没有索引，每次查询都要扫描全部数据。哈希索引能提供常数时间的精确查找，是理解存储引擎工作原理的入门基础。
 
 ## 题目说明
 
-Build a hash 索引 that maps keys to data file offsets:
+构建一个哈希索引，将键映射到数据文件的偏移量：
 
-1. Hash each key to a bucket
-2. Store key和file offset in the bucket
-3. Lookup returns the offset用于a key
-4.处理collisions，包含chaining or probing
+1. 对每个键进行哈希运算，确定它属于哪个桶（Bucket）
+2. 在桶中存储键和对应的文件偏移量
+3. 查找时根据键返回对应的偏移量
+4. 使用链地址法或开放寻址法处理哈希冲突
 
-Hash indexes provide O(1) point lookups but cannot support range queries.
+哈希索引能够提供 O(1) 的精确查找，但不支持范围查询。
 
 ## 概念说明
 
-### Why Indexing?
+### 为什么需要索引？
 
-Without indexes, finding a record requires scanning all data - O(n) cost. Indexes provide shortcuts from keys to locations, reducing lookup to O(1)用于hash or O(日志 n)用于tree indexes.
+没有索引时，查找一条记录需要扫描所有数据，时间复杂度是 O(n)。索引提供了从键到存储位置的快捷路径，将查找时间降低到 O(1)（哈希索引）或 O(log n)（树索引）。这就好比一本书的目录——你可以直接翻到目标页码，而不必从头一页一页找。
 
-### Hash 索引
+### 哈希索引
 
-Hash indexes map key -> file offset. They are extremely fast用于exact matches. Bitcask, a 日志-structured store, uses hash indexes. The tradeoff: 索引 must fit in memory,和no range queries.
+哈希索引将键映射到文件偏移量。它在精确匹配查询上速度极快。Bitcask 这种日志结构存储引擎就使用了哈希索引。它的代价是：索引必须全部放在内存中，而且无法支持范围查询。
 
 ## 涉及概念
 
@@ -47,13 +41,13 @@ Hash indexes map key -> file offset. They are extremely fast用于exact matches.
 
 ## 实现提示
 
-- Map keys to data locations
--处理hash collisions
-- Support insert, lookup, delete
+- 将键映射到数据存储位置
+- 处理哈希冲突
+- 支持插入、查找和删除操作
 
 ## 测试用例
 
-### 1. Insert和lookup
+### 1. 插入与查找
 
 输入：
 
@@ -73,7 +67,7 @@ Hash indexes map key -> file offset. They are extremely fast用于exact matches.
 
 ## 参考资料
 
-- [DDIA Chapter 3](https://dataintensive.net/)：存储和Retrieval chapter on 日志-structured 存储
+- [DDIA Chapter 3](https://dataintensive.net/)：《数据密集型应用系统设计》第三章，关于日志结构存储的存储与检索
 
 ## 本地文件
 

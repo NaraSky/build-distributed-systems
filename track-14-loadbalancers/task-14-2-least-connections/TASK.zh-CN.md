@@ -1,4 +1,4 @@
-# 实现 Least Connections Algorithm
+# 实现最少连接数算法
 
 英文标题：Implement Least Connections Algorithm
 网页：<https://builddistributedsystem.com/tracks/loadbalancers/tasks/task-14-2-least-connections>
@@ -6,39 +6,35 @@
 课程：14. 负载均衡器
 任务序号：2
 短标题：Least Connections
-难度：intermediate
-子主题：Layer 4 Load Balancing
+难度：进阶
+子主题：四层负载均衡
 
 ## 中文导读
 
-本题要求你完成 `实现 Least Connections Algorithm`。
-
-重点关注：`least connections`、`dynamic load`、`connection tracking`。
-
-建议先按提示逐步实现：Track active connections per 服务端。
+本题要求你实现"最少连接数"负载均衡算法。与轮询不同，这种算法会把新请求分配给当前活跃连接数最少的服务器。这在请求处理时间差异较大的场景下特别有用——比如有的请求 10 毫秒就完成，有的却要好几秒，轮询会导致慢请求堆积在某台服务器上，而最少连接数算法能自动适应这种不均衡。
 
 协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
 
 ## 题目说明
 
-Implement least-connections load balancing:
+实现最少连接数负载均衡：
 
-1. Track active connection count用于each 服务端
-2. When a 请求 starts, increment count用于chosen 服务端
-3. When a 请求 completes, decrement count
-4. Route new requests to 服务端，包含fewest connections
+1. 为每台服务器跟踪当前的活跃连接数
+2. 当一个请求开始时，将选中服务器的连接计数加一
+3. 当一个请求完成时，将对应服务器的连接计数减一
+4. 将新请求路由到活跃连接数最少的服务器
 
-This adapts to varying 请求 durations automatically.
+这种方式能自动适应不同请求的处理时长差异。
 
 ## 概念说明
 
-### Least Connections
+### 最少连接数（Least Connections）
 
-Round robin fails when requests have varying durations - slow requests can pile up on one 服务端. Least connections routes to the 服务端，包含fewest active requests, naturally balancing load.
+轮询在请求处理时间差异较大时会失效——耗时长的请求会堆积在某一台服务器上。最少连接数算法把请求路由到当前活跃请求最少的服务器，从而自然地平衡负载。
 
-### Weighted Least Connections
+### 加权最少连接数（Weighted Least Connections）
 
-Combine weights，包含connection counts: select 服务端，包含lowest (connections / weight) ratio. This accounts用于both current load和服务端 capacity.
+将权重与连接数结合使用：选择"连接数 / 权重"比值最低的服务器。这样既考虑了当前负载，也考虑了服务器的处理能力。
 
 ## 涉及概念
 
@@ -48,15 +44,15 @@ Combine weights，包含connection counts: select 服务端，包含lowest (conn
 
 ## 实现提示
 
-- Track active connections per 服务端
-- Increment on 请求, decrement on complete
-- Select 服务端，包含fewest connections
+- 为每台服务器维护活跃连接计数
+- 请求开始时计数加一，请求完成时计数减一
+- 选择连接数最少的服务器
 
 ## 测试用例
 
-### 1. Balance by connections
+### 1. 按连接数均衡分配
 
-Load balancer，包含3 backends: s1 (2 active connections), s2 (5 connections), s3 (1 connection). New 请求 arrives. Verify it routes to s3 (fewest connections). After 请求 completes, connection count decreases.
+负载均衡器有 3 个后端：s1（2 个活跃连接）、s2（5 个连接）、s3（1 个连接）。新请求到达时，验证它被路由到 s3（连接数最少）。请求完成后，连接计数应相应减少。
 
 输入：
 

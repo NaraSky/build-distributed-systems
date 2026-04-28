@@ -1,33 +1,26 @@
-# 实现 Randomized 选举 超时
+# 实现随机化选举超时
 
-英文标题：Implement Randomized Election Timeout
 网页：<https://builddistributedsystem.com/tracks/elector/tasks/task-5-3-election-timeout>
 
-课程：5. 选举器：Leader Election
+课程：5. 选举器：领导者选举
 任务序号：3
-短标题：选举 超时
-难度：intermediate
-子主题：Raft Leader 选举
+短标题：选举超时
+难度：进阶
+子主题：Raft 领导者选举
 
 ## 中文导读
 
-本题要求你完成 `实现 Randomized 选举 超时`。
-
-重点关注：`randomization`、`timeout`、`split brain prevention`。
-
-建议先按提示逐步实现：Use random 超时 between 150-300ms。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题让你实现随机化的选举超时机制。当跟随者在超时时间内没有收到领导者的心跳，就会变成候选人发起选举。关键在于每个节点的超时时间是随机的，这样可以避免多个节点同时发起选举、互相"抢票"而选不出领导者的情况。
 
 ## 题目说明
 
-Add randomized election timeouts. When a Follower does not hear from a Leader within its 超时, it becomes a Candidate. Randomization helps prevent multiple 节点 from starting elections simultaneously.
+添加随机化的选举超时机制。当跟随者在超时时间内没有收到领导者的消息时，它会变成候选人发起选举。使用随机化的超时时间，可以防止多个节点同时发起选举。
 
 ## 概念说明
 
-### Randomized Timeouts
+### 随机化超时
 
-If all 节点 used the same 超时, 网络 hiccups could cause multiple simultaneous elections, splitting votes和delaying Leader selection.随机timeouts spread out elections, usually letting one 节点 win quickly.
+如果所有节点使用相同的超时时间，网络波动可能导致多个节点同时发起选举，选票被瓜分，迟迟选不出领导者。打个比方，如果会议上所有人同时开口说话，谁的话也听不清。而随机化超时让各个节点在不同的时刻发起选举，通常只有一个节点最先超时并赢得选举，大大提高了选举效率。
 
 ## 涉及概念
 
@@ -37,15 +30,15 @@ If all 节点 used the same 超时, 网络 hiccups could cause multiple simultan
 
 ## 实现提示
 
-- Use random 超时 between 150-300ms
-- Reset 超时 on 心跳
-- Different timeouts reduce split votes
+- 使用 150 到 300 毫秒之间的随机超时时间
+- 收到心跳时重置超时计时器
+- 不同的超时时间可以减少选票瓜分的情况
 
 ## 测试用例
 
-### 1.随机超时 in range 150-300ms
+### 1. 随机超时在 150-300 毫秒范围内
 
-Each 响应 contains a timeout_ms field in range 150-300. Values should vary due to randomization.
+每次响应都包含一个 timeout_ms 字段，值在 150-300 之间。由于随机化，多次查询返回的值应该不同。
 
 输入：
 

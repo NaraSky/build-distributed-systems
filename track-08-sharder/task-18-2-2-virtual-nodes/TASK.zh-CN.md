@@ -1,41 +1,35 @@
-# 添加 Virtual Nodes用于Even Distribution
+# 添加虚拟节点实现均匀分布
 
-英文标题：Add Virtual Nodes用于Even Distribution
+英文标题：Add Virtual Nodes for Even Distribution
 网页：<https://builddistributedsystem.com/tracks/sharder/tasks/task-18-2-2-virtual-nodes>
 
 课程：8. 分片器：水平扩展与数据迁移
 任务序号：7
-短标题：Virtual Nodes
-难度：intermediate
+短标题：虚拟节点
+难度：进阶
 子主题：Consistent Hashing
 
 ## 中文导读
 
-本题要求你完成 `添加 Virtual Nodes用于Even Distribution`。
-
-重点关注：`virtual nodes`、`vnodes`、`even distribution`、`load balancing`、`hash collision`。
-
-建议先按提示逐步实现：With only 3 physical 节点, distribution is uneven (one 节点 may own 60% of keys)。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你通过虚拟节点（Virtual Nodes）来改善一致性哈希环上数据分布不均的问题。当物理节点较少时，由于哈希值的随机性，各节点负责的数据量可能差异很大。虚拟节点让每个物理节点在环上拥有多个位置，从而让数据分布更加均匀。
 
 ## 题目说明
 
-With few physical 节点, a consistent hash ring has uneven key distribution. Virtual 节点 fix this by giving each physical 节点 V positions on the ring.
+当物理节点较少时，一致性哈希环上的键分布会不均匀。虚拟节点通过让每个物理节点在环上拥有 V 个位置来解决这个问题。
 
-**Problem**:，包含3 physical 节点, one 节点 might own 50% of the ring, another 35%,和the last 15%. This is because hash positions are pseudo-random.
+**问题**：假设只有 3 个物理节点，其中一个节点可能占据环的 50%，另一个占 35%，最后一个只占 15%。这是因为哈希位置是伪随机的。
 
-**Solution**: create V virtual 节点用于each physical 节点 at positions `hash(node_id + "-" + i)`用于i in 0..V.
+**解决方案**：为每个物理节点创建 V 个虚拟节点，它们的位置分别在 `hash(node_id + "-" + i)`（i 从 0 到 V）。
 
-**Distribution quality** (V = virtual 节点 per physical 节点):
-- V=1: high variance (~40% standard deviation)
-- V=10: moderate (~15% standard deviation)
-- V=150: low (~5.5% standard deviation)
-- V=500: very low (~3% standard deviation)
+**分布质量**（V 为每个物理节点的虚拟节点数）：
+- V=1：方差很高（标准差约 40%）
+- V=10：方差中等（标准差约 15%）
+- V=150：方差较低（标准差约 5.5%）
+- V=500：方差很低（标准差约 3%）
 
-```JSON
-请求:  {"type": "ring_create", "msg_id": 1, "节点": ["n1", "n2", "n3"], "vnodes_per_node": 150}
-响应: {"type": "ring_create_ok", "in_reply_to": 1, "total_vnodes": 450, "distribution": {"n1": 0.34, "n2": 0.33, "n3": 0.33}}
+```json
+Request:  {"type": "ring_create", "msg_id": 1, "nodes": ["n1", "n2", "n3"], "vnodes_per_node": 150}
+Response: {"type": "ring_create_ok", "in_reply_to": 1, "total_vnodes": 450, "distribution": {"n1": 0.34, "n2": 0.33, "n3": 0.33}}
 ```
 
 ## 涉及概念
@@ -48,17 +42,17 @@ With few physical 节点, a consistent hash ring has uneven key distribution. Vi
 
 ## 实现提示
 
-- With only 3 physical 节点, distribution is uneven (one 节点 may own 60% of keys)
-- Virtual 节点: each physical 节点 has V positions: hash(node_id + "-" + i)用于i in 0..V
-- V=150 gives a standard deviation of ~5.5% around the ideal 1/N per 节点
-- Key lookup: find the nearest vnode clockwise, then map vnode -> physical 节点
-- More vnodes = better distribution, but more memory用于the ring data structure
+- 仅有 3 个物理节点时，数据分布不均（某个节点可能拥有 60% 的键）
+- 虚拟节点：每个物理节点拥有 V 个位置，计算方式为 `hash(node_id + "-" + i)`（i 从 0 到 V）
+- V=150 时，各节点数据量的标准差约为理想值 1/N 的 5.5%
+- 键查找：找到最近的顺时针虚拟节点，然后映射回物理节点
+- 虚拟节点越多，分布越均匀，但环的数据结构占用的内存也越多
 
 ## 测试用例
 
-### 1. Virtual nodes improve distribution
+### 1. 虚拟节点改善数据分布
 
-Each 节点 should own roughly 33% of the ring.
+每个节点应大致拥有环的 33%。
 
 输入：
 
@@ -73,9 +67,9 @@ Each 节点 should own roughly 33% of the ring.
 {"src": "n1", "dest": "c0", "body": {"type": "init_ok", "in_reply_to": 1, "msg_id": 0}}
 ```
 
-### 2. Total vnodes equals nodes * vnodes_per_node
+### 2. 虚拟节点总数等于节点数乘以每节点虚拟节点数
 
-total_vnodes should be 200.
+total_vnodes 应为 200。
 
 输入：
 
@@ -92,7 +86,7 @@ total_vnodes should be 200.
 
 ## 参考资料
 
-- [DynamoDB Virtual Nodes](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.Partitions.html)：AWS DynamoDB documentation on partition key distribution
+- [DynamoDB Virtual Nodes](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.Partitions.html)：AWS DynamoDB 关于分区键分布的文档
 
 ## 本地文件
 

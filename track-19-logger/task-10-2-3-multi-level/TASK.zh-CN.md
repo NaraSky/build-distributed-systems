@@ -1,4 +1,4 @@
-# 实现 a Multi-Level LSM Tree
+# 实现多层 LSM 树
 
 英文标题：Implement a Multi-Level LSM Tree
 网页：<https://builddistributedsystem.com/tracks/logger/tasks/task-10-2-3-multi-level>
@@ -6,44 +6,38 @@
 课程：19. 日志器：WAL、LSM 与分布式日志
 任务序号：8
 短标题：Multi-Level LSM
-难度：advanced
-子主题：LSM Tree (日志-Structured Merge Tree)
+难度：高级
+子主题：LSM 树（Log-Structured Merge Tree）
 
 ## 中文导读
 
-本题要求你完成 `实现 a Multi-Level LSM Tree`。
-
-重点关注：`multi-level LSM`、`L0`、`L1`、`sorted runs`、`level policy`。
-
-建议先按提示逐步实现：L0 contains unsorted SSTables (recent flushes). Reads must check ALL L0 files.。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你实现多层级的 LSM 树结构。随着数据增长，将所有 SSTable 放在一个扁平列表中会变得难以管理。多层 LSM 树将 SSTable 组织到不同层级中，每层有不同的特性和大小限制。理解这种分层结构，是掌握 LevelDB、RocksDB 等存储引擎架构的关键。
 
 ## 题目说明
 
-A single flat list of SSTables becomes unmanageable as data grows. The multi-level LSM tree organizes SSTables into levels (L0, L1, L2, ...)，包含carefully maintained invariants.
+当数据不断增长时，将所有 SSTable 放在一个扁平列表中会变得难以管理。多层 LSM 树将 SSTable 组织到不同层级（L0、L1、L2 等），并精心维护各层的不变量。
 
-Level structure:
-- **L0 (special)**: receives direct flushes from MemTable. SSTables may have overlapping key ranges. Reads must check ALL L0 files.
-- **L1, L2, ... (sorted levels)**: SSTables within the same level have non-overlapping key ranges. A read only needs to check at most ONE SSTable per level.
-- **Size ratio**: each level is ~10x larger than the previous. L0: 40MB, L1: 400MB, L2: 4GB, L3: 40GB.
+层级结构如下：
+- **L0（特殊层）**：直接接收从 MemTable 刷写来的数据。各 SSTable 的键范围可能重叠。读取时必须检查 L0 中的所有文件。
+- **L1、L2 等（有序层）**：同一层内的 SSTable 键范围互不重叠。读取时每层最多只需检查一个 SSTable。
+- **大小比例**：每层约为上一层的 10 倍大小。L0：40MB，L1：400MB，L2：4GB，L3：40GB。
 
-Read path (multi-level):
-1. Check MemTable (newest data)
-2. Check L0 (all files, newest first)
-3. Check L1 (binary search by key range, at most 1 file)
-4. Check L2, L3, ... until found or exhausted
+多层读取路径：
+1. 查 MemTable（最新数据）
+2. 查 L0（所有文件，从最新到最旧）
+3. 查 L1（通过键范围进行二分查找，最多 1 个文件）
+4. 查 L2、L3 等，直到找到或查完所有层
 
-```JSON
-请求:  {"type": "lsm_level_info", "msg_id": 1}
-响应: {"type": "lsm_level_info_ok", "in_reply_to": 1, "levels": [
+```json
+Request:  {"type": "lsm_level_info", "msg_id": 1}
+Response: {"type": "lsm_level_info_ok", "in_reply_to": 1, "levels": [
     {"level": 0, "sstables": 4, "total_bytes": 16777216, "sorted": false, "max_bytes": 41943040},
     {"level": 1, "sstables": 5, "total_bytes": 52428800, "sorted": true, "max_bytes": 419430400},
     {"level": 2, "sstables": 10, "total_bytes": 524288000, "sorted": true, "max_bytes": 4194304000}
 ]}
 
-请求:  {"type": "lsm_read", "msg_id": 2, "key": "user:42"}
-响应: {"type": "lsm_read_ok", "in_reply_to": 2, "value": "Alice", "found_at": "L1", "levels_checked": 2}
+Request:  {"type": "lsm_read", "msg_id": 2, "key": "user:42"}
+Response: {"type": "lsm_read_ok", "in_reply_to": 2, "value": "Alice", "found_at": "L1", "levels_checked": 2}
 ```
 
 ## 涉及概念
@@ -57,17 +51,17 @@ Read path (multi-level):
 
 ## 实现提示
 
-- L0 contains unsorted SSTables (recent flushes). Reads must check ALL L0 files.
-- L1+ levels are sorted by key range，包含NO overlapping SSTables within a level
-- Each level is approximately 10x larger than the previous (size ratio = 10)
-- Reads check: MemTable -> L0 (all files) -> L1 -> L2 -> ... until the key is found
-- The level selection policy chooses which level to compact based on size limits
+- L0 包含未排序的 SSTable（最近刷写的数据）。读取时必须检查 L0 中的所有文件
+- L1 及以上层级按键范围排序，同一层内的 SSTable 键范围互不重叠
+- 每层大约是上一层的 10 倍大小（大小比例 = 10）
+- 读取顺序为：MemTable -> L0（所有文件）-> L1 -> L2 -> ...，直到找到目标键
+- 层级选择策略根据大小限制决定对哪一层进行压缩
 
 ## 测试用例
 
-### 1. Level info shows multi-level structure
+### 1. 层级信息展示多层结构
 
-lsm_level_info_ok should show multiple levels. L0 should have sorted: false, L1+ should have sorted: true.
+返回的 lsm_level_info_ok 中应显示多个层级。L0 的 sorted 应为 false，L1 及以上层级的 sorted 应为 true。
 
 输入：
 
@@ -82,9 +76,9 @@ lsm_level_info_ok should show multiple levels. L0 should have sorted: false, L1+
 {"src": "n1", "dest": "c0", "body": {"type": "init_ok", "in_reply_to": 1, "msg_id": 0}}
 ```
 
-### 2. Read searches levels in order
+### 2. 读取按层级顺序搜索
 
-lsm_read_ok should include found_at level和levels_checked count.
+返回的 lsm_read_ok 中应包含 found_at（找到的层级）和 levels_checked（检查的层数）。
 
 输入：
 
@@ -101,7 +95,7 @@ lsm_read_ok should include found_at level和levels_checked count.
 
 ## 参考资料
 
-- [LevelDB Implementation Notes](https://github.com/google/leveldb/blob/main/doc/impl.md)：Google LevelDB implementation details explaining multi-level LSM structure
+- [LevelDB Implementation Notes](https://github.com/google/leveldb/blob/main/doc/impl.md)：Google LevelDB 的实现细节，详细说明了多层 LSM 结构
 
 ## 本地文件
 

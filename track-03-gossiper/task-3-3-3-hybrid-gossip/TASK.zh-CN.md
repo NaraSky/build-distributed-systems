@@ -1,39 +1,33 @@
-# 实现 Hybrid Tree和Gossip 广播
+# 实现树与八卦混合广播
 
-英文标题：Implement Hybrid Tree和Gossip Broadcast
+英文标题：Implement Hybrid Tree and Gossip Broadcast
 网页：<https://builddistributedsystem.com/tracks/gossiper/tasks/task-3-3-3-hybrid-gossip>
 
 课程：3. 传播者：Gossip 信息传播
 任务序号：13
-短标题：Hybrid Gossip
-难度：advanced
+短标题：混合八卦广播
+难度：高级
 子主题：Topology-Aware Gossip
 
 ## 中文导读
 
-本题要求你完成 `实现 Hybrid Tree和Gossip 广播`。
-
-重点关注：`hybrid broadcast`、`tree overlay`、`gossip fallback`、`convergence speed`。
-
-建议先按提示逐步实现：First hop uses the tree用于fast delivery (low latency)。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题让你把树广播和八卦传播两种方式结合起来。纯树广播速度快但不够可靠，纯八卦传播可靠但速度慢且浪费消息。混合方案取二者之长：先通过树快速分发，再用八卦轮次兜底补漏，从而同时获得低延迟和高可靠性。这是实际分布式系统中常用的经典设计思路。
 
 ## 题目说明
 
-Pure tree 广播 is fast but fragile. Pure gossip is reliable but slow和wasteful. A **hybrid** approach uses tree用于the first hop (fast, efficient)和gossip用于reliability (catch stragglers).
+纯树广播速度快但很脆弱，纯八卦传播（Gossip）可靠但速度慢且浪费消息。**混合方案**利用树结构完成首次快速转发（高效、低延迟），再用八卦传播保障可靠性（补上遗漏的节点）。
 
-Implement a hybrid 广播:
-1. On 广播, forward via tree neighbors immediately
-2. Periodically gossip all known 消息 to random peers (catch-up)
-3. Track delivery path用于each 消息 (tree vs gossip)
+你需要实现一个混合广播机制：
+1. 收到广播时，立即通过树邻居转发
+2. 定期将所有已知消息通过八卦方式发送给随机节点（补漏轮次）
+3. 为每条消息记录投递路径（是通过树还是通过八卦送达的）
 
-```JSON
+```json
 请求:  {"type": "delivery_info", "msg_id": 1, "value": 42}
 响应: {"type": "delivery_info_ok", "in_reply_to": 1, "value": 42, "delivered_via": "tree", "hops": 1}
 ```
 
-```JSON
+```json
 请求:  {"type": "hybrid_stats", "msg_id": 2}
 响应: {"type": "hybrid_stats_ok", "in_reply_to": 2, "tree_deliveries": 8, "gossip_deliveries": 2, "total": 10}
 ```
@@ -47,15 +41,15 @@ Implement a hybrid 广播:
 
 ## 实现提示
 
-- First hop uses the tree用于fast delivery (low latency)
-- Background gossip rounds catch any missed 节点 (high reliability)
-- Track whether each 消息 was delivered via tree or gossip
-- Compare convergence speed of pure tree, pure gossip,和hybrid
-- The hybrid approach gives the best of both worlds
+- 首跳使用树转发，实现快速投递（低延迟）
+- 后台的八卦轮次负责补上被遗漏的节点（高可靠性）
+- 记录每条消息是通过树还是八卦方式投递的
+- 可以对比纯树、纯八卦和混合三种方式的收敛速度
+- 混合方案兼顾了两种方式的优点
 
 ## 测试用例
 
-### 1. 广播 via tree tracks delivery
+### 1. 通过树广播并记录投递信息
 
 输入：
 
@@ -75,7 +69,7 @@ Implement a hybrid 广播:
 {"src": "n1", "dest": "c1", "body": {"type": "delivery_info_ok", "value": 42, "delivered_via": "tree", "hops": 0, "in_reply_to": 4, "msg_id": 3}}
 ```
 
-### 2. Hybrid stats，包含zero messages
+### 2. 零消息时的混合统计
 
 输入：
 
@@ -93,7 +87,7 @@ Implement a hybrid 广播:
 
 ## 参考资料
 
-- [Plumtree: Epidemic Broadcast Trees](https://asc.di.fct.unl.pt/~jleitao/pdf/srds07-leitao.pdf)：Paper on combining tree和gossip用于efficient 广播
+- [Plumtree: Epidemic Broadcast Trees](https://asc.di.fct.unl.pt/~jleitao/pdf/srds07-leitao.pdf)：关于将树广播与八卦传播结合以实现高效广播的经典论文
 
 ## 本地文件
 

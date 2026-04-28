@@ -1,32 +1,26 @@
-# 实现 Trace Analysis和Insights
+# 实现追踪分析与洞察
 
-英文标题：Implement Trace Analysis和Insights
+英文标题：Implement Trace Analysis and Insights
 网页：<https://builddistributedsystem.com/tracks/tracer/tasks/task-23-1-4-trace-analysis>
 
 课程：25. 追踪器：可观测性
 任务序号：4
 短标题：Trace Analysis
-难度：advanced
+难度：高级
 子主题：Distributed Tracing
 
 ## 中文导读
 
-本题要求你完成 `实现 Trace Analysis和Insights`。
-
-重点关注：`bottleneck detection`、`critical path`、`error rate`、`service map`、`anomaly detection`。
-
-建议先按提示逐步实现：Bottleneck: the span，包含the largest share of total trace duration。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你对追踪数据进行分析，从中提炼出有价值的洞察。原始的追踪记录只告诉你"发生了什么"，而追踪分析能告诉你"为什么慢"以及"错误集中在哪里"。通过聚合大量追踪数据，你可以发现性能瓶颈、错误热点和延迟异常，这对排查线上问题至关重要。
 
 ## 题目说明
 
-Raw traces tell you what happened. Trace analysis tells you why it was slow和where errors are concentrated. By aggregating many traces, you surface bottlenecks, error hot-spots, service dependencies,和latency outliers.
+原始追踪数据告诉你发生了什么，而追踪分析则告诉你为什么慢、错误集中在哪里。通过对大量追踪数据进行聚合分析，你可以发现性能瓶颈、错误热点、服务依赖关系和延迟异常值。
 
-Implement a 节点 that analyses trace data和surfaces insights:
+请实现一个节点来分析追踪数据并生成洞察报告：
 
-```JSON
-// Identify bottleneck (db takes 94% of trace time)
+```json
+// 识别瓶颈（数据库占据了 94% 的追踪耗时）
 { "type": "analyze_traces", "msg_id": 1,
   "traces": [{"trace_id":"t1","duration_ms":5000,
                "spans":[{"service":"web","duration":100},
@@ -34,9 +28,9 @@ Implement a 节点 that analyses trace data和surfaces insights:
                          {"service":"db","duration":4700}]}] }
 -> { "type": "insights", "in_reply_to": 1,
     "bottlenecks": ["db"], "critical_path": "web->api->db",
-    "optimization_suggestion": "Add caching用于database queries" }
+    "optimization_suggestion": "Add caching for database queries" }
 
-// Error rate per service
+// 按服务统计错误率
 { "type": "analyze_errors", "msg_id": 2,
   "traces": [{"trace_id":"t1","has_error":true,"service":"payment-service"},
               {"trace_id":"t2","has_error":false},
@@ -45,6 +39,10 @@ Implement a 节点 that analyses trace data和surfaces insights:
     "error_rate_by_service": {"payment-service": "66.7%"},
     "total_errors": 2 }
 ```
+
+## 概念说明
+
+**瓶颈检测**就像在流水线上找最慢的那个工位——如果数据库查询占了整个请求 94% 的时间，那它就是瓶颈。**关键路径**则是从请求入口到最终响应之间耗时最长的那条调用链。找到瓶颈和关键路径后，你就知道该把优化精力放在哪里了。
 
 ## 涉及概念
 
@@ -56,17 +54,17 @@ Implement a 节点 that analyses trace data和surfaces insights:
 
 ## 实现提示
 
-- Bottleneck: the span，包含the largest share of total trace duration
-- Critical path: the chain of spans from root to leaf，包含the maximum total duration
-- Error rate per service = error traces用于that service / total traces用于that service
-- Service map edges: parent span service -> child span service
-- Anomaly: trace duration > N * baseline p50 (e.g. 100x = high severity)
+- 瓶颈：占总追踪耗时比例最大的那个跨度
+- 关键路径：从根跨度到叶子跨度中，总耗时最长的那条调用链
+- 每个服务的错误率 = 该服务的错误追踪数 / 该服务的总追踪数
+- 服务拓扑图的边：父跨度所在服务 -> 子跨度所在服务
+- 异常检测：追踪耗时 > N 倍的基准 P50（例如 100 倍为高严重度）
 
 ## 测试用例
 
-### 1. Performance analysis
+### 1. 性能分析
 
-db takes 94% of trace duration和should be identified as bottleneck.
+数据库占据了追踪耗时的 94%，应当被识别为瓶颈。
 
 输入：
 
@@ -77,12 +75,12 @@ db takes 94% of trace duration和should be identified as bottleneck.
 期望输出：
 
 ```text
-{"type": "insights", "in_reply_to": 1, "bottlenecks": ["db"], "critical_path": "web->api->db", "optimization_suggestion": "Add caching用于database queries"}
+{"type": "insights", "in_reply_to": 1, "bottlenecks": ["db"], "critical_path": "web->api->db", "optimization_suggestion": "Add caching for database queries"}
 ```
 
-### 2. Error rate analysis
+### 2. 错误率分析
 
-payment-service is in 2/3 error traces = 66.7% error rate.
+payment-service 在 3 条追踪中有 2 条出错，错误率为 66.7%。
 
 输入：
 
@@ -98,7 +96,7 @@ payment-service is in 2/3 error traces = 66.7% error rate.
 
 ## 参考资料
 
-- [Distributed Tracing，包含Jaeger](https://www.jaegertracing.io/docs/latest/)：Jaeger docs on trace analysis和root cause investigation
+- [Distributed Tracing with Jaeger](https://www.jaegertracing.io/docs/latest/)：Jaeger 关于追踪分析和根因排查的文档
 
 ## 本地文件
 

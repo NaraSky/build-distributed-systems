@@ -1,57 +1,49 @@
-# 创建 异步 事件循环用于Concurrent 消息处理
+# 创建异步事件循环实现并发消息处理
 
-英文标题：Create Async Event循环用于Concurrent Message处理
+英文标题：Create Async Event Loop for Concurrent Message Handling
 网页：<https://builddistributedsystem.com/tracks/messenger/tasks/task-1-5-async-handler>
 
 课程：1. 信使：消息通信基础
 任务序号：5
-短标题：异步 处理器
-难度：intermediate
+短标题：异步处理器
+难度：进阶
 子主题：Hello, Distributed World
 
 ## 中文导读
 
-本题要求你完成 `创建 异步 事件循环用于Concurrent 消息处理`。
+前面的题目中，你的节点是一条一条依次处理消息的。但在真实的分布式系统中，消息会同时大量涌入，逐条处理会严重限制吞吐量。这道题要求你改造节点，让它能够并发处理多条消息。
 
-重点关注：`concurrency`、`event loop`、`async processing`。
-
-建议先按提示逐步实现：Use threading or asyncio用于concurrent handling。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这为后续更复杂的场景做准备——比如在等待其他节点的响应时，你的节点需要同时处理新到的请求。
 
 ## 题目说明
 
-Real 分布式系统 handle many 消息 concurrently. Your current synchronous implementation processes one 消息 at a time, which limits throughput.
+真实的分布式系统需要并发处理大量消息。你当前的同步实现一次只能处理一条消息，这会限制吞吐量。
 
-Refactor your 节点 to handle 消息 concurrently:
+现在需要重构你的节点，使其支持并发处理消息：
 
-1. Read 消息 in the main thread
-2. Dispatch each 消息 to a handler that runs concurrently
-3. Ensure thread-safe access to shared state (node_id, counters, etc.)
-
-This prepares you用于more complex workloads where you need to send 消息 while waiting用于responses.
+1. 在主线程中读取消息
+2. 将每条消息分派给并发执行的处理器
+3. 确保对共享状态（如 `node_id`、计数器等）的访问是线程安全的
 
 ## 概念说明
 
-## Concurrency in Distributed Systems
+### 分布式系统中的并发
 
-分布式系统 are **inherently concurrent**. Multiple clients may send requests simultaneously,和your 节点 must handle them without blocking.
+分布式系统**天生就是并发的**。多个客户端可能同时发送请求，你的节点必须在不阻塞的情况下处理它们。
 
-### Why Concurrency?
+### 为什么需要并发？
 
-Consider a 节点 that:
+想象一个节点遇到这样的情况：
 
-  - Receives a 请求 that requires contacting another 节点
+- 收到一个请求，需要先联系另一个节点才能处理
+- 必须等待对方回复后才能响应
+- 在等待期间，又有新的请求到来
 
-  - Must wait用于the 响应 before replying
+如果没有并发，后续所有请求都会被**阻塞**，直到第一个请求处理完毕。这就像餐厅只有一个服务员，如果他去厨房等菜了，其他桌的客人就没人招待了。
 
-  - Receives more requests while waiting
+### 线程安全
 
-Without concurrency, all subsequent requests are **blocked** until the first completes. This creates a bottleneck.
-
-### Thread Safety
-
-When multiple threads access shared state, you must use **synchronization primitives** like locks to prevent race conditions.
+当多个线程访问共享状态时，必须使用**同步原语**（如锁）来防止竞态条件（Race Condition）。
 
 ```text
 import threading
@@ -62,37 +54,26 @@ class Node:
         self.next_msg_id = 0
     
     def get_next_id(self):
-       ，包含self.lock:
+        with self.lock:
             id = self.next_msg_id
             self.next_msg_id += 1
             return id
 ```
 
-### Common Patterns
+### 常见的并发模式
 
-  
-    Pattern
-    Use Case
-  
-  
-    **Thread Pool**
-    Fixed number of worker threads processing a queue
-  
-  
-    **Async/Await**
-    Cooperative multitasking用于I/O-bound work
-  
-  
-    **Actor模式l**
-    Each entity has its own mailbox和processes messages sequentially
-  
+| 模式 | 适用场景 |
+|------|---------|
+| **线程池（Thread Pool）** | 固定数量的工作线程处理一个任务队列 |
+| **异步/等待（Async/Await）** | 适合 I/O 密集型任务的协作式多任务 |
+| **Actor 模型** | 每个实体拥有自己的邮箱，按顺序处理消息 |
 
-### Go's Approach
+### Go 语言的做法
 
-Go uses **goroutines** - lightweight threads managed by the Go runtime. Combined，包含channels, this makes concurrent programming more natural:
+Go 使用 **goroutine** —— 由 Go 运行时管理的轻量级线程。结合 channel（通道），Go 让并发编程变得更加自然：
 
 ```text
-// Launch a goroutine用于each message
+// Launch a goroutine for each message
 go func() {
     handleMessage(msg)
 }()
@@ -106,17 +87,17 @@ go func() {
 
 ## 实现提示
 
-- Use threading or asyncio用于concurrent handling
-- Be careful，包含shared state
-- Consider使用a 队列用于消息 processing
-- Go tip: handle init synchronously before spawning goroutines用于other 消息
-- Buffer output和sort by in_reply_to before printing to get deterministic msg_id ordering
+- 使用多线程或异步框架来并发处理消息
+- 注意保护共享状态，避免竞态条件
+- 可以考虑用队列来组织消息处理
+- Go 语言提示：先同步处理 `init` 消息，再为其他消息启动 goroutine
+- 可以先缓冲输出，按 `in_reply_to` 排序后再打印，以获得确定性的 `msg_id` 顺序
 
 ## 测试用例
 
-### 1.处理3 concurrent 回声 messages
+### 1. 并发处理 3 条回声消息
 
-All 3 echo 消息 should receive responses. Under concurrency msg_ids may vary.
+3 条 echo 消息都应该收到响应。在并发环境下 `msg_id` 的顺序可能有所不同。
 
 输入：
 
@@ -138,8 +119,8 @@ All 3 echo 消息 should receive responses. Under concurrency msg_ids may vary.
 
 ## 参考资料
 
-- [Python Threading](https://docs.python.org/3/library/threading.html)：Python documentation on threading primitives
-- [ThreadPoolExecutor](https://docs.python.org/3/library/concurrent.futures.html)：High-level interface用于asynchronously executing callables
+- [Python Threading](https://docs.python.org/3/library/threading.html)：Python 线程原语的官方文档
+- [ThreadPoolExecutor](https://docs.python.org/3/library/concurrent.futures.html)：用于异步执行的高级接口
 
 ## 本地文件
 

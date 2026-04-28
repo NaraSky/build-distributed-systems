@@ -1,45 +1,39 @@
-# 实现 Data Migration
+# 实现数据迁移
 
 英文标题：Implement Data Migration
 网页：<https://builddistributedsystem.com/tracks/sharder/tasks/task-8-4-data-migration>
 
 课程：8. 分片器：水平扩展与数据迁移
 任务序号：4
-短标题：Data Migration
-难度：advanced
+短标题：数据迁移
+难度：高级
 子主题：Range Sharding
 
 ## 中文导读
 
-本题要求你完成 `实现 Data Migration`。
-
-重点关注：`migration`、`data transfer`、`consistency`。
-
-建议先按提示逐步实现：Stop serving 分片 during migration。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你实现副本组之间的数据迁移。当分片的归属发生变化时，数据需要从旧的副本组搬到新的副本组。这个过程必须保证原子性和一致性，同时还要处理失败重试等异常情况，是分片系统中最复杂的环节之一。
 
 ## 题目说明
 
-Implement data migration between replica groups:
+实现副本组之间的数据迁移：
 
-1. Source group: stop accepting writes用于migrating 分片
-2. Create snapshot of 分片 data + 客户端 sessions
-3. Send to destination group
-4. Destination: install snapshot, start serving 分片
-5. Source: delete 分片 data after confirmation
+1. 源副本组：停止接受待迁移分片的写入请求
+2. 创建分片数据和客户端会话的快照
+3. 将快照发送给目标副本组
+4. 目标副本组：安装快照，开始服务该分片
+5. 源副本组：收到确认后删除本地分片数据
 
-Handle failures: 重试, idempotency, rollback.
+需要处理各种失败情况：重试、幂等性、回滚。
 
 ## 概念说明
 
-### Data Migration
+### 数据迁移
 
-Moving shards requires moving data. This must be atomic per 分片和consistent. During migration, the 分片 may be unavailable or served by source (stale reads OK) until transfer completes.
+迁移分片就是搬运数据。每个分片的迁移必须是原子性的，且要保持一致性。在迁移过程中，分片可能暂时不可用，或者仍由源端提供服务（允许过时读取），直到传输完成。
 
-### Client Session Transfer
+### 客户端会话迁移
 
-Don't forget 客户端 deduplication state. If sessions aren't migrated, clients may see duplicate execution on 重试. Transfer the 客户端 session table，包含the 分片 data.
+别忘了客户端的去重状态。如果不把会话信息一起迁移，客户端在重试时可能会看到操作被重复执行。因此，客户端会话表需要和分片数据一起传输。
 
 ## 涉及概念
 
@@ -49,15 +43,15 @@ Don't forget 客户端 deduplication state. If sessions aren't migrated, clients
 
 ## 实现提示
 
-- Stop serving 分片 during migration
-- Transfer all key-value pairs
-- Include 客户端 session state
+- 迁移期间停止对该分片的服务
+- 传输所有键值对
+- 包含客户端会话状态
 
 ## 测试用例
 
-### 1. Prepare 分片用于migration
+### 1. 准备分片迁移
 
-分片 3 locked, snapshot created containing data {x:1,y:2}.
+分片 3 被锁定，创建快照，其中包含数据 {x:1, y:2}。
 
 输入：
 

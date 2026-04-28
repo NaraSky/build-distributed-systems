@@ -1,29 +1,23 @@
-# 实现 Two-Phase Set (2P-Set)
+# 实现两阶段集合
 
 英文标题：Implement Two-Phase Set (2P-Set)
 网页：<https://builddistributedsystem.com/tracks/gossiper/tasks/task-3-4-2-twopset>
 
 课程：3. 传播者：Gossip 信息传播
 任务序号：17
-短标题：2P-Set
-难度：advanced
-子主题：Epidemic Algorithms和CRDT Gossip
+短标题：两阶段集合
+难度：高级
+子主题：Epidemic Algorithms and CRDT Gossip
 
 ## 中文导读
 
-本题要求你完成 `实现 Two-Phase Set (2P-Set)`。
-
-重点关注：`2P-Set`、`CRDT`、`tombstone set`、`add-remove semantics`。
-
-建议先按提示逐步实现：A 2P-Set has two internal G-Sets: add-set和remove-set。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题让你在只增集合的基础上更进一步，实现支持删除操作的两阶段集合（2P-Set）。它的巧妙之处在于：用两个只增集合分别记录"添加过的元素"和"删除过的元素"（即墓碑集合），最终结果就是二者的差集。不过要注意，一旦删除就无法再添加回来。这是理解 CRDT 中删除语义的关键一步。
 
 ## 题目说明
 
-A **2P-Set** (two-phase set) supports both add和remove by maintaining two G-Sets: the add-set和the remove-set (tombstones). An element is in the set if it is in the add-set but NOT in the remove-set.
+**两阶段集合（2P-Set）** 同时支持添加和删除操作。它内部维护两个只增集合：添加集合和删除集合（也叫墓碑集合）。一个元素是否"存在"，取决于它是否在添加集合中但不在删除集合中。
 
-```JSON
+```json
 请求:  {"type": "add", "msg_id": 1, "element": "x"}
 响应: {"type": "add_ok", "in_reply_to": 1}
 
@@ -46,15 +40,15 @@ A **2P-Set** (two-phase set) supports both add和remove by maintaining two G-Set
 
 ## 实现提示
 
-- A 2P-Set has two internal G-Sets: add-set和remove-set
-- To add: insert into add-set. To remove: insert into remove-set
-- Value = add-set - remove-set
-- Once removed, an element cannot be re-added (tombstone is permanent)
-- Merge both G-Sets independently via union
+- 两阶段集合内部包含两个只增集合：添加集合和删除集合
+- 添加操作：将元素放入添加集合；删除操作：将元素放入删除集合
+- 当前有效值 = 添加集合 - 删除集合
+- 一旦元素被删除，就无法再重新添加（墓碑是永久性的）
+- 合并时，两个只增集合各自独立地做并集运算
 
 ## 测试用例
 
-### 1. 添加 then read
+### 1. 添加后读取
 
 输入：
 
@@ -72,7 +66,7 @@ A **2P-Set** (two-phase set) supports both add和remove by maintaining two G-Set
 {"src": "n1", "dest": "c1", "body": {"type": "read_ok", "elements": ["x"], "in_reply_to": 3, "msg_id": 2}}
 ```
 
-### 2. 添加 then remove then read
+### 2. 添加后删除再读取
 
 输入：
 
@@ -94,7 +88,7 @@ A **2P-Set** (two-phase set) supports both add和remove by maintaining two G-Set
 
 ## 参考资料
 
-- [CRDTs用于Fun和Profit](https://bartoszsypytkowski.com/the-state-of-crdts/)：Practical overview of CRDT types和their tradeoffs
+- [CRDTs for Fun and Profit](https://bartoszsypytkowski.com/the-state-of-crdts/)：各种 CRDT 类型及其权衡的实用概述
 
 ## 本地文件
 

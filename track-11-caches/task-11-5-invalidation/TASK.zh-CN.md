@@ -1,51 +1,44 @@
-#处理缓存 Invalidation和Consistency
+# 处理缓存失效与一致性
 
-英文标题：Handle Cache Invalidation和Consistency
 网页：<https://builddistributedsystem.com/tracks/caches/tasks/task-11-5-invalidation>
 
 课程：11. 缓存
 任务序号：5
-短标题：Invalidation
-难度：advanced
+短标题：缓存失效
+难度：高级
 
 ## 中文导读
 
-本题要求你完成 `Handle 缓存 Invalidation和Consistency`。
-
-重点关注：`invalidation`、`consistency`、`write-through`、`write-behind`。
-
-建议先按提示逐步实现：Invalidate on every write。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现缓存失效策略，确保缓存中的数据与数据库保持一致。当数据发生变更时，如何让缓存中的旧副本及时更新或删除，是分布式系统中公认的难题之一。掌握常见的写入策略和缓存击穿防护，对构建高可靠系统至关重要。
 
 ## 题目说明
 
-Implement 缓存 invalidation strategies to maintain consistency between 缓存和database. When data changes, cached copies must be updated or removed.
+实现缓存失效（Invalidation）策略，维护缓存与数据库之间的一致性。当数据发生变更时，必须更新或移除缓存中的旧副本。
 
-Three main strategies:
-1. Write-Through: Update 缓存和DB synchronously
-2. Write-Behind: Update 缓存, async update DB
-3. 缓存-Aside，包含Invalidation: Delete 缓存, update DB
+三种主要策略：
+1. 写穿透（Write-Through）：同步更新缓存和数据库
+2. 写回（Write-Behind）：先更新缓存，异步更新数据库
+3. 旁路缓存加失效（Cache-Aside with Invalidation）：先删除缓存，再更新数据库
 
-Also handle 缓存 stampede: when many requests hit an expired key simultaneously.
+此外还需要处理缓存击穿（Cache Stampede）问题：当大量请求同时访问一个刚刚过期的热点键时，这些请求会同时打到数据库上。
 
 ## 概念说明
 
-### 缓存 Invalidation
+### 缓存失效
 
-"There are only two hard things in Computer Science: 缓存 invalidation和naming things." - Phil Karlton. Keeping 缓存 consistent，包含the source of truth is notoriously difficult.
+计算机科学界有句名言："计算机科学中只有两件真正困难的事：缓存失效和命名。"让缓存与数据源保持一致是出了名的难题。
 
-### Write-Through
+### 写穿透
 
-Every write goes to both 缓存和database synchronously. Simple to reason about but adds latency to writes. 缓存 is always consistent but writes are slow.
+每次写操作同时更新缓存和数据库。这种方式逻辑简单、容易理解，但会增加写入延迟。好处是缓存始终与数据库保持一致。
 
-### Write-Behind (Write-Back)
+### 写回
 
-Writes go to 缓存 immediately, then asynchronously to database. Fast writes but risk of data loss if 缓存 fails before flush. Requires careful durability handling.
+写操作先更新缓存，然后异步写入数据库。这种方式写入速度快，但如果缓存在数据刷入数据库之前发生故障，就可能丢失数据。需要仔细处理数据持久性问题。
 
-### 缓存 Stampede
+### 缓存击穿
 
-When a popular key expires, many requests simultaneously miss和hit the database. Solutions include: locking (only one fetches), early expiration (refresh before actual expiry), or probabilistic early expiration.
+当一个热点键过期时，大量请求可能同时发现缓存未命中，一起涌向数据库。常见的解决方案包括：加锁（只让一个请求去查数据库）、提前刷新（在真正过期之前就更新缓存）、概率性提前过期等。
 
 ## 涉及概念
 
@@ -56,15 +49,15 @@ When a popular key expires, many requests simultaneously miss和hit the database
 
 ## 实现提示
 
-- Invalidate on every write
-- Consider eventual vs strong consistency
--处理缓存 stampede scenarios
+- 在每次写操作时进行缓存失效处理
+- 考虑最终一致性与强一致性之间的权衡
+- 处理缓存击穿场景
 
 ## 测试用例
 
-### 1. Write-through consistency
+### 1. 写穿透一致性
 
-Write-through pattern: Set key "x"，包含value 100. Verify write goes to BOTH 缓存和database synchronously. Get key "x" from 缓存 should return 100. Database should also contain x=100. 缓存和DB are always consistent.
+写穿透模式：设置键 "x" 的值为 100。验证写操作同时更新了缓存和数据库。从缓存读取键 "x" 应返回 100，数据库中也应包含 x=100。缓存和数据库始终保持一致。
 
 输入：
 
@@ -80,8 +73,8 @@ Write-through pattern: Set key "x"，包含value 100. Verify write goes to BOTH 
 
 ## 参考资料
 
-- [XFetch Paper](https://cseweb.ucsd.edu/~avattani/papers/cache_stampede.pdf)：Optimal probabilistic 缓存 stampede prevention
-- [Redis Patterns](https://redis.io/topics/data-types-intro)：Caching patterns，包含Redis
+- [XFetch Paper](https://cseweb.ucsd.edu/~avattani/papers/cache_stampede.pdf)：关于概率性缓存击穿预防的最优算法论文
+- [Redis Patterns](https://redis.io/topics/data-types-intro)：使用 Redis 实现缓存模式的文档
 
 ## 本地文件
 

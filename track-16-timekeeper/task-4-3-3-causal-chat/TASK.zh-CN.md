@@ -1,45 +1,39 @@
-# 构建 a Causal-Order Chat System
+# 构建因果有序的聊天系统
 
 英文标题：Build a Causal-Order Chat System
 网页：<https://builddistributedsystem.com/tracks/timekeeper/tasks/task-4-3-3-causal-chat>
 
 课程：16. 时间守卫：逻辑时钟
 任务序号：13
-短标题：Causal Chat
-难度：advanced
-子主题：向量 Clocks
+短标题：因果聊天
+难度：高级
+子主题：向量时钟
 
 ## 中文导读
 
-本题要求你完成 `构建 a Causal-Order Chat System`。
-
-重点关注：`causal ordering`、`message reordering`、`causal delivery`、`distributed chat`。
-
-建议先按提示逐步实现：Attach the sender vector 时钟 to every chat 消息。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你构建一个分布式聊天系统，即使消息在网络中乱序到达，也能按因果顺序正确显示。想象一下群聊中，有人问了一个问题，另一个人回答了这个问题，但回答先到了你这里——你需要等问题到了再显示回答。这就是因果投递（Causal Delivery）要解决的问题。
 
 ## 题目说明
 
-Build a distributed chat system where 消息 are displayed in causal order even when they arrive out of 网络 order. Each 消息 carries the sender's vector 时钟.
+构建一个分布式聊天系统，让消息即使在网络上乱序到达，也能按因果顺序正确显示。每条消息都会携带发送者的向量时钟。
 
-A 消息 `m` from 节点 `j`，包含vector 时钟 `vc_m` is **deliverable** at 节点 `i` when:
-1. `vc_m[j] == vc_i[j] + 1` (it is the next expected 消息 from j)
-2. `vc_m[k] <= vc_i[k]`用于all `k != j` (all causal dependencies are met)
+来自节点 `j` 的消息 `m`，携带向量时钟 `vc_m`，只有在满足以下条件时，才能在节点 `i` 上投递：
+1. `vc_m[j] == vc_i[j] + 1`（这是来自节点 j 的下一条预期消息）
+2. `vc_m[k] <= vc_i[k]` 对所有 `k != j` 成立（所有因果依赖都已满足）
 
-Implement handlers:
+请实现以下处理器：
 
-```JSON
-请求:  {"type": "chat_send", "msg_id": 1, "text": "hello everyone"}
-响应: {"type": "chat_send_ok", "in_reply_to": 1, "时钟": [1, 0]}
+```json
+Request:  {"type": "chat_send", "msg_id": 1, "text": "hello everyone"}
+Response: {"type": "chat_send_ok", "in_reply_to": 1, "clock": [1, 0]}
 
-请求:  {"type": "chat_recv", "msg_id": 2, "from": "n2", "text": "reply", "sender_clock": [0, 1]}
-响应: {"type": "chat_recv_ok", "in_reply_to": 2, "delivered": true, "时钟": [1, 1]}
+Request:  {"type": "chat_recv", "msg_id": 2, "from": "n2", "text": "reply", "sender_clock": [0, 1]}
+Response: {"type": "chat_recv_ok", "in_reply_to": 2, "delivered": true, "clock": [1, 1]}
 
-请求:  {"type": "get_chat_log", "msg_id": 3}
-响应: {"type": "get_chat_log_ok", "in_reply_to": 3, "消息": [
-    {"from": "n1", "text": "hello everyone", "时钟": [1, 0]},
-    {"from": "n2", "text": "reply", "时钟": [0, 1]}
+Request:  {"type": "get_chat_log", "msg_id": 3}
+Response: {"type": "get_chat_log_ok", "in_reply_to": 3, "messages": [
+    {"from": "n1", "text": "hello everyone", "clock": [1, 0]},
+    {"from": "n2", "text": "reply", "clock": [0, 1]}
 ]}
 ```
 
@@ -52,15 +46,15 @@ Implement handlers:
 
 ## 实现提示
 
-- Attach the sender vector 时钟 to every chat 消息
-- Buffer incoming 消息 that arrive out of causal order
-- A 消息 is deliverable when all of its causal dependencies are satisfied
-- Causal dependency:用于消息 from 节点 j，包含vc, you need vc[j] == your_vc[j] + 1和vc[k] <= your_vc[k]用于all k != j
-- After delivering a 消息, check the buffer用于newly deliverable 消息
+- 每条聊天消息都要附带发送者的向量时钟
+- 对于不满足因果顺序的消息，先放入缓冲区暂存
+- 只有当一条消息的所有因果依赖都已满足时，才能投递该消息
+- 因果依赖判断：对于来自节点 j 且携带向量时钟 vc 的消息，需要满足 `vc[j] == your_vc[j] + 1` 且对所有 `k != j`，`vc[k] <= your_vc[k]`
+- 投递一条消息后，要重新检查缓冲区中是否有新的可投递消息
 
 ## 测试用例
 
-### 1. Send a chat 消息 increments 时钟
+### 1. 发送聊天消息会递增时钟
 
 输入：
 
@@ -78,7 +72,7 @@ Implement handlers:
 {"src": "n1", "dest": "c1", "body": {"type": "get_clock_ok", "in_reply_to": 3, "clock": [1, 0], "msg_id": 2}}
 ```
 
-### 2. Receive in-order 消息 is delivered immediately
+### 2. 收到顺序正确的消息会立即投递
 
 输入：
 
@@ -96,7 +90,7 @@ Implement handlers:
 
 ## 参考资料
 
-- [Causal Ordering in Distributed Systems](https://www.baeldung.com/cs/causal-ordering-in-distributed-systems)：How causal delivery guarantees 消息 ordering使用vector clocks
+- [Causal Ordering in Distributed Systems](https://www.baeldung.com/cs/causal-ordering-in-distributed-systems)：讲解如何利用向量时钟实现因果投递，保证消息的有序性
 
 ## 本地文件
 

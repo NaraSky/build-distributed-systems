@@ -1,4 +1,4 @@
-# 实现 Job Scheduling System
+# 实现任务调度系统
 
 英文标题：Implement Job Scheduling System
 网页：<https://builddistributedsystem.com/tracks/orchestrator/tasks/task-26-1-1-job-scheduling>
@@ -6,53 +6,47 @@
 课程：28. 编排器：容器调度与服务网格
 任务序号：1
 短标题：Job Scheduling
-难度：intermediate
+难度：进阶
 子主题：Scheduling
 
 ## 中文导读
 
-本题要求你完成 `实现 Job Scheduling System`。
-
-重点关注：`job scheduling`、`cron expressions`、`delayed execution`、`exponential backoff`、`retry policy`。
-
-建议先按提示逐步实现：schedule_job，包含delay_ms schedules a one-time job to run after the delay。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现一个任务调度（Job Scheduling）系统。任务调度器是后台工作的基石，负责在指定时间或按周期性计划运行任务，比如发送邮件、清理过期数据、生成报表等。你需要支持一次性延迟任务、基于 cron 表达式的周期性任务，以及失败后的指数退避重试。这是几乎所有生产系统都需要的基础能力。
 
 ## 题目说明
 
-A job scheduler runs tasks at a specific time or on a recurring schedule without the caller waiting. It is the backbone of background work: sending emails, cleaning up data, generating reports.
+任务调度器在指定时间或按周期性计划运行任务，调用方无需等待任务完成。它是后台工作的基石，用于发送邮件、清理数据、生成报表等。
 
-Implement a 节点 that manages job scheduling和execution:
+请实现一个管理任务调度和执行的节点：
 
-```JSON
-// Schedule a one-time job to run after a delay
+```json
+// 调度一个延迟执行的一次性任务
 { "type": "schedule_job", "msg_id": 1,
   "task": "send-email", "payload": {"to": "user@example.com"},
   "delay_ms": 60000 }
 -> { "type": "job_scheduled", "in_reply_to": 1,
     "job_id": "<uuid>", "scheduled_at": "<iso-timestamp>" }
 
-// Schedule a recurring job使用a cron expression
+// 使用 cron 表达式调度周期性任务
 { "type": "schedule_job", "msg_id": 2,
   "task": "cleanup", "cron": "0 0 * * *", "payload": {"days": 30} }
 -> { "type": "job_scheduled", "in_reply_to": 2,
     "job_id": "<uuid>", "next_run": "<iso-timestamp>" }
 
-// Execute all jobs due at or before this time
+// 执行所有到期的任务
 { "type": "execute_jobs", "msg_id": 3,
   "current_time": "2024-01-15T09:00:00Z" }
 -> { "type": "jobs_executed", "in_reply_to": 3,
     "count": 2, "jobs": ["job-123", "job-456"] }
 
-// 重试 a failed job，包含exponential backoff
+// 失败任务按指数退避重试
 { "type": "execute_job", "msg_id": 4,
   "job_id": "job-123", "force_fail": true }
 -> { "type": "job_failed", "in_reply_to": 4,
     "job_id": "job-123", "retry_scheduled": true, "backoff_ms": 2000 }
 ```
 
-重试 backoff: `base_ms * 2^attempt`. Stop retrying after max_attempts is reached.
+重试退避公式：`base_ms * 2^attempt`。达到最大重试次数后停止重试。
 
 ## 涉及概念
 
@@ -64,17 +58,17 @@ Implement a 节点 that manages job scheduling和execution:
 
 ## 实现提示
 
-- schedule_job，包含delay_ms schedules a one-time job to run after the delay
-- schedule_job，包含cron schedules a recurring job; parse the cron expression to compute next_run
-- execute_jobs finds all jobs whose scheduled_at <= current_time和runs them
-- On job 故障, schedule a 重试使用exponential backoff: backoff = base_ms * 2^attempt
-- Each job must get a unique generated job_id returned in the 响应
+- 带 `delay_ms` 的 `schedule_job` 调度一个在延迟后执行的一次性任务
+- 带 `cron` 的 `schedule_job` 调度周期性任务，需要解析 cron 表达式来计算下次执行时间
+- `execute_jobs` 找出所有 `scheduled_at <= current_time` 的任务并执行
+- 任务失败时，按指数退避调度重试：`backoff = base_ms * 2^attempt`
+- 每个任务必须生成一个唯一的 `job_id` 并在响应中返回
 
 ## 测试用例
 
-### 1. Schedule one-time job
+### 1. 调度一次性任务
 
-Should schedule job和return a job_id，包含scheduled_at timestamp.
+应调度任务并返回 job_id 和 scheduled_at 时间戳。
 
 输入：
 
@@ -88,9 +82,9 @@ Should schedule job和return a job_id，包含scheduled_at timestamp.
 {"type": "job_scheduled", "in_reply_to": 1, "job_id": ".*", "scheduled_at": ".*"}
 ```
 
-### 2. Schedule recurring job，包含cron
+### 2. 使用 cron 调度周期性任务
 
-Should parse cron expression和return next_run time.
+应解析 cron 表达式并返回下次执行时间。
 
 输入：
 
@@ -106,7 +100,7 @@ Should parse cron expression和return next_run time.
 
 ## 参考资料
 
-- [Cron Expression Reference](https://crontab.guru/)：Interactive cron expression editor和reference
+- [Cron Expression Reference](https://crontab.guru/)：交互式 cron 表达式编辑器和参考手册
 
 ## 本地文件
 

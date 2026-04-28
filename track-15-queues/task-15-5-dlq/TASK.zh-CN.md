@@ -1,45 +1,39 @@
-# 添加 Dead Letter Queues
+# 实现死信队列
 
 英文标题：Add Dead Letter Queues
 网页：<https://builddistributedsystem.com/tracks/queues/tasks/task-15-5-dlq>
 
 课程：15. 队列
 任务序号：5
-短标题：Dead Letter 队列
-难度：intermediate
-子主题：At-Most-Once和At-Least-Once Delivery
+短标题：死信队列
+难度：进阶
+子主题：至多一次与至少一次投递
 
 ## 中文导读
 
-本题要求你完成 `添加 Dead Letter Queues`。
-
-重点关注：`DLQ`、`poison message`、`error handling`。
-
-建议先按提示逐步实现：Track 重试 count per 消息。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你实现死信队列（Dead Letter Queue，简称 DLQ），用来处理那些反复失败的消息。在实际生产系统中，总会有一些消息因为格式错误、数据缺失等原因无法被正常处理。死信队列让这些"有毒"消息不会堵塞正常的消息流，同时保留它们以便运维人员排查和重试。
 
 ## 题目说明
 
-Implement dead letter queues用于failed 消息:
+为失败的消息实现死信队列：
 
-1. Track 重试 count用于each 消息
-2. On processing 故障, increment 重试 count
-3. After N failures, move to dead letter 队列
-4. Preserve: original 消息, error details, timestamps
-5. Provide interface to inspect和replay DLQ 消息
+1. 记录每条消息的重试次数
+2. 每次处理失败时，增加重试计数
+3. 当失败次数达到上限后，将消息转移到死信队列
+4. 保留原始消息内容、错误详情和时间戳
+5. 提供查看和重放死信队列中消息的接口
 
-DLQs prevent poison 消息 from blocking the 队列.
+死信队列的作用是防止"有毒消息"（Poison Message）阻塞正常的队列处理流程。
 
 ## 概念说明
 
-### Dead Letter Queues
+### 死信队列
 
-Some 消息 may never succeed: invalid format, missing data, bugs. Instead of retrying forever or losing them, move failures to a DLQ用于investigation. Operators can fix issues和replay 消息.
+有些消息可能永远也无法成功处理：格式不合法、缺少必要数据、或者触发了程序的缺陷。与其无限重试浪费资源，或者直接丢弃导致数据丢失，不如将这些失败的消息转移到一个专门的队列中留待排查。运维人员可以查看这些消息，修复问题后重新投递。
 
-### Poison Messages
+### 有毒消息
 
-A poison 消息 is one that consistently fails processing. Without DLQ, it blocks the 队列 (if ordered) or wastes resources (if retried forever). DLQ isolates the poison so healthy 消息 flow.
+有毒消息是指那些无论处理多少次都会失败的消息。如果没有死信队列，这类消息要么会阻塞整个队列（在严格有序的场景下），要么会浪费大量资源不断重试。死信队列将有毒消息隔离出来，让正常的消息能够继续流转处理。
 
 ## 涉及概念
 
@@ -49,15 +43,15 @@ A poison 消息 is one that consistently fails processing. Without DLQ, it block
 
 ## 实现提示
 
-- Track 重试 count per 消息
-- Move to DLQ after max retries
-- Preserve error information
+- 为每条消息维护一个重试计数器
+- 达到最大重试次数后，将消息移入死信队列
+- 转移时要保留错误信息，方便后续排查
 
 ## 测试用例
 
-### 1. Move to DLQ after retries
+### 1. 重试超限后移入死信队列
 
-消息 m1 fails processing 3 times (max_retries=3). After 3rd 故障, 消息 should be moved to dead letter 队列，包含error details和重试 count. Verify poison 消息 does not block main 队列.
+消息 m1 连续处理失败 3 次（最大重试次数为 3）。第 3 次失败后，消息应该被移入死信队列，并附带错误详情和重试次数。验证有毒消息不会阻塞主队列的正常处理。
 
 输入：
 
@@ -71,9 +65,9 @@ A poison 消息 is one that consistently fails processing. Without DLQ, it block
 {"src":"n1","dest":"c0","body":{"type":"init_ok","in_reply_to":1,"msg_id":0}}
 ```
 
-### 2. Replay from DLQ
+### 2. 从死信队列重放消息
 
-消息 in DLQ can be inspected和replayed. Operator fixes issue, triggers replay. 消息 moves from DLQ back to main 队列用于reprocessing. Verify DLQ provides inspection和replay capabilities.
+死信队列中的消息可以被查看和重放。运维人员修复问题后触发重放，消息从死信队列移回主队列重新处理。验证死信队列提供了查看和重放的能力。
 
 输入：
 
@@ -89,7 +83,7 @@ A poison 消息 is one that consistently fails processing. Without DLQ, it block
 
 ## 参考资料
 
-- [DLQ Best Practices](https://aws.amazon.com/blogs/compute/designing-durable-serverless-apps-with-dlqs-for-amazon-sns-amazon-sqs-aws-lambda/)：AWS guide to dead letter queues
+- [DLQ Best Practices](https://aws.amazon.com/blogs/compute/designing-durable-serverless-apps-with-dlqs-for-amazon-sns-amazon-sqs-aws-lambda/)：AWS 关于死信队列最佳实践的指南
 
 ## 本地文件
 

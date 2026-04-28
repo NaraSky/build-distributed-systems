@@ -1,44 +1,40 @@
-# Apply Committed Entries to State Machine
+# 将已提交的日志应用到状态机
 
 英文标题：Apply Committed Entries to State Machine
 网页：<https://builddistributedsystem.com/tracks/consensus/tasks/task-6-4-state-machine>
 
 课程：6. 共识：Raft 与日志复制
 任务序号：4
-短标题：State Machine
-难度：intermediate
-子主题：Raft 日志 复制
+短标题：状态机
+难度：进阶
+子主题：Raft 日志复制
 
 ## 中文导读
 
-本题要求你完成 `Apply Committed Entries to State Machine`。
-
-重点关注：`state machine`、`apply`、`determinism`。
-
-建议先按提示逐步实现：Apply entries in order。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现将已提交的日志条目应用到状态机（State Machine）的逻辑。日志复制和提交只是保证了各节点拥有一致的日志，而真正让系统"干活"的是状态机——它按顺序执行日志中的命令，产生实际的业务结果。理解这一步，你就能看到 Raft 如何从共识走向实际应用。
 
 ## 题目说明
 
-Apply committed 日志 entries to the state machine:
+将已提交的日志条目应用到状态机：
 
-1. Track lastApplied - highest entry applied to state machine
-2. When commitIndex > lastApplied, apply entries in order
-3. State machine executes each command
-4. Increment lastApplied after each application
+1. 维护 lastApplied——已应用到状态机的最高日志索引
+2. 当 commitIndex 大于 lastApplied 时，按顺序应用日志条目
+3. 状态机执行每条命令
+4. 每次应用完一条日志后，递增 lastApplied
 
-The state machine must be deterministic - same commands produce same state.
+状态机必须是确定性的——相同的命令序列必须产生相同的状态。
 
 ## 概念说明
 
-### State Machine 复制
+### 状态机复制
 
-Raft replicates a 日志; the state machine interprets it. Each 节点 applies the same commands in the same order, so all 节点 converge to the same state. This is the foundation of replicated services.
+Raft 负责复制日志，状态机负责解读日志。每个节点按照相同的顺序执行相同的命令，因此所有节点最终都会收敛到相同的状态。这就是复制式服务的基础。
 
-### Apply Order
+打个比方：所有节点就像是同一堂课的学生，大家按照相同的顺序做相同的练习题，最终得到的答案一定是一样的。
 
-Entries must be applied in 索引 order. Gaps are not allowed - if entry 5 is committed but entry 4 is not, wait. In practice, commitment proceeds in order anyway.
+### 应用顺序
+
+日志条目必须严格按照索引顺序应用。不允许跳过——如果第 5 条日志已提交但第 4 条还没有，必须等待。实际上，提交本身就是按顺序进行的，所以这通常不会成为问题。
 
 ## 涉及概念
 
@@ -48,15 +44,15 @@ Entries must be applied in 索引 order. Gaps are not allowed - if entry 5 is co
 
 ## 实现提示
 
-- Apply entries in order
-- Track lastApplied 索引
-- State machine must be deterministic
+- 按顺序应用日志条目
+- 维护 lastApplied 索引
+- 状态机必须是确定性的
 
 ## 测试用例
 
-### 1. Apply entries in order
+### 1. 按顺序应用日志条目
 
-State machine applies both entries in order. Final state: {x:1, y:2}, lastApplied=2.
+状态机按顺序应用两条日志。最终状态为 {x:1, y:2}，lastApplied 等于 2。
 
 输入：
 

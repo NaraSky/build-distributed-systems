@@ -1,45 +1,42 @@
-# 实现 Transactional 消息 Processing
+# 实现事务性消息处理
 
 英文标题：Implement Transactional Message Processing
 网页：<https://builddistributedsystem.com/tracks/queues/tasks/task-29-2-3-transactional-processing>
 
 课程：15. 队列
 任务序号：8
-短标题：Transactional Processing
-难度：advanced
-子主题：Exactly-Once Delivery
+短标题：事务性处理
+难度：高级
+子主题：精确一次投递
 
 ## 中文导读
 
-本题要求你完成 `实现 Transactional 消息 Processing`。
-
-重点关注：`transactional processing`、`atomic operations`、`database transactions`、`message acknowledgment`、`exactly-once semantics`。
-
-建议先按提示逐步实现：Atomic operations: Process 消息和update state in one 事务。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你实现事务性消息处理，确保"消费消息"和"更新数据库"这两个操作要么同时成功、要么同时失败，从而实现精确一次语义。这就像银行转账一样——扣款和入账必须是一个整体，不能只做一半。掌握这种模式对于构建可靠的分布式系统至关重要。
 
 ## 题目说明
 
-Transactional 消息 processing ensures atomicity between 消息 consumption和database updates, enabling exactly-once semantics through coordinated commits.
+事务性消息处理通过协调提交（Coordinated Commit）保证消息消费与数据库更新之间的原子性，从而实现精确一次语义。
 
-**Transactional processing problem**: 消息 processing和state updates must be atomic. Scenario demonstrates the issue: 1) Consumer receives 消息, 2) Consumer updates database, 3) Consumer crashes before ACK, 4) 队列 re-delivers 消息, 5) Consumer updates database again causing duplicate. Solution uses transactional processing: Read 消息, process 消息 (update database), commit offset, all in one atomic 事务. Benefits: No partial updates, no duplicate processing, consistent state, exactly-once semantics.
+**事务性处理要解决的问题**：消息处理和状态更新必须是原子的。下面是一个典型的问题场景：
+1. 消费者接收到消息
+2. 消费者更新了数据库
+3. 消费者在发送确认之前崩溃了
+4. 队列重新投递该消息
+5. 消费者再次更新数据库，导致数据重复
 
-**Transactional consumer**: TransactionResult interface，包含success boolean, optional offset, optional error string. TransactionalConsumer class maintains MessageQueue和Database instances. consume method implements transactional processing: Start database 事务, process 消息 within 事务, commit database 事务, ACK 消息 (only after DB commit), return success，包含offset. On error: Rollback database 事务, don't ACK 消息 (will be re-delivered), return 故障，包含error 消息. processMessage method (protected, override in subclass) handles actual 消息 processing logic.
+解决方案是使用事务性处理：将"读取消息、处理消息、更新数据库、提交偏移量"这些操作放在一个原子事务中完成。这样做的好处是：不会出现部分更新、不会重复处理、状态始终一致、实现精确一次语义。
 
-**Example payment processing**: PaymentProcessor extends TransactionalConsumer. processMessage method extracts userId, amount, paymentId from 消息 data. Checks if payment already exists用于idempotency (SELECT query by payment_id). Returns early if payment exists (prevents duplicates). Inserts payment record，包含payment_id, user_id, amount, status completed,和timestamp. Updates user balance by adding amount. All database operations within same 事务 ensure atomicity.
+**事务性消费者**：通过在数据库事务中处理消息，确保只有在数据库提交成功后才发送确认。如果出错则回滚事务，不发送确认，消息会被重新投递。
 
-**队列和database coordination**: QueueDatabaseCoordinator interface defines readMessage, processMessage, commit,和rollback methods. ExactlyOnceCoordinator class implements coordination between 队列和database. processExactlyOnce method: Start database 事务, process 消息，包含handler function, commit database 事务, ACK 消息 in 队列. On error: Rollback database 事务, don't ACK 消息, throw error用于重试. processBatch method processes multiple 消息 sequentially使用processExactlyOnce用于each.
+**付款处理示例**：在同一个事务中检查付款是否已存在（保证幂等性）、插入付款记录、更新用户余额，所有数据库操作共享同一个事务以保证原子性。
 
-**事务 isolation levels**: IsolationLevel enum defines READ_UNCOMMITTED, READ_COMMITTED, REPEATABLE_READ, SERIALIZABLE. TransactionalConsumerWithIsolation class allows specifying isolation level. consume method starts 事务，包含configured isolation level, processes 消息, commits 事务, ACKs 消息. On error rolls back 事务. Higher isolation levels prevent concurrent modification issues but may reduce concurrency.
+**队列与数据库的协调**：需要一个协调器来管理队列和数据库之间的配合。处理流程为：启动数据库事务、处理消息、提交数据库事务、确认消息。出错时：回滚数据库事务、不确认消息、消息会被重新投递重试。
 
-**Dead letter 队列 handling**: TransactionalConsumerWithDLQ extends TransactionalConsumer，包含重试 logic. Maintains maxRetries (default 3), retryCounts map,和dead letter 队列 reference. consume method checks 重试 count用于消息, attempts normal processing via super.consume, resets 重试 count on success. On 故障: Increments 重试 count, checks if max retries exceeded, sends 消息 to DLQ，包含error context if max exceeded, ACKs original 消息 to remove from main 队列, returns 故障. If retries remaining, doesn't ACK (will be retried). sendToDLQ method creates DLQ 消息，包含original data plus error information和failed timestamp.
+**事务隔离级别**：不同的隔离级别（读未提交、读已提交、可重复读、串行化）提供不同程度的并发保护。更高的隔离级别能防止并发修改问题，但可能降低系统吞吐量。
 
-**Example transactional flow**: Create ExactlyOnceCoordinator，包含队列和database. Process 消息，包含handler that updates user balance. Success flow: Processing 消息 logged, database 事务 committed, 消息 acknowledged, user balance updated. 故障 flow: Processing 消息 logged, error occurs (e.g., insufficient funds), database 事务 rolled back, 消息 not acknowledged (will be re-delivered用于重试).
+**死信队列处理**：结合重试逻辑，当消息处理多次失败后，将其移入死信队列并确认原消息，防止有毒消息阻塞主队列。
 
-**Example transactional scenarios**: Scenario 1 successful 事务: 消息 received, begin 事务, update database, commit 事务, ACK 消息, result success. Scenario 2 failed 事务: 消息 received, begin 事务, update database, error occurs (insufficient funds), rollback 事务, no ACK, result will 重试.
-
-**Key benefits**: Atomic operations ensure 消息 processing和state updates succeed or fail together, commit offset only after successful processing prevents duplicates, rollback on 故障 undoes partial updates, database ACID properties maintain consistency, 队列 integration coordinates 消息 acknowledgment，包含事务 commit, dead letter 队列 handles permanently failed 消息.
+**核心优势**：原子操作保证消息处理和状态更新同时成功或同时失败；只有处理成功后才提交偏移量，避免重复处理；失败时回滚所有部分更新；利用数据库的 ACID 特性保持一致性；协调队列确认与事务提交。
 
 ## 涉及概念
 
@@ -51,17 +48,17 @@ Transactional 消息 processing ensures atomicity between 消息 consumption和d
 
 ## 实现提示
 
-- Atomic operations: Process 消息和update state in one 事务
-- Commit offset: Only ACK after successful processing
-- Rollback on 故障: Undo processing if commit fails
-- Database transactions: Use ACID properties用于consistency
-- 队列 integration: Coordinate 队列和database commits
+- 原子操作：在一个事务中完成消息处理和状态更新
+- 提交偏移量：只有处理成功后才发送确认
+- 失败回滚：如果提交失败，撤销所有处理操作
+- 数据库事务：利用 ACID 特性保证一致性
+- 队列集成：协调队列和数据库的提交操作
 
 ## 测试用例
 
-### 1. Process 消息 transactionally
+### 1. 事务性处理消息
 
-Should process 消息和commit 事务.
+应当成功处理消息并提交事务。
 
 输入：
 
@@ -75,9 +72,9 @@ Should process 消息和commit 事务.
 {"type": "processed", "in_reply_to": 1, "message_id": "msg-1", "committed": true, "acked": true}
 ```
 
-### 2. Rollback on failure
+### 2. 失败时回滚
 
-Should rollback 事务 on processing 故障.
+应当在处理失败时回滚事务。
 
 输入：
 
@@ -93,7 +90,7 @@ Should rollback 事务 on processing 故障.
 
 ## 参考资料
 
-- [Transactional Messaging](https://www.enterpriseintegrationpatterns.com/patterns/messaging/TransactionalClient.html)：Transactional 客户端 pattern
+- [Transactional Messaging](https://www.enterpriseintegrationpatterns.com/patterns/messaging/TransactionalClient.html)：事务性客户端模式
 
 ## 本地文件
 

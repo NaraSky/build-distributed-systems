@@ -1,46 +1,40 @@
-# 添加 Health-Based Routing
+# 添加基于健康检查的路由
 
 英文标题：Add Health-Based Routing
 网页：<https://builddistributedsystem.com/tracks/proxies/tasks/task-12-5-health-routing>
 
 课程：12. 代理
 任务序号：5
-短标题：Health Routing
-难度：intermediate
-子主题：Caching 代理
+短标题：健康路由
+难度：进阶
+子主题：缓存代理
 
 ## 中文导读
 
-本题要求你完成 `添加 Health-Based Routing`。
-
-重点关注：`health checks`、`circuit breaker`、`failover`。
-
-建议先按提示逐步实现：Periodically check backend health。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你为代理添加基于健康检查的路由功能，并实现熔断器（Circuit Breaker）模式。代理需要持续监控后端服务器的健康状态，自动将流量从故障节点转移到健康节点。这是提高分布式系统可靠性的重要手段。
 
 ## 题目说明
 
-Add health-based routing，包含circuit breaker pattern:
+添加基于健康检查的路由，并使用熔断器模式：
 
-1. Maintain list of backend servers
-2. Periodically health-check each backend
-3. Track consecutive failures per backend
-4. Open circuit after N failures (stop sending traffic)
-5. Periodically test，包含single 请求 (half-open)
-6. Close circuit on success (resume normal traffic)
+1. 维护一份后端服务器列表
+2. 定期对每个后端进行健康检查
+3. 跟踪每个后端的连续失败次数
+4. 连续失败 N 次后打开熔断器（停止向该后端发送流量）
+5. 定期用单个请求进行试探（半开状态）
+6. 如果试探成功，关闭熔断器（恢复正常流量）
 
-This improves reliability by routing away from failing backends.
+通过将流量从故障后端转移走，可以提高系统的整体可靠性。
 
 ## 概念说明
 
-### Health Checks
+### 健康检查
 
-Active health checks periodically probe backends，包含test requests. Passive checks observe real 请求 failures. Both inform routing decisions用于fast 故障 detection.
+主动健康检查是定期向后端发送测试请求来探测其状态。被动健康检查则是观察真实请求的失败情况。两种方式都能为路由决策提供依据，帮助快速发现故障。你可以把健康检查想象成医生的定期体检——即使你感觉良好，定期检查也能及早发现问题。
 
-### Circuit Breaker
+### 熔断器
 
-The circuit breaker prevents cascading failures. After enough failures, the circuit "opens"和requests fail immediately without trying the backend. After a 超时, one test 请求 checks recovery (half-open state).
+熔断器（Circuit Breaker）模式用于防止级联故障。当某个后端的失败次数达到阈值后，熔断器"打开"，后续请求会立即失败而不再尝试访问该后端。经过一段冷却时间后，熔断器进入"半开"状态，放行一个测试请求来检查后端是否已恢复。这就像家里的电路断路器——当检测到异常时自动切断电路，防止更大的损害。
 
 ## 涉及概念
 
@@ -50,15 +44,15 @@ The circuit breaker prevents cascading failures. After enough failures, the circ
 
 ## 实现提示
 
-- Periodically check backend health
-- Track 故障 counts per backend
-- Implement circuit breaker pattern
+- 定期检查后端服务器的健康状态
+- 跟踪每个后端的失败次数
+- 实现熔断器模式
 
 ## 测试用例
 
-### 1. Route to healthy
+### 1. 路由到健康节点
 
-代理 has 3 backends: b1 (healthy), b2 (unhealthy, 5 failures), b3 (healthy). Health check marks b2 as down. Verify 代理 only routes requests to b1和b3, skipping unhealthy b2.
+代理有三个后端：b1（健康）、b2（不健康，已失败 5 次）、b3（健康）。健康检查将 b2 标记为不可用。验证代理只将请求路由到 b1 和 b3，跳过不健康的 b2。
 
 输入：
 
@@ -72,9 +66,9 @@ The circuit breaker prevents cascading failures. After enough failures, the circ
 {"src":"n1","dest":"c0","body":{"type":"init_ok","in_reply_to":1,"msg_id":0}}
 ```
 
-### 2. Open circuit on failures
+### 2. 失败后打开熔断器
 
-Backend b1 initially healthy. Send requests that fail 5 times consecutively (threshold=3). After 3 failures, circuit should open用于b1. Verify 代理 stops sending traffic to b1 until circuit half-opens用于health check.
+后端 b1 初始状态为健康。发送的请求连续失败 5 次（阈值为 3）。在第 3 次失败后，b1 的熔断器应该打开。验证代理停止向 b1 发送流量，直到熔断器半开进行健康检查试探。
 
 输入：
 
@@ -90,7 +84,7 @@ Backend b1 initially healthy. Send requests that fail 5 times consecutively (thr
 
 ## 参考资料
 
-- [Circuit Breaker Pattern](https://martinfowler.com/bliki/CircuitBreaker.html)：Martin Fowler on circuit breakers
+- [Circuit Breaker Pattern](https://martinfowler.com/bliki/CircuitBreaker.html)：Martin Fowler 关于熔断器模式的文章
 
 ## 本地文件
 

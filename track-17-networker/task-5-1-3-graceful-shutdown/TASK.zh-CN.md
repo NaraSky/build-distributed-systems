@@ -1,42 +1,36 @@
-# 实现 Graceful Shutdown，包含In-Flight Drain
+# 实现优雅关闭与请求排空
 
-英文标题：Implement Graceful Shutdown，包含In-Flight Drain
+英文标题：Implement Graceful Shutdown with In-Flight Drain
 网页：<https://builddistributedsystem.com/tracks/networker/tasks/task-5-1-3-graceful-shutdown>
 
 课程：17. 网络器：TCP 与协议基础
 任务序号：3
-短标题：Graceful Shutdown
-难度：intermediate
-子主题：TCP From Scratch
+短标题：优雅关闭
+难度：进阶
+子主题：从零实现 TCP
 
 ## 中文导读
 
-本题要求你完成 `实现 Graceful Shutdown，包含In-Flight Drain`。
-
-重点关注：`graceful shutdown`、`drain`、`in-flight requests`、`connection lifecycle`。
-
-建议先按提示逐步实现：On shutdown signal, stop accepting new connections immediately。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题让你实现服务器的优雅关闭（Graceful Shutdown）。想象一家餐厅打烊时，不会把正在用餐的客人赶走，而是停止接待新客人，等现有客人吃完再关门。服务器的优雅关闭也是同样的道理：收到关闭信号后，拒绝新请求，等待正在处理中的请求全部完成（排空），然后再安全地关闭所有连接。这在生产环境中非常重要，可以避免数据丢失和请求中断。
 
 ## 题目说明
 
-Implement graceful shutdown: when the 服务端 receives a shutdown signal, it should drain all in-flight requests before closing sockets. New connections are rejected during draining.
+实现优雅关闭功能：当服务器收到关闭信号时，应先排空所有正在处理中的请求（In-flight Requests），然后再关闭套接字。在排空期间，新的连接请求应被拒绝。
 
-Implement handlers:
+实现以下消息处理器：
 
-```JSON
-请求:  {"type": "tcp_request", "msg_id": 1, "data": "process_this", "latency_ms": 500}
-响应: {"type": "tcp_request_ok", "in_reply_to": 1, "result": "processed", "duration_ms": 500}
+```json
+Request:  {"type": "tcp_request", "msg_id": 1, "data": "process_this", "latency_ms": 500}
+Response: {"type": "tcp_request_ok", "in_reply_to": 1, "result": "processed", "duration_ms": 500}
 
-请求:  {"type": "tcp_shutdown", "msg_id": 2, "drain_timeout_ms": 5000}
-响应: {"type": "tcp_shutdown_ok", "in_reply_to": 2, "status": "draining", "in_flight": 2}
+Request:  {"type": "tcp_shutdown", "msg_id": 2, "drain_timeout_ms": 5000}
+Response: {"type": "tcp_shutdown_ok", "in_reply_to": 2, "status": "draining", "in_flight": 2}
 
-请求:  {"type": "tcp_request", "msg_id": 3, "data": "new_request", "latency_ms": 100}
-响应: {"type": "tcp_request_error", "in_reply_to": 3, "error": "server_shutting_down"}
+Request:  {"type": "tcp_request", "msg_id": 3, "data": "new_request", "latency_ms": 100}
+Response: {"type": "tcp_request_error", "in_reply_to": 3, "error": "server_shutting_down"}
 
-请求:  {"type": "tcp_drain_status", "msg_id": 4}
-响应: {"type": "tcp_drain_status_ok", "in_reply_to": 4, "status": "drained", "remaining": 0, "took_ms": 500}
+Request:  {"type": "tcp_drain_status", "msg_id": 4}
+Response: {"type": "tcp_drain_status_ok", "in_reply_to": 4, "status": "drained", "remaining": 0, "took_ms": 500}
 ```
 
 ## 涉及概念
@@ -48,15 +42,15 @@ Implement handlers:
 
 ## 实现提示
 
-- On shutdown signal, stop accepting new connections immediately
-- Wait用于all in-flight requests to complete before closing sockets
-- Track the number of in-flight requests，包含a 计数器
-- Set a maximum drain 超时: force-close after N seconds
-- Test by sending requests和initiating shutdown mid-flight
+- 收到关闭信号后，立即停止接受新连接
+- 等待所有正在处理中的请求完成后再关闭套接字
+- 使用计数器跟踪正在处理中的请求数量
+- 设置最大排空超时时间：如果超时仍有未完成的请求，强制关闭
+- 可以通过发送请求后立即触发关闭来测试排空逻辑
 
 ## 测试用例
 
-### 1. Normal request processing
+### 1. 正常的请求处理
 
 输入：
 
@@ -72,7 +66,7 @@ Implement handlers:
 {"src": "n1", "dest": "c1", "body": {"type": "tcp_request_ok", "in_reply_to": 2, "result": "processed", "duration_ms": 0, "msg_id": 1}}
 ```
 
-### 2. Shutdown starts drain
+### 2. 关闭后开始排空
 
 输入：
 
@@ -90,7 +84,7 @@ Implement handlers:
 
 ## 参考资料
 
-- [Graceful Shutdown in Go](https://pkg.go.dev/net/http#Server.Shutdown)：How Go standard library implements graceful HTTP 服务端 shutdown
+- [Graceful Shutdown in Go](https://pkg.go.dev/net/http#Server.Shutdown)：Go 标准库中 HTTP 服务器优雅关闭的实现方式
 
 ## 本地文件
 

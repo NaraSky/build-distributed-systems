@@ -1,43 +1,37 @@
-# Distribute 索引 Across Nodes
+# 将索引分布到多个节点
 
 英文标题：Distribute Index Across Nodes
 网页：<https://builddistributedsystem.com/tracks/indexes/tasks/task-13-5-distributed-index>
 
 课程：13. 索引
 任务序号：5
-短标题：Distributed 索引
-难度：advanced
+短标题：分布式索引
+难度：高级
 
 ## 中文导读
 
-本题要求你完成 `Distribute 索引 Across Nodes`。
-
-重点关注：`partitioned index`、`global index`、`scatter-gather`。
-
-建议先按提示逐步实现：Partition 索引 by key hash or range。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你将索引分布到多个节点上。当数据量增长到单台机器无法容纳时，就需要将索引进行分区，分散到多个节点上。这涉及到分区策略的选择、点查询的路由、范围查询的分散收集，以及节点变更时的重新平衡等核心分布式问题。
 
 ## 题目说明
 
-Distribute your 索引 across multiple 节点:
+将索引分布到多个节点上：
 
-1. Partition 索引 entries by key (hash or range)
-2. Point lookups go to single partition
-3. Range queries scatter to all partitions, gather results
-4.处理partition rebalancing when 节点 join/leave
+1. 按键对索引条目进行分区（哈希分区或范围分区）
+2. 精确查找只需要访问单个分区
+3. 范围查询需要分散到所有分区，然后收集结果
+4. 处理节点加入或离开时的分区重新平衡
 
-Choose between local secondary 索引 (partitioned，包含data)和global secondary 索引 (partitioned by 索引 key).
+需要在本地二级索引（与数据一起分区）和全局二级索引（按索引键分区）之间做出选择。
 
 ## 概念说明
 
-### 索引 Partitioning
+### 索引分区
 
-When an 索引 outgrows one machine, partition it. Hash partitioning spreads load evenly. Range partitioning preserves locality用于range queries but risks hot spots.
+当索引大到一台机器放不下时，就需要对它进行分区。哈希分区能够均匀分散负载，但无法利用数据的有序性。范围分区保留了数据的局部性，方便范围查询，但可能产生热点问题。这就像把一本厚重的电话簿拆成几册——你可以按姓氏首字母分（范围分区），也可以按号码哈希值分（哈希分区）。
 
-### Global vs Local Secondary 索引
+### 全局二级索引与本地二级索引
 
-Local secondary 索引: partitioned，包含data, requires scatter-gather用于queries. Global secondary 索引: partitioned by 索引 key, single lookup but writes update multiple partitions.
+本地二级索引随数据一起分区。查询时需要向所有分区发送请求再汇总结果（分散-收集模式），查询开销较大，但写入时只需更新本地分区。全局二级索引按索引键分区，查询时只需访问单个分区，但写入时可能需要更新多个分区。
 
 ## 涉及概念
 
@@ -47,15 +41,15 @@ Local secondary 索引: partitioned，包含data, requires scatter-gather用于q
 
 ## 实现提示
 
-- Partition 索引 by key hash or range
-- Route point queries to single partition
-- Range queries need scatter-gather
+- 按键的哈希值或范围对索引进行分区
+- 将精确查询路由到单个分区
+- 范围查询需要使用分散-收集模式
 
 ## 测试用例
 
-### 1. Partitioned insert和lookup
+### 1. 分区后的插入与查找
 
-Multi-节点 test: 索引 partitioned across 3 节点 (n1, n2, n3)使用hash(key) % 3. Insert key "foo" (routes to partition 1 on n2). Get key "foo" should route to same partition n2和return value. Verify point queries go to single partition.
+多节点测试：索引通过 hash(key) % 3 分区到 3 个节点（n1、n2、n3）。插入键 "foo"（路由到 n2 上的分区 1）。查找键 "foo" 应路由到同一个分区 n2 并返回对应的值。验证精确查询只访问了单个分区。
 
 输入：
 

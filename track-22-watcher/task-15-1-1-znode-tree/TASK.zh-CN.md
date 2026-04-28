@@ -1,42 +1,39 @@
-# 实现 a ZNode Tree Data模式l
+# 实现 ZNode 树形数据模型
 
-英文标题：Implement a ZNode Tree Data模式l
+英文标题：Implement a ZNode Tree Data Model
 网页：<https://builddistributedsystem.com/tracks/watcher/tasks/task-15-1-1-znode-tree>
 
-课程：22. 观察者：ZooKeeper/etcd 模型
+课程：22. 观察者
 任务序号：1
 短标题：ZNode Tree
-难度：intermediate
-子主题：The ZNode Data模式l
+难度：进阶
+子主题：ZNode 数据模型
 
 ## 中文导读
 
-本题要求你完成 `实现 a ZNode Tree Data模式l`。
-
-重点关注：`ZNode`、`hierarchical tree`、`path`、`data`、`version`。
-
-建议先按提示逐步实现：A ZNode is a 节点 in a tree, similar to a filesystem path (e.g., /services/web/instance-1)。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你搭建一棵类似文件系统的树，树上的每个节点叫做 ZNode。你可以把它想象成一个精简版的文件夹结构：每个"文件夹"自身能存一小段数据，同时还能拥有若干子"文件夹"。在分布式系统中，这棵树不是用来存大文件的，而是用来存放配置信息、锁状态、领导者地址等协调用的小数据。理解这棵树的结构，是后续所有 ZooKeeper 操作的基础。
 
 ## 题目说明
 
-The ZNode data model is a filesystem-like hierarchy where each 节点 stores a small amount of data (up to 1MB). ZNodes are designed用于coordination 元数据, not bulk data 存储.
+ZNode（ZooKeeper 节点）数据模型是一种类似文件系统的层级结构，每个节点可以存储少量数据，上限约为 1MB。设计它的目的是存储分布式协调所需的元数据，而不是用来存放大量业务数据。
 
-**ZNode properties**:
-- `path`: filesystem-like path (e.g., `/services/web/instance-1`)
-- `data`: arbitrary byte array (typically small: config values, Leader IDs)
-- `version`: monotonically increasing integer, incremented on every data update
-- `children`: list of child 节点 names
-- `ephemeral`: if true, 节点 is auto-deleted when the creating session expires
-- `sequential`: if true, ZooKeeper appends a 10-digit sequence number to the 节点 name
+每个 ZNode 具有以下属性：
 
-```JSON
-请求:  {"type": "znode_create", "msg_id": 1, "path": "/services", "data": "", "ephemeral": false, "sequential": false}
-响应: {"type": "znode_create_ok", "in_reply_to": 1, "path": "/services", "version": 0}
+- **路径（Path）**：和文件系统路径一样，用斜杠分隔层级，例如 `/services/web/instance-1`。
+- **数据（Data）**：一段任意的字节数组，通常很小，比如一条配置值或一个领导者的标识。
+- **版本号（Version）**：一个从零开始的整数，每次数据被更新时自动加一，用于实现乐观锁。
+- **子节点列表（Children）**：当前节点下所有直接子节点的名称。
+- **临时标志（Ephemeral）**：如果设为真，当创建它的客户端会话断开后，该节点会被自动删除。
+- **顺序标志（Sequential）**：如果设为真，创建时系统会在节点名称末尾追加一个 10 位的递增序列号，保证名称唯一。
 
-请求:  {"type": "znode_get", "msg_id": 2, "path": "/services"}
-响应: {"type": "znode_get_ok", "in_reply_to": 2, "path": "/services", "data": "", "version": 0, "children": [], "ephemeral": false}
+协议示例：
+
+```json
+Request:  {"type": "znode_create", "msg_id": 1, "path": "/services", "data": "", "ephemeral": false, "sequential": false}
+Response: {"type": "znode_create_ok", "in_reply_to": 1, "path": "/services", "version": 0}
+
+Request:  {"type": "znode_get", "msg_id": 2, "path": "/services"}
+Response: {"type": "znode_get_ok", "in_reply_to": 2, "path": "/services", "data": "", "version": 0, "children": [], "ephemeral": false}
 ```
 
 ## 涉及概念
@@ -51,17 +48,17 @@ The ZNode data model is a filesystem-like hierarchy where each 节点 stores a s
 
 ## 实现提示
 
-- A ZNode is a 节点 in a tree, similar to a filesystem path (e.g., /services/web/instance-1)
-- Each ZNode stores: path, data (byte array), version (integer), children list
-- ZNodes have flags: ephemeral (deleted when session expires)和sequential (auto-numbered)
-- The root ZNode "/" always exists和cannot be deleted
-- Version starts at 0和increments on every data update
+- 每个 ZNode 就是树中的一个节点，通过路径来定位，和文件系统的目录结构类似
+- 每个 ZNode 需要维护四项信息：路径、数据、版本号、子节点列表
+- ZNode 有两个标志位：临时节点在会话过期后自动删除，顺序节点在创建时自动追加编号
+- 根节点 `/` 始终存在，不允许被删除
+- 版本号从 0 开始，每次修改数据时递增 1
 
 ## 测试用例
 
-### 1. 创建和get ZNode
+### 1. 创建并获取 ZNode
 
-znode_get_ok should return data "config"和version 0.
+验证说明：获取刚创建的节点时，返回的数据应为 "config"，版本号应为 0。
 
 输入：
 
@@ -77,9 +74,9 @@ znode_get_ok should return data "config"和version 0.
 {"src": "n1", "dest": "c0", "body": {"type": "init_ok", "in_reply_to": 1, "msg_id": 0}}
 ```
 
-### 2. 创建 child nodes
+### 2. 创建子节点
 
-znode_get_ok用于/app should show ["db"] in children.
+验证说明：获取父节点 /app 时，子节点列表中应包含 ["db"]。
 
 输入：
 
@@ -98,7 +95,7 @@ znode_get_ok用于/app should show ["db"] in children.
 
 ## 参考资料
 
-- [ZooKeeper Data模式l](https://zookeeper.apache.org/doc/current/zookeeperProgrammers.html#ch_zkDataModel)：ZooKeeper documentation on znodes和the hierarchical namespace
+- [ZooKeeper Data Model](https://zookeeper.apache.org/doc/current/zookeeperProgrammers.html#ch_zkDataModel)：ZooKeeper 官方文档中关于节点和层级命名空间的详细说明
 
 ## 本地文件
 

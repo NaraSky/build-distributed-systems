@@ -1,44 +1,38 @@
-# 实现 a Distributed Lock使用HLC时间戳
+# 基于混合逻辑时钟实现分布式锁
 
-英文标题：Implement a Distributed Lock使用HLC时间戳
+英文标题：Implement a Distributed Lock Using HLC Timestamps
 网页：<https://builddistributedsystem.com/tracks/timekeeper/tasks/task-4-4-3-hlc-lock>
 
 课程：16. 时间守卫：逻辑时钟
 任务序号：18
-短标题：HLC Lock
-难度：advanced
-子主题：混合逻辑 Clocks
+短标题：HLC 分布式锁
+难度：高级
+子主题：混合逻辑时钟
 
 ## 中文导读
 
-本题要求你完成 `实现 a Distributed Lock使用HLC时间戳`。
-
-重点关注：`distributed lock`、`HLC timestamp`、`request queue`、`priority ordering`。
-
-建议先按提示逐步实现：Each lock 请求 is stamped，包含the requester HLC timestamp。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你构建一个基于 HLC 时间戳的分布式锁。锁按照请求的 HLC 时间戳排序，时间戳最小的请求优先获得锁。这种方式提供了一个尊重因果关系的全序，是分布式系统中资源互斥访问的经典实现方案。
 
 ## 题目说明
 
-Build a distributed lock where the lock is granted based on HLC timestamps. The process，包含the lowest HLC timestamp in the 请求 队列 gets the lock. This gives a total ordering that respects causality.
+构建一个分布式锁，锁的授予基于 HLC 时间戳。在请求队列中，拥有最小 HLC 时间戳的进程获得锁。这种方式提供了一个尊重因果关系的全序排列。
 
-Tie-breaking: compare `(pt, c, node_id)` lexicographically.
+平局打破规则：按 `(pt, c, node_id)` 进行字典序比较。
 
-Implement handlers:
+请实现以下处理器：
 
-```JSON
-请求:  {"type": "lock_request", "msg_id": 1, "resource": "db_write", "requester": "n1", "hlc_pt": 1000, "hlc_c": 0}
-响应: {"type": "lock_request_ok", "in_reply_to": 1, "position": 1, "granted": true}
+```json
+Request:  {"type": "lock_request", "msg_id": 1, "resource": "db_write", "requester": "n1", "hlc_pt": 1000, "hlc_c": 0}
+Response: {"type": "lock_request_ok", "in_reply_to": 1, "position": 1, "granted": true}
 
-请求:  {"type": "lock_request", "msg_id": 2, "resource": "db_write", "requester": "n2", "hlc_pt": 999, "hlc_c": 0}
-响应: {"type": "lock_request_ok", "in_reply_to": 2, "position": 1, "granted": false, "reason": "lock_held_by_n1"}
+Request:  {"type": "lock_request", "msg_id": 2, "resource": "db_write", "requester": "n2", "hlc_pt": 999, "hlc_c": 0}
+Response: {"type": "lock_request_ok", "in_reply_to": 2, "position": 1, "granted": false, "reason": "lock_held_by_n1"}
 
-请求:  {"type": "lock_release", "msg_id": 3, "resource": "db_write", "requester": "n1"}
-响应: {"type": "lock_release_ok", "in_reply_to": 3, "next_holder": "n2"}
+Request:  {"type": "lock_release", "msg_id": 3, "resource": "db_write", "requester": "n1"}
+Response: {"type": "lock_release_ok", "in_reply_to": 3, "next_holder": "n2"}
 
-请求:  {"type": "lock_status", "msg_id": 4, "resource": "db_write"}
-响应: {"type": "lock_status_ok", "in_reply_to": 4, "holder": "n2", "queue_size": 0}
+Request:  {"type": "lock_status", "msg_id": 4, "resource": "db_write"}
+Response: {"type": "lock_status_ok", "in_reply_to": 4, "holder": "n2", "queue_size": 0}
 ```
 
 ## 涉及概念
@@ -50,15 +44,15 @@ Implement handlers:
 
 ## 实现提示
 
-- Each lock 请求 is stamped，包含the requester HLC timestamp
-- The lock is granted to the 请求，包含the lowest HLC timestamp
-- Use (pt, c, node_id) as a total order to break ties
-- Maintain a sorted 队列 of pending lock requests
-- Release removes from the 队列和grants to the next lowest
+- 每个锁请求都附带请求者的 HLC 时间戳
+- 锁会授予给拥有最小 HLC 时间戳的请求
+- 使用 (pt, c, node_id) 作为全序来打破平局
+- 维护一个按时间戳排序的等待队列
+- 释放锁时，从队列中移除当前持有者，并将锁授予时间戳最小的下一个请求
 
 ## 测试用例
 
-### 1. First request grants the lock
+### 1. 第一个请求获得锁
 
 输入：
 
@@ -74,9 +68,9 @@ Implement handlers:
 {"src": "n1", "dest": "c1", "body": {"type": "lock_request_ok", "in_reply_to": 2, "position": 1, "granted": true, "msg_id": 1}}
 ```
 
-### 2. Second request queues behind held lock
+### 2. 第二个请求在已持有的锁后面排队
 
-Second lock_request_ok should show granted: false. lock_status_ok should show holder: n1, queue_size: 1.
+第二个 `lock_request_ok` 应显示 granted 为 false。`lock_status_ok` 应显示 holder 为 n1，queue_size 为 1。
 
 输入：
 
@@ -96,7 +90,7 @@ Second lock_request_ok should show granted: false. lock_status_ok should show ho
 
 ## 参考资料
 
-- [Distributed Locking，包含Timestamps](https://martin.kleppmann.com/2016/02/08/how-to-do-distributed-locking.html)：Martin Kleppmann on correctness of distributed lock implementations
+- [Distributed Locking with Timestamps](https://martin.kleppmann.com/2016/02/08/how-to-do-distributed-locking.html)：Martin Kleppmann 关于分布式锁实现正确性的讨论
 
 ## 本地文件
 

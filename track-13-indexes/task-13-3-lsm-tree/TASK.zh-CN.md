@@ -1,44 +1,38 @@
-# 实现 LSM Tree
+# 实现 LSM 树
 
 英文标题：Implement LSM Tree
 网页：<https://builddistributedsystem.com/tracks/indexes/tasks/task-13-3-lsm-tree>
 
 课程：13. 索引
 任务序号：3
-短标题：LSM Tree
-难度：advanced
+短标题：LSM 树
+难度：高级
 
 ## 中文导读
 
-本题要求你完成 `实现 LSM Tree`。
-
-重点关注：`LSM tree`、`memtable`、`SSTable`、`compaction`。
-
-建议先按提示逐步实现：Write to in-memory memtable first。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现一个日志结构合并树（Log-Structured Merge Tree，简称 LSM 树）。LSM 树是一种为写入密集型场景优化的存储结构。它先将数据写入内存中的有序表，满了之后再批量刷写到磁盘。这种设计将随机写入转化为顺序写入，大幅提升写入吞吐量。Cassandra、RocksDB、LevelDB 等知名存储系统都采用了 LSM 树。
 
 ## 题目说明
 
-Build a 日志-Structured Merge Tree (LSM Tree):
+构建一个日志结构合并树：
 
-1. Writes go to in-memory memtable (sorted structure)
-2. When memtable is full, flush to SSTable on disk
-3. SSTables are immutable和sorted
-4. Read checks memtable, then each SSTable (newest first)
-5. Background compaction merges SSTables
+1. 写入操作首先进入内存中的 memtable（一个有序数据结构）
+2. 当 memtable 写满后，将其刷写到磁盘上的 SSTable 文件
+3. SSTable（Sorted String Table）是不可变的，且内部数据有序
+4. 读取时先查 memtable，再依次查各个 SSTable（从最新的开始）
+5. 后台执行压缩（Compaction），合并多个 SSTable
 
-LSM Trees optimize用于write throughput by使用sequential I/O.
+LSM 树通过使用顺序写入来优化写入吞吐量。
 
 ## 概念说明
 
-### LSM Tree Architecture
+### LSM 树的架构
 
-LSM Trees batch writes in memory (memtable), then flush sorted runs to disk (SSTables). This converts random writes to sequential writes, dramatically improving write throughput. Systems like Cassandra和RocksDB use LSM Trees.
+LSM 树先将写入数据缓存在内存中（memtable），然后将有序的数据批量刷写到磁盘（SSTable）。这样就把随机写入转化为了顺序写入，极大地提高了写入性能。你可以把它想象成先在便签纸上快速记录，攒够一叠后再按顺序整理归档到文件夹中。Cassandra 和 RocksDB 等系统都使用了这种设计。
 
-### Compaction
+### 压缩
 
-As SSTables accumulate, reads slow down (must check each file). Compaction merges SSTables, removing deleted keys和combining overlapping ranges. Size-tiered和leveled compaction are common strategies.
+随着 SSTable 文件越来越多，读取性能会下降（因为需要逐一检查每个文件）。压缩操作将多个 SSTable 合并在一起，同时删除已标记删除的键，合并重叠的范围。常见的压缩策略有大小分层压缩和分层压缩两种。
 
 ## 涉及概念
 
@@ -49,13 +43,13 @@ As SSTables accumulate, reads slow down (must check each file). Compaction merge
 
 ## 实现提示
 
-- Write to in-memory memtable first
-- Flush to sorted SSTable when full
-- Compact SSTables in background
+- 写入时先写入内存中的 memtable
+- memtable 满了之后刷写到有序的 SSTable 文件
+- 在后台执行 SSTable 的压缩合并
 
 ## 测试用例
 
-### 1. LSM write和read
+### 1. LSM 写入与读取
 
 输入：
 
@@ -75,7 +69,7 @@ As SSTables accumulate, reads slow down (must check each file). Compaction merge
 
 ## 参考资料
 
-- [LSM Tree Paper](https://www.cs.umb.edu/~poneil/lsmtree.pdf)：The 日志-Structured Merge-Tree
+- [LSM Tree Paper](https://www.cs.umb.edu/~poneil/lsmtree.pdf)：日志结构合并树的原始论文
 
 ## 本地文件
 

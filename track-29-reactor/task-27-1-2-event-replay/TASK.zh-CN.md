@@ -1,45 +1,39 @@
-# 实现 Event Replay
+# 实现事件回放
 
 英文标题：Implement Event Replay
 网页：<https://builddistributedsystem.com/tracks/reactor/tasks/task-27-1-2-event-replay>
 
 课程：29. 反应器：事件溯源与 CQRS
 任务序号：2
-短标题：Event Replay
-难度：intermediate
+短标题：事件回放
+难度：进阶
 子主题：Event Sourcing
 
 ## 中文导读
 
-本题要求你完成 `实现 Event Replay`。
-
-重点关注：`event replay`、`state reconstruction`、`snapshot-based replay`、`temporal query`、`fold over events`。
-
-建议先按提示逐步实现：Replay applies each event in sequence order to rebuild state from scratch。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你实现事件回放（Event Replay）功能。在事件溯源中，系统不直接存储状态，而是通过按顺序重放所有历史事件来"还原"出当前状态。这就像看一盘棋的录像，从第一步走到最后一步，就能知道当前棋盘的局面。理解事件回放是掌握事件溯源读取机制的关键。
 
 ## 题目说明
 
-Event replay rebuilds an aggregate's state by applying all of its stored events in order. It is the core read mechanism in event sourcing: state is never stored directly, only derived by replaying history.
+事件回放通过按顺序应用聚合体（Aggregate）的所有已存储事件来重建其状态。这是事件溯源的核心读取机制：状态从不直接存储，而是通过回放历史事件推导得出。
 
-Implement a 节点 that supports three replay modes:
+你需要实现一个支持三种回放模式的节点：
 
-```JSON
-// Full replay: apply all events to get current state
+```json
+// 完整回放：应用所有事件得到当前状态
 { "type": "replay", "msg_id": 1, "aggregate_id": "user-123" }
 -> { "type": "replayed", "in_reply_to": 1,
     "aggregate_id": "user-123",
     "events_replayed": 5, "state": {"name": "Jane"} }
 
-// Snapshot-based replay: load snapshot, apply only events after its version
+// 基于快照的回放：加载快照，只应用快照版本之后的事件
 { "type": "replay", "msg_id": 2,
   "aggregate_id": "user-123", "use_snapshot": true }
 -> { "type": "replayed", "in_reply_to": 2,
     "aggregate_id": "user-123",
     "snapshot_version": 100, "events_replayed": 2 }
 
-// Temporal query: replay only events up to the given timestamp
+// 时间点查询：只回放给定时间戳之前的事件
 { "type": "get_state", "msg_id": 3,
   "aggregate_id": "user-123", "timestamp": "2024-01-15T09:00:00Z" }
 -> { "type": "state", "in_reply_to": 3,
@@ -48,7 +42,7 @@ Implement a 节点 that supports three replay modes:
     "state": {"name": "John Doe"} }
 ```
 
-For snapshot-based replay, `events_replayed` counts only events applied after the snapshot version. Temporal queries ignore any event recorded after the requested timestamp.
+使用基于快照的回放时，`events_replayed` 只统计快照版本之后实际应用的事件数量。时间点查询会忽略请求时间戳之后的所有事件。
 
 ## 涉及概念
 
@@ -60,17 +54,17 @@ For snapshot-based replay, `events_replayed` counts only events applied after th
 
 ## 实现提示
 
-- Replay applies each event in sequence order to rebuild state from scratch
-- With a snapshot, start from the saved state和only replay events after that version
-- A temporal query replays only events，包含timestamp <= the target time
-- Merge each event_data dict into the running state dict on every replay step
-- snapshot_version in the 响应 is the version at which the snapshot was taken
+- 回放是按序列号顺序逐个应用事件，从零开始重建状态
+- 使用快照时，从快照保存的状态开始，只回放该版本之后的事件
+- 时间点查询只回放时间戳小于等于目标时间的事件
+- 每个回放步骤都将事件数据合并到当前运行状态中
+- 响应中的快照版本号是快照被创建时对应的版本号
 
 ## 测试用例
 
-### 1. Replay events to rebuild state
+### 1. 回放事件重建状态
 
-Should replay all events和return final state.
+应回放所有事件并返回最终状态。
 
 输入：
 
@@ -84,9 +78,9 @@ Should replay all events和return final state.
 {"type": "replayed", "in_reply_to": 1, "aggregate_id": "user-123", "events_replayed": 5, "state": {"name": "Jane"}}
 ```
 
-### 2. Replay from snapshot
+### 2. 从快照回放
 
-Should start from snapshot和replay only newer events.
+应从快照开始，只回放快照之后的新事件。
 
 输入：
 
@@ -102,7 +96,7 @@ Should start from snapshot和replay only newer events.
 
 ## 参考资料
 
-- [Event Sourcing](https://martinfowler.com/eaaDev/EventSourcing.html)：Martin Fowler's introduction to event sourcing
+- [Event Sourcing](https://martinfowler.com/eaaDev/EventSourcing.html)：Martin Fowler 对事件溯源的入门介绍
 
 ## 本地文件
 

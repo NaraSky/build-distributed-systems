@@ -1,33 +1,26 @@
-# Integrate Sequentially Consistent 键值 存储
+# 接入顺序一致性键值存储
 
-英文标题：Integrate Sequentially Consistent Key-Value Store
 网页：<https://builddistributedsystem.com/tracks/counter/tasks/task-4-2-kv-integration>
 
 课程：4. 计数器：分布式状态与 CRDT
 任务序号：2
-短标题：KV Integration
-难度：intermediate
-子主题：The Lost Update Problem
+短标题：键值存储集成
+难度：进阶
+子主题：丢失更新问题
 
 ## 中文导读
 
-本题要求你完成 `Integrate Sequentially Consistent 键值 存储`。
-
-重点关注：`sequential consistency`、`external storage`、`linearizability`。
-
-建议先按提示逐步实现：Use Maelstrom seq-kv service。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题让你使用 Maelstrom 内置的顺序一致性键值存储服务来保存计数器的值。虽然顺序一致性比最终一致性更强，但在网络分区时会面临可用性方面的新挑战。通过这道题，你将体会到一致性与可用性之间的权衡。
 
 ## 题目说明
 
-Use Maelstrom's built-in seq-kv service to store your 计数器 value. This provides sequential consistency but introduces new challenges around availability during 网络 partitions.
+使用 Maelstrom 内置的 seq-kv 服务来存储计数器的值。这个服务提供了顺序一致性（Sequential Consistency）保证，但同时也引入了新的问题：在网络分区期间，服务的可用性会受到影响。
 
 ## 概念说明
 
-### Sequential Consistency
+### 顺序一致性
 
-Sequential consistency guarantees that all operations appear to happen in some total order consistent，包含each process's local order. This is stronger than 最终一致性 but weaker than linearizability.
+顺序一致性保证所有操作看起来按照某个全局顺序执行，并且这个顺序与每个进程本地的操作顺序一致。打个比方，就像排队买票，每个人都按自己的先后顺序排队，所有人合在一起也有一个明确的先后顺序。顺序一致性比最终一致性更强，但比线性一致性（Linearizability）更弱。
 
 ## 涉及概念
 
@@ -37,13 +30,13 @@ Sequential consistency guarantees that all operations appear to happen in some t
 
 ## 实现提示
 
-- Use Maelstrom seq-kv service
-- Store 计数器 in external KV
-- This still has issues under partitions
+- 使用 Maelstrom 的 seq-kv 服务
+- 将计数器的值存储在外部键值存储中
+- 注意在网络分区时仍然会存在问题
 
 ## 测试用例
 
-### 1. KV-based 计数器
+### 1. 基于键值存储的计数器
 
 输入：
 
@@ -63,7 +56,7 @@ Sequential consistency guarantees that all operations appear to happen in some t
 
 ## 参考资料
 
-- [Maelstrom Services](https://github.com/jepsen-io/maelstrom/blob/main/doc/services.md)：Documentation用于Maelstrom built-in services
+- [Maelstrom Services](https://github.com/jepsen-io/maelstrom/blob/main/doc/services.md)：Maelstrom 内置服务的文档
 
 ## 本地文件
 

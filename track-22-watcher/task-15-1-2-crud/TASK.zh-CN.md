@@ -1,44 +1,39 @@
-# 实现 ZNode CRUD Operations
+# 实现 ZNode 的增删改查操作
 
 英文标题：Implement ZNode CRUD Operations
 网页：<https://builddistributedsystem.com/tracks/watcher/tasks/task-15-1-2-crud>
 
-课程：22. 观察者：ZooKeeper/etcd 模型
+课程：22. 观察者
 任务序号：2
 短标题：ZNode CRUD
-难度：intermediate
-子主题：The ZNode Data模式l
+难度：进阶
+子主题：ZNode 数据模型
 
 ## 中文导读
 
-本题要求你完成 `实现 ZNode CRUD Operations`。
-
-重点关注：`Create`、`GetData`、`SetData`、`Delete`、`GetChildren`。
-
-建议先按提示逐步实现：Create takes path, data,和flags (ephemeral, sequential)。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+上一题搭好了 ZNode 树的骨架，这道题要求你为它实现完整的增删改查接口。ZooKeeper 一共提供五个核心操作，它们组合起来就能完成所有的协调元数据管理。值得注意的是，更新和删除都必须带上版本号——这是一种乐观锁机制，防止多个客户端同时改同一个节点时互相覆盖。
 
 ## 题目说明
 
-ZooKeeper provides five core operations用于manipulating ZNodes. Together they form a complete API用于coordination 元数据.
+ZooKeeper 提供五个核心操作来管理 ZNode，它们共同构成了一套完整的协调元数据接口：
 
-**Operations**:
-- `Create(path, data, flags)`: create a new ZNode. Fails if it already exists.
-- `GetData(path)`: return the data, version,和stat of a ZNode.
-- `SetData(path, data, version)`: update the data. The version must match the current version (optimistic locking).
-- `Delete(path, version)`: delete a ZNode. Version must match. Fails if the 节点 has children.
-- `GetChildren(path)`: return the list of child 节点 names.
+- **创建（Create）**：在指定路径创建新节点，需要提供路径、数据和标志位。如果该路径已经存在，则操作失败。
+- **读取数据（GetData）**：返回指定节点的数据、版本号和状态信息。
+- **更新数据（SetData）**：修改节点的数据。调用时必须提供版本号，且该版本号必须与节点当前版本一致，否则操作失败。这就是乐观锁（Optimistic Locking）的工作方式——先读取版本号，再带着版本号去更新，如果期间别人改过了，版本号就对不上，更新就会被拒绝。
+- **删除（Delete）**：删除一个节点。同样需要版本号匹配。此外，如果该节点下还有子节点，删除也会失败，必须先把子节点都删掉。
+- **获取子节点（GetChildren）**：返回指定节点下所有直接子节点的名称列表（注意是名称而非完整路径）。
 
-```JSON
-请求:  {"type": "znode_set", "msg_id": 1, "path": "/config", "data": "new-value", "version": 0}
-响应: {"type": "znode_set_ok", "in_reply_to": 1, "new_version": 1}
+协议示例：
 
-请求:  {"type": "znode_delete", "msg_id": 2, "path": "/config", "version": 1}
-响应: {"type": "znode_delete_ok", "in_reply_to": 2}
+```json
+Request:  {"type": "znode_set", "msg_id": 1, "path": "/config", "data": "new-value", "version": 0}
+Response: {"type": "znode_set_ok", "in_reply_to": 1, "new_version": 1}
 
-请求:  {"type": "znode_children", "msg_id": 3, "path": "/services"}
-响应: {"type": "znode_children_ok", "in_reply_to": 3, "children": ["web", "db", "缓存"]}
+Request:  {"type": "znode_delete", "msg_id": 2, "path": "/config", "version": 1}
+Response: {"type": "znode_delete_ok", "in_reply_to": 2}
+
+Request:  {"type": "znode_children", "msg_id": 3, "path": "/services"}
+Response: {"type": "znode_children_ok", "in_reply_to": 3, "children": ["web", "db", "cache"]}
 ```
 
 ## 涉及概念
@@ -51,17 +46,17 @@ ZooKeeper provides five core operations用于manipulating ZNodes. Together they 
 
 ## 实现提示
 
-- Create takes path, data,和flags (ephemeral, sequential)
-- SetData和Delete require a version parameter用于optimistic concurrency
-- GetChildren returns the list of child 节点 names (not full paths)
-- Delete fails if the 节点 has children (must delete children first)
-- All operations are atomic — no partial updates
+- 创建操作需要路径、数据以及标志位（临时、顺序）
+- 更新和删除操作都需要携带版本号参数，用于乐观并发控制
+- 获取子节点返回的是子节点的名称，不是完整路径
+- 当节点还有子节点时，删除操作会失败——必须先递归删除所有子节点
+- 所有操作都是原子性的，不会出现"改了一半"的情况
 
 ## 测试用例
 
-### 1. SetData updates version
+### 1. 更新数据后版本号递增
 
-znode_set_ok should show new_version: 1.
+验证说明：执行更新后，返回的新版本号应为 1。
 
 输入：
 
@@ -77,9 +72,9 @@ znode_set_ok should show new_version: 1.
 {"src": "n1", "dest": "c0", "body": {"type": "init_ok", "in_reply_to": 1, "msg_id": 0}}
 ```
 
-### 2. Delete removes ZNode
+### 2. 删除操作移除节点
 
-After delete, znode_get should return NoNode error.
+验证说明：删除节点后再尝试读取，应返回"节点不存在"的错误。
 
 输入：
 
@@ -98,7 +93,7 @@ After delete, znode_get should return NoNode error.
 
 ## 参考资料
 
-- [ZooKeeper Operations](https://zookeeper.apache.org/doc/current/zookeeperProgrammers.html#ch_zkOperations)：ZooKeeper documentation on CRUD operations和versioning
+- [ZooKeeper Operations](https://zookeeper.apache.org/doc/current/zookeeperProgrammers.html#ch_zkOperations)：ZooKeeper 官方文档中关于增删改查操作及版本控制的详细说明
 
 ## 本地文件
 

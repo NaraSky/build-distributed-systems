@@ -1,37 +1,31 @@
-# 添加 Snapshot Support用于日志 Compaction
+# 添加快照支持以压缩日志
 
-英文标题：Add Snapshot Support用于Log Compaction
+英文标题：Add Snapshot Support for Log Compaction
 网页：<https://builddistributedsystem.com/tracks/consensus/tasks/task-7-2-4-snapshot>
 
 课程：6. 共识：Raft 与日志复制
 任务序号：9
-短标题：Snapshots
-难度：advanced
-子主题：Commitment和Application
+短标题：快照
+难度：高级
+子主题：提交与应用
 
 ## 中文导读
 
-本题要求你完成 `添加 Snapshot Support用于日志 Compaction`。
-
-重点关注：`snapshot`、`log compaction`、`InstallSnapshot RPC`、`state transfer`。
-
-建议先按提示逐步实现：When the 日志 exceeds a threshold (e.g., 1000 entries), take a snapshot of the state machine。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你为 Raft 添加快照（Snapshot）支持，用于压缩日志。随着系统运行，日志会越来越长，不可能无限增长。快照的思路很简单：把状态机的当前状态保存下来，然后丢弃之前的日志。如果某个跟随者落后太多，领导者可以直接发送快照而不是逐条发送日志。这是让 Raft 在生产环境中可用的关键功能。
 
 ## 题目说明
 
-Add snapshot support to compact the Raft 日志. When the 日志 grows beyond a threshold, take a snapshot of the state machine. Followers that fall behind receive the snapshot instead of individual 日志 entries.
+为 Raft 添加快照支持以压缩日志。当日志增长超过阈值时，对状态机进行快照。落后太多的跟随者将收到快照，而不是逐条接收日志条目。
 
-```JSON
-请求:  {"type": "take_snapshot", "msg_id": 1, "threshold": 5}
-响应: {"type": "take_snapshot_ok", "in_reply_to": 1, "snapshot_index": 5, "snapshot_term": 2, "state_size_bytes": 256, "log_entries_trimmed": 5}
+```json
+Request:  {"type": "take_snapshot", "msg_id": 1, "threshold": 5}
+Response: {"type": "take_snapshot_ok", "in_reply_to": 1, "snapshot_index": 5, "snapshot_term": 2, "state_size_bytes": 256, "log_entries_trimmed": 5}
 
-请求:  {"type": "install_snapshot", "msg_id": 2, "snapshot_index": 5, "snapshot_term": 2, "state": {"x": "1", "y": "2", "z": "3"}}
-响应: {"type": "install_snapshot_ok", "in_reply_to": 2, "applied": true, "new_last_applied": 5}
+Request:  {"type": "install_snapshot", "msg_id": 2, "snapshot_index": 5, "snapshot_term": 2, "state": {"x": "1", "y": "2", "z": "3"}}
+Response: {"type": "install_snapshot_ok", "in_reply_to": 2, "applied": true, "new_last_applied": 5}
 
-请求:  {"type": "get_log_info", "msg_id": 3}
-响应: {"type": "get_log_info_ok", "in_reply_to": 3, "first_index": 6, "last_index": 8, "snapshot_index": 5, "total_entries": 3}
+Request:  {"type": "get_log_info", "msg_id": 3}
+Response: {"type": "get_log_info_ok", "in_reply_to": 3, "first_index": 6, "last_index": 8, "snapshot_index": 5, "total_entries": 3}
 ```
 
 ## 涉及概念
@@ -43,17 +37,17 @@ Add snapshot support to compact the Raft 日志. When the 日志 grows beyond a 
 
 ## 实现提示
 
-- When the 日志 exceeds a threshold (e.g., 1000 entries), take a snapshot of the state machine
-- The snapshot captures the full state at a given 索引和term
-- After snapshotting, entries up to that 索引 can be discarded from the 日志
-- Followers that fall too far behind receive the snapshot via InstallSnapshot RPC
-- The snapshot replaces the state machine state和日志 up to snapshot 索引
+- 当日志超过阈值（例如 1000 条）时，对状态机进行快照
+- 快照记录了在某个索引和任期下的完整状态
+- 快照完成后，该索引之前的日志条目可以被丢弃
+- 落后太多的跟随者通过 InstallSnapshot RPC 接收快照
+- 快照会替换状态机的状态以及快照索引之前的日志
 
 ## 测试用例
 
-### 1. Take snapshot trims 日志
+### 1. 快照后裁剪日志
 
-take_snapshot_ok should show snapshot_index: 3和log_entries_trimmed: 3.
+take_snapshot_ok 的结果应显示 snapshot_index 为 3，log_entries_trimmed 为 3。
 
 输入：
 
@@ -69,9 +63,9 @@ take_snapshot_ok should show snapshot_index: 3和log_entries_trimmed: 3.
 {"src": "n1", "dest": "c0", "body": {"type": "init_ok", "in_reply_to": 1, "msg_id": 0}}
 ```
 
-### 2. Install snapshot restores state
+### 2. 安装快照恢复状态
 
-install_snapshot_ok，包含applied: true. get_state_ok should show state: {"a": "1", "b": "2"}.
+install_snapshot_ok 的 applied 字段为 true。get_state_ok 的 state 应为 {"a": "1", "b": "2"}。
 
 输入：
 
@@ -89,7 +83,7 @@ install_snapshot_ok，包含applied: true. get_state_ok should show state: {"a":
 
 ## 参考资料
 
-- [Raft - Log Compaction](https://raft.github.io/raft.pdf)：Raft paper Section 7 on 日志 compaction和snapshots
+- [Raft - Log Compaction](https://raft.github.io/raft.pdf)：Raft 论文第 7 节，关于日志压缩和快照的说明
 
 ## 本地文件
 

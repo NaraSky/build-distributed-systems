@@ -1,47 +1,41 @@
-# 实现 gRPC Server和Bidirectional Streaming
+# 实现 gRPC 服务端流和双向流
 
-英文标题：Implement gRPC Server和Bidirectional Streaming
+英文标题：Implement gRPC Server and Bidirectional Streaming
 网页：<https://builddistributedsystem.com/tracks/networker/tasks/task-5-3-3-grpc-streaming>
 
 课程：17. 网络器：TCP 与协议基础
 任务序号：13
-短标题：gRPC Streaming
-难度：advanced
-子主题：gRPC和Protocol Buffers
+短标题：gRPC 流式调用
+难度：高级
+子主题：gRPC 与 Protocol Buffers
 
 ## 中文导读
 
-本题要求你完成 `实现 gRPC Server和Bidirectional Streaming`。
-
-重点关注：`server streaming`、`bidirectional streaming`、`HTTP/2 streams`、`flow control`。
-
-建议先按提示逐步实现：服务端 streaming: 客户端 sends one 请求, 服务端 sends multiple responses。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题让你实现 gRPC 的流式调用，包括服务端流（Server Streaming）和双向流（Bidirectional Streaming）。与一元调用不同，流式调用允许一方或双方发送多条消息。服务端流就像订阅一个日志推送：你发一个请求说"我要看错误日志"，服务器就源源不断地把匹配的日志推送给你。双向流更像聊天室，双方可以同时发送消息。这是构建实时推送、事件订阅等场景的基础。
 
 ## 题目说明
 
-Implement gRPC streaming RPCs:
+实现 gRPC 的流式远程过程调用：
 
-1. **服务端 streaming**: 客户端 sends one 请求, 服务端 sends a stream of responses
-2. **Bidirectional streaming**: Both sides send streams of 消息 concurrently
+1. **服务端流**：客户端发送一个请求，服务器返回一个响应流（多条消息）
+2. **双向流**：双方同时发送消息流
 
-Use a 日志-watching service as the example:
+以日志监控服务为例：
 
-```JSON
-请求:  {"type": "grpc_server_stream", "msg_id": 1, "service": "LogWatcher", "method": "WatchLogs", "请求": {"filter": "ERROR", "limit": 3}}
-响应: [
+```json
+Request:  {"type": "grpc_server_stream", "msg_id": 1, "service": "LogWatcher", "method": "WatchLogs", "request": {"filter": "ERROR", "limit": 3}}
+Response: [
     {"type": "grpc_stream_msg", "in_reply_to": 1, "seq": 1, "data": {"level": "ERROR", "msg": "disk full"}},
     {"type": "grpc_stream_msg", "in_reply_to": 1, "seq": 2, "data": {"level": "ERROR", "msg": "connection reset"}},
-    {"type": "grpc_stream_msg", "in_reply_to": 1, "seq": 3, "data": {"level": "ERROR", "msg": "超时"}},
+    {"type": "grpc_stream_msg", "in_reply_to": 1, "seq": 3, "data": {"level": "ERROR", "msg": "timeout"}},
     {"type": "grpc_stream_end", "in_reply_to": 1, "status": "OK", "count": 3}
 ]
 
-请求:  {"type": "grpc_bidi_stream_open", "msg_id": 2, "service": "Chat", "method": "BiDiChat"}
-响应: {"type": "grpc_bidi_stream_open_ok", "in_reply_to": 2, "stream_id": "s1"}
+Request:  {"type": "grpc_bidi_stream_open", "msg_id": 2, "service": "Chat", "method": "BiDiChat"}
+Response: {"type": "grpc_bidi_stream_open_ok", "in_reply_to": 2, "stream_id": "s1"}
 
-请求:  {"type": "grpc_bidi_stream_send", "msg_id": 3, "stream_id": "s1", "data": {"text": "hello"}}
-响应: {"type": "grpc_bidi_stream_recv", "in_reply_to": 3, "data": {"text": "echo: hello"}}
+Request:  {"type": "grpc_bidi_stream_send", "msg_id": 3, "stream_id": "s1", "data": {"text": "hello"}}
+Response: {"type": "grpc_bidi_stream_recv", "in_reply_to": 3, "data": {"text": "echo: hello"}}
 ```
 
 ## 涉及概念
@@ -53,17 +47,17 @@ Use a 日志-watching service as the example:
 
 ## 实现提示
 
-- 服务端 streaming: 客户端 sends one 请求, 服务端 sends multiple responses
-- Bidirectional streaming: both sides send multiple 消息 over the same connection
-- Each 消息 in the stream uses the same gRPC framing (compressed flag + length)
-- The 服务端 signals end-of-stream，包含gRPC trailers (grpc-status)
-- Track the stream state: OPEN, HALF_CLOSED, CLOSED
+- 服务端流：客户端发送一个请求，服务器返回多条响应
+- 双向流：双方通过同一个连接发送多条消息
+- 流中的每条消息都使用相同的 gRPC 分帧格式（压缩标志 + 长度）
+- 服务器通过 gRPC 尾部元数据（grpc-status）来通知流结束
+- 跟踪流的状态：OPEN（打开）、HALF_CLOSED（半关闭）、CLOSED（已关闭）
 
 ## 测试用例
 
-### 1. Server streaming returns multiple messages
+### 1. 服务端流返回多条消息
 
-Should receive 2 grpc_stream_msg responses followed by grpc_stream_end，包含count: 2.
+验证说明：应收到 2 条 grpc_stream_msg 响应，随后是一条 grpc_stream_end，其中 count 为 2。
 
 输入：
 
@@ -78,9 +72,9 @@ Should receive 2 grpc_stream_msg responses followed by grpc_stream_end，包含c
 {"src": "n1", "dest": "c0", "body": {"type": "init_ok", "in_reply_to": 1, "msg_id": 0}}
 ```
 
-### 2. Bidi stream open和send
+### 2. 双向流的打开与发送
 
-grpc_bidi_stream_open_ok should return a stream_id. grpc_bidi_stream_recv should echo the 消息.
+验证说明：grpc_bidi_stream_open_ok 应返回一个 stream_id。grpc_bidi_stream_recv 应将消息回声返回。
 
 输入：
 
@@ -98,7 +92,7 @@ grpc_bidi_stream_open_ok should return a stream_id. grpc_bidi_stream_recv should
 
 ## 参考资料
 
-- [gRPC Streaming](https://grpc.io/docs/what-is-grpc/core-concepts/#server-streaming-rpc)：gRPC 服务端 streaming和bidirectional streaming RPC types
+- [gRPC Streaming](https://grpc.io/docs/what-is-grpc/core-concepts/#server-streaming-rpc)：gRPC 服务端流和双向流 RPC 类型的介绍
 
 ## 本地文件
 

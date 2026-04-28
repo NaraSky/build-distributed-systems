@@ -1,35 +1,28 @@
-# 实现 基础 计数器，包含Lost Update Problem
+# 实现基础计数器：体验丢失更新问题
 
-英文标题：Implement Basic Counter，包含Lost Update Problem
 网页：<https://builddistributedsystem.com/tracks/counter/tasks/task-4-1-lost-update>
 
 课程：4. 计数器：分布式状态与 CRDT
 任务序号：1
-短标题：Lost Updates
-难度：beginner
-子主题：The Lost Update Problem
+短标题：丢失更新
+难度：入门
+子主题：丢失更新问题
 
 ## 中文导读
 
-本题要求你完成 `实现 基础 计数器，包含Lost Update Problem`。
-
-重点关注：`lost updates`、`race conditions`、`naive replication`。
-
-建议先按提示逐步实现：Start，包含a simple 计数器。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题让你实现一个最简单的只增计数器，处理"加"和"读"两种操作。在单节点顺序执行时一切正常，但当多个节点并发更新时，你会亲眼看到"更新丢失"现象。这个问题是理解分布式计数器为什么需要特殊设计的起点。
 
 ## 题目说明
 
-Implement a basic grow-only 计数器 that handles add和read operations. Multiple 节点 share 计数器 state, but your initial implementation will lose updates under concurrency.
+实现一个基础的只增计数器（Grow-Only Counter），支持加法操作和读取操作。多个节点（Node）共享计数器状态，但你的初始实现在并发场景下会丢失更新。
 
-This task intentionally demonstrates the lost update problem. Your 计数器 will work用于sequential operations but fail verification under concurrent updates from multiple 节点.
+这道题故意展示了丢失更新问题（Lost Update Problem）。你的计数器在顺序操作时可以正常工作，但在多节点并发更新时会无法通过验证。
 
 ## 概念说明
 
-### The Lost Update Problem
+### 丢失更新问题
 
-When multiple 节点 read, modify,和write state, updates can be lost. 节点 A reads 5, 节点 B reads 5, both increment to 6, both write 6. One increment is lost. This is why distributed counters need special handling.
+当多个节点同时读取、修改、写入同一个状态时，更新可能会丢失。举个例子：节点 A 读到值是 5，节点 B 也读到 5，两者各自加 1 后都写入 6，结果只加了 1 而不是 2。这就像两个人同时编辑同一份文档，一个人的修改会覆盖另一个人的。这正是分布式计数器需要特殊处理的原因。
 
 ## 涉及概念
 
@@ -39,13 +32,13 @@ When multiple 节点 read, modify,和write state, updates can be lost. 节点 A 
 
 ## 实现提示
 
-- Start，包含a simple 计数器
-- Notice what happens，包含concurrent updates
-- This task is meant to fail
+- 从一个简单的计数器开始实现
+- 注意观察并发更新时会发生什么
+- 这道题本身就是为了让你看到失败而设计的
 
 ## 测试用例
 
-### 1. 基础 计数器 添加
+### 1. 基础计数器加法
 
 输入：
 
@@ -63,7 +56,7 @@ When multiple 节点 read, modify,和write state, updates can be lost. 节点 A 
 {"src":"n1","dest":"c1","body":{"type":"read_ok","in_reply_to":3,"msg_id":2,"value":5}}
 ```
 
-### 2. Sequential increments work
+### 2. 顺序递增正常工作
 
 输入：
 
@@ -85,7 +78,7 @@ When multiple 节点 read, modify,和write state, updates can be lost. 节点 A 
 
 ## 参考资料
 
-- [G-Counter Challenge](https://fly.io/dist-sys/4/)：Fly.io grow-only 计数器 challenge
+- [G-Counter Challenge](https://fly.io/dist-sys/4/)：Fly.io 的只增计数器挑战
 
 ## 本地文件
 

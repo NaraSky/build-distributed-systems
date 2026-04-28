@@ -1,4 +1,4 @@
-# 实现 Database Schema Migrations
+# 实现数据库模式迁移
 
 英文标题：Implement Database Schema Migrations
 网页：<https://builddistributedsystem.com/tracks/migrator/tasks/task-25-1-1-database-migrations>
@@ -6,27 +6,21 @@
 课程：27. 迁移器：数据与协议演进
 任务序号：1
 短标题：Schema Migrations
-难度：intermediate
+难度：进阶
 子主题：Schema Migrations
 
 ## 中文导读
 
-本题要求你完成 `实现 Database Schema Migrations`。
-
-重点关注：`schema migrations`、`migration versioning`、`up/down migrations`、`transaction safety`、`migration status`。
-
-建议先按提示逐步实现：Migrations are applied in version order; track which ones have run in a migrations table。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现一个管理数据库模式迁移（Schema Migration）的节点。模式迁移就像给数据库做"版本管理"，每次修改表结构都会记录一个版本号，可以按顺序执行未完成的迁移，也可以回滚最近一次的修改。这在实际项目中至关重要，因为它确保了团队协作时数据库结构变更的可追踪性和可逆性。
 
 ## 题目说明
 
-Database migrations version-control schema changes. Each migration has an `up()` function that applies the change和a `down()` function that reverses it. A migrations table tracks which versions have been applied so you can apply pending ones or roll back the latest.
+数据库迁移（Database Migration）是对数据库模式变更进行版本控制的机制。每个迁移包含一个 `up()` 函数用于执行变更，以及一个 `down()` 函数用于撤销变更。系统通过一张迁移记录表来追踪哪些版本已经被执行过，这样你就可以执行所有待处理的迁移，或者回滚最近一次迁移。
 
-Implement a 节点 that manages database schema migrations:
+请实现一个管理数据库模式迁移的节点：
 
-```JSON
-// Apply all pending migrations in version order
+```json
+// 按版本顺序执行所有待处理的迁移
 { "type": "migrate", "msg_id": 1 }
 -> { "type": "migrations_applied", "in_reply_to": 1,
     "count": 2,
@@ -35,12 +29,12 @@ Implement a 节点 that manages database schema migrations:
       {"version": 2, "name": "add_posts_table", "status": "applied"}
     ]}
 
-// Rollback the most recently applied migration
+// 回滚最近一次执行的迁移
 { "type": "rollback", "msg_id": 2 }
 -> { "type": "migration_rolled_back", "in_reply_to": 2,
     "version": 2, "name": "add_posts_table" }
 
-// Show applied和pending migrations
+// 查看所有迁移的状态（已执行和待处理）
 { "type": "status", "msg_id": 3 }
 -> { "type": "migration_status", "in_reply_to": 3,
     "migrations": [
@@ -49,7 +43,7 @@ Implement a 节点 that manages database schema migrations:
     ]}
 ```
 
-If a migration fails partway through, the 事务 must be rolled back和the migration must NOT be recorded as applied.
+如果某个迁移在执行过程中失败了，必须回滚整个事务（Transaction），并且不能将该迁移记录为已执行。
 
 ## 涉及概念
 
@@ -61,17 +55,17 @@ If a migration fails partway through, the 事务 must be rolled back和the migra
 
 ## 实现提示
 
-- Migrations are applied in version order; track which ones have run in a migrations table
-- Each migration has an up() function (apply change)和down() function (undo change)
-- Wrap each migration in a 事务; rollback the whole migration on any error
-- migrate applies all pending migrations in order; rollback undoes the most recent one
-- status lists all migrations，包含applied: true/false
+- 迁移按版本号顺序执行，通过一张迁移记录表追踪哪些迁移已经运行过
+- 每个迁移包含一个 `up()` 函数（执行变更）和一个 `down()` 函数（撤销变更）
+- 每个迁移都要包裹在事务中，任何错误都要回滚整个迁移
+- `migrate` 按顺序执行所有待处理的迁移，`rollback` 撤销最近一次执行的迁移
+- `status` 列出所有迁移，并标注每个迁移的执行状态
 
 ## 测试用例
 
-### 1. Apply pending migrations
+### 1. 执行待处理的迁移
 
-Should apply both pending migrations in version order.
+应按版本顺序执行两个待处理的迁移。
 
 输入：
 
@@ -85,9 +79,9 @@ Should apply both pending migrations in version order.
 {"type": "migrations_applied", "in_reply_to": 1, "count": 2, "migrations": [{"version": 1, "name": "create_users", "status": "applied"}, {"version": 2, "name": "add_posts_table", "status": "applied"}]}
 ```
 
-### 2. Rollback migration
+### 2. 回滚迁移
 
-Should rollback the most recently applied migration.
+应回滚最近一次执行的迁移。
 
 输入：
 
@@ -103,7 +97,7 @@ Should rollback the most recently applied migration.
 
 ## 参考资料
 
-- [Database Migrations](https://martinfowler.com/articles/evodb.html)：Evolutionary database design: managing schema changes over time
+- [Database Migrations](https://martinfowler.com/articles/evodb.html)：演进式数据库设计，介绍如何管理随时间变化的数据库模式
 
 ## 本地文件
 

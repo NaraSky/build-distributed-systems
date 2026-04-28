@@ -1,41 +1,37 @@
-# Understand和实现 HLC格式
+# 理解并实现混合逻辑时钟的格式
 
-英文标题：Understand和Implement HLC格式
+英文标题：Understand and Implement HLC Format
 网页：<https://builddistributedsystem.com/tracks/identifier/tasks/task-2-4-1-hlc-format>
 
 课程：2. 标识符：分布式唯一 ID
 任务序号：16
-短标题：HLC格式
-难度：advanced
-子主题：混合逻辑 Clocks (HLC)
+短标题：混合逻辑时钟格式
+难度：高级
+子主题：Hybrid Logical Clocks (HLC)
 
 ## 中文导读
 
-本题要求你完成 `Understand和实现 HLC格式`。
-
-重点关注：`HLC`、`hybrid clock`、`physical time`、`logical counter`。
-
-建议先按提示逐步实现：HLC is a tuple: (physical_time_ms, logical_counter)。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+混合逻辑时钟（HLC）是 CockroachDB 和 Spanner 等数据库使用的时钟方案，它将物理时间和逻辑计数器结合在一起，既保留了物理时间的直观性，又具备逻辑时钟的单调递增特性。本题要求你实现混合逻辑时钟的基本格式和本地事件的更新规则。
 
 ## 题目说明
 
-Hybrid Logical Clocks (HLC), used in CockroachDB和Spanner, combine physical time，包含a logical 计数器. The format is `(physical_ms, logical_counter)`.
+混合逻辑时钟（HLC，Hybrid Logical Clock）被 CockroachDB 和 Spanner 等分布式数据库广泛使用。它将物理时间与逻辑计数器组合在一起，格式为 `(physical_ms, logical_counter)`。
 
-Rules用于updating HLC on a **local event or send**:
-1. Get current physical time `pt`
-2. If `pt > hlc.pt`: set `hlc.pt = pt`, `hlc.lc = 0`
-3. Else: keep `hlc.pt`, increment `hlc.lc += 1`
+可以这样理解：物理时间就像墙上的挂钟，告诉你"大概几点了"；逻辑计数器就像同一秒内的流水号，用来区分同一毫秒内发生的多个事件。两者结合，既能关联现实时间，又能保证严格递增。
 
-Implement an HLC，包含`hlc_tick`和`hlc_get` handlers:
+当**本地事件发生**或**发送消息**时，更新规则如下：
+1. 获取当前物理时间 `pt`
+2. 如果 `pt > hlc.pt`：说明物理时间前进了，设置 `hlc.pt = pt`，`hlc.lc = 0`（重置逻辑计数器）
+3. 否则：物理时间没有前进（可能在同一毫秒内），保持 `hlc.pt` 不变，逻辑计数器加 1（`hlc.lc += 1`）
 
-```JSON
+实现 `hlc_tick`（触发一次本地事件）和 `hlc_get`（获取当前时钟状态）两个处理器：
+
+```json
 请求:  {"type": "hlc_tick", "msg_id": 1}
 响应: {"type": "hlc_tick_ok", "in_reply_to": 1, "pt": 1234567, "lc": 0}
 ```
 
-```JSON
+```json
 请求:  {"type": "hlc_get", "msg_id": 2}
 响应: {"type": "hlc_get_ok", "in_reply_to": 2, "pt": 1234567, "lc": 0}
 ```
@@ -49,17 +45,17 @@ Implement an HLC，包含`hlc_tick`和`hlc_get` handlers:
 
 ## 实现提示
 
-- HLC is a tuple: (physical_time_ms, logical_counter)
-- Physical time comes from the system 时钟
-- Logical 计数器 disambiguates events within the same millisecond
-- HLC always moves forward, even if 时钟 goes backward
-- On send: if pt > max_pt, reset 计数器; else increment 计数器
+- 混合逻辑时钟是一个二元组：（物理时间毫秒数，逻辑计数器）
+- 物理时间来自系统时钟
+- 逻辑计数器用于区分同一毫秒内发生的多个事件
+- 混合逻辑时钟始终向前推进，即使系统时钟发生了回退也不会倒退
+- 发送事件时：如果物理时间大于当前记录的最大物理时间，重置计数器；否则递增计数器
 
 ## 测试用例
 
-### 1. HLC tick returns pt和lc
+### 1. 触发事件后返回物理时间和逻辑计数器
 
-hlc_tick_ok should contain pt > 0和lc = 0 (first tick gets fresh physical time).
+`hlc_tick_ok` 响应应包含 pt > 0 且 lc = 0（第一次触发会获取最新的物理时间）。
 
 输入：
 
@@ -74,7 +70,7 @@ hlc_tick_ok should contain pt > 0和lc = 0 (first tick gets fresh physical time)
 {"src": "n1", "dest": "c0", "body": {"type": "init_ok", "in_reply_to": 1, "msg_id": 0}}
 ```
 
-### 2. HLC get returns initial zero state
+### 2. 获取初始的零状态
 
 输入：
 
@@ -92,7 +88,7 @@ hlc_tick_ok should contain pt > 0和lc = 0 (first tick gets fresh physical time)
 
 ## 参考资料
 
-- [Hybrid Logical Clocks (Kulkarni et al.)](https://cse.buffalo.edu/tech-reports/2014-04.pdf)：Original HLC paper by Kulkarni, Demirbas, et al.
+- [Hybrid Logical Clocks (Kulkarni et al.)](https://cse.buffalo.edu/tech-reports/2014-04.pdf)：混合逻辑时钟的原始论文，由 Kulkarni、Demirbas 等人撰写
 
 ## 本地文件
 

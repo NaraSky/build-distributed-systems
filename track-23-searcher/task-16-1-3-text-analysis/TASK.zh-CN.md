@@ -1,62 +1,56 @@
-# 实现 a Text Analysis Pipeline
+# 实现文本分析流水线
 
 英文标题：Implement a Text Analysis Pipeline
 网页：<https://builddistributedsystem.com/tracks/searcher/tasks/task-16-1-3-text-analysis>
 
-课程：23. 搜索器：分布式搜索
+课程：23. 搜索引擎
 任务序号：3
-短标题：Text Analysis
-难度：intermediate
-子主题：Document模式l和Mapping
+短标题：文本分析
+难度：进阶
+子主题：文档模型与映射
 
 ## 中文导读
 
-本题要求你完成 `实现 a Text Analysis Pipeline`。
-
-重点关注：`text analysis`、`tokenizer`、`lowercase filter`、`stemmer`、`stop words`。
-
-建议先按提示逐步实现：Tokenizer: split text on whitespace和punctuation into individual tokens。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你构建一个文本分析流水线（Text Analysis Pipeline），将原始文本转换为可供索引使用的词元序列。文本分析决定了搜索时能匹配到什么内容，是搜索引擎实现"搜得到"的核心环节。
 
 ## 题目说明
 
-Text analysis converts raw text into a sequence of tokens用于indexing. The analysis pipeline determines how text is searched.
+文本分析（Text Analysis）将原始文本转换为一系列词元（Token），以便建立索引。分析流水线决定了文本被搜索的方式。
 
-**Pipeline stages**:
-1. **Tokenizer**: split "分布式系统: A Primer" into ["Distributed", "Systems", "A", "Primer"]
-2. **Lowercase filter**: ["distributed", "systems", "a", "primer"]
-3. **Stop word filter**: remove "a" -> ["distributed", "systems", "primer"]
-4. **Stemmer (Porter algorithm)**: "distributed" -> "distribut", "systems" -> "system" -> ["distribut", "system", "primer"]
+**流水线各阶段**：
+1. **分词器（Tokenizer）**：将 `"Distributed Systems: A Primer"` 拆分为 `["Distributed", "Systems", "A", "Primer"]`
+2. **小写过滤器（Lowercase Filter）**：`["distributed", "systems", "a", "primer"]`
+3. **停用词过滤器（Stop Word Filter）**：移除 `"a"` -> `["distributed", "systems", "primer"]`
+4. **词干提取器（Stemmer，Porter 算法）**：`"distributed"` -> `"distribut"`，`"systems"` -> `"system"` -> `["distribut", "system", "primer"]`
 
-The same pipeline is applied at both 索引 time (to build the inverted 索引)和query time (to normalize the search query). This ensures that a search用于"Distribution" matches a document containing "Distributed".
+在索引和查询时都会执行同一套流水线。索引时用它构建倒排索引（Inverted Index），查询时用它规范化搜索词。这样就能确保搜索 `"Distribution"` 时可以匹配到包含 `"Distributed"` 的文档。
 
-```JSON
-请求:  {"type": "analyze", "msg_id": 1, "text": "The Quick Brown Fox Jumps", "analyzer": "standard"}
-响应: {"type": "analyze_ok", "in_reply_to": 1, "tokens": [{"token": "quick", "position": 1}, {"token": "brown", "position": 2}, {"token": "fox", "position": 3}, {"token": "jump", "position": 4}]}
+```json
+Request:  {"type": "analyze", "msg_id": 1, "text": "The Quick Brown Fox Jumps", "analyzer": "standard"}
+Response: {"type": "analyze_ok", "in_reply_to": 1, "tokens": [{"token": "quick", "position": 1}, {"token": "brown", "position": 2}, {"token": "fox", "position": 3}, {"token": "jump", "position": 4}]}
 ```
 
 ## 涉及概念
 
-- `text analysis`
-- `tokenizer`
-- `lowercase filter`
-- `stemmer`
-- `stop words`
+- text analysis
+- tokenizer
+- lowercase filter
+- stemmer
+- stop words
 
 ## 实现提示
 
-- Tokenizer: split text on whitespace和punctuation into individual tokens
-- Lowercase filter: convert all tokens to lowercase用于case-insensitive search
-- Stop word filter: remove common words (the, a, is, and, etc.) that add noise
-- Stemmer (Porter): reduce words to their root form (running -> run, distributed -> distribut)
-- Chain these into a pipeline: tokenize -> lowercase -> stop words -> stem
+- 分词器：按空格和标点符号将文本拆分为独立的词元
+- 小写过滤器：将所有词元转换为小写，实现大小写不敏感搜索
+- 停用词过滤器：移除常见的无意义词汇（如 the、a、is、and 等），减少干扰
+- 词干提取器（Porter 算法）：将单词还原为词根形式（如 running -> run，distributed -> distribut）
+- 将这些步骤串联成流水线：分词 -> 转小写 -> 去停用词 -> 提取词干
 
 ## 测试用例
 
-### 1. Standard analyzer tokenizes和lowercases
+### 1. 标准分析器执行分词和转小写
 
-analyze_ok tokens should include "hello"和"world" (lowercased).
+`analyze_ok` 返回的词元应包含 `"hello"` 和 `"world"`（已转为小写）。
 
 输入：
 
@@ -71,9 +65,9 @@ analyze_ok tokens should include "hello"和"world" (lowercased).
 {"src": "n1", "dest": "c0", "body": {"type": "init_ok", "in_reply_to": 1, "msg_id": 0}}
 ```
 
-### 2. Stop words are removed
+### 2. 停用词被正确移除
 
-Tokens should not include "the", "is", "on" (stop words).
+词元中不应包含 `"the"`、`"is"`、`"on"` 等停用词。
 
 输入：
 
@@ -90,7 +84,7 @@ Tokens should not include "the", "is", "on" (stop words).
 
 ## 参考资料
 
-- [Elasticsearch Analysis](https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis.html)：Elasticsearch documentation on text analysis和analyzers
+- [Elasticsearch Analysis](https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis.html)：关于文本分析和分析器的官方文档
 
 ## 本地文件
 

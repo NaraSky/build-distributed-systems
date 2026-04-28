@@ -1,49 +1,43 @@
-# 构建 a Time Oracle 服务，包含Failover
+# 构建带故障转移的时间预言机服务
 
-英文标题：Build a Time Oracle Service，包含Failover
+英文标题：Build a Time Oracle Service with Failover
 网页：<https://builddistributedsystem.com/tracks/timekeeper/tasks/task-4-4-4-time-oracle>
 
 课程：16. 时间守卫：逻辑时钟
 任务序号：19
-短标题：Time Oracle
-难度：advanced
-子主题：混合逻辑 Clocks
+短标题：时间预言机
+难度：高级
+子主题：混合逻辑时钟
 
 ## 中文导读
 
-本题要求你完成 `构建 a Time Oracle 服务，包含Failover`。
-
-重点关注：`time oracle`、`centralized clock`、`failover`、`backup oracle`、`single point of failure`。
-
-建议先按提示逐步实现：The oracle maintains an HLC和issues globally consistent timestamps。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你构建一个集中式的时间预言机（Time Oracle）服务。在分布式系统中，各节点的时钟可能存在不可控的偏差，而时间预言机提供一个全局一致的时间戳来源，解决了这个问题。你还需要实现当主预言机宕机时自动切换到备用预言机的故障转移机制，这是 TiDB 等数据库的核心组件之一。
 
 ## 题目说明
 
-Build a centralized time oracle service that 节点 query用于globally consistent HLC timestamps. This avoids the problem of unbounded 时钟 skew between 节点.
+构建一个集中式的时间预言机服务，各节点向它查询全局一致的 HLC 时间戳，从而避免节点之间时钟偏差不可控的问题。
 
-Architecture:
-- **Primary oracle**: maintains an HLC, issues timestamps on 请求
-- **Backup oracle**: monitors the primary, takes over on 故障
-- **节点**: query the oracle instead of使用local clocks
+系统架构：
+- **主预言机**：维护一个 HLC，按请求发放时间戳
+- **备用预言机**：监控主预言机，主预言机故障时接管工作
+- **普通节点**：向预言机查询时间戳，而不使用本地时钟
 
-故障 mode: if primary crashes after issuing timestamp T but before the backup knows, the backup must start，包含T + safety_margin to avoid issuing duplicate timestamps.
+故障场景：如果主预言机在发放了时间戳 T 之后崩溃，但备用预言机还不知道这件事，那么备用预言机必须从 T + safety_margin 开始发放时间戳，以避免发出重复的时间戳。
 
-Implement handlers:
+请实现以下处理器：
 
-```JSON
-请求:  {"type": "oracle_get_time", "msg_id": 1}
-响应: {"type": "oracle_get_time_ok", "in_reply_to": 1, "pt": 1000, "c": 0, "oracle": "primary"}
+```json
+Request:  {"type": "oracle_get_time", "msg_id": 1}
+Response: {"type": "oracle_get_time_ok", "in_reply_to": 1, "pt": 1000, "c": 0, "oracle": "primary"}
 
-请求:  {"type": "oracle_fail_primary", "msg_id": 2}
-响应: {"type": "oracle_fail_primary_ok", "in_reply_to": 2, "new_oracle": "backup", "safety_margin_ms": 100}
+Request:  {"type": "oracle_fail_primary", "msg_id": 2}
+Response: {"type": "oracle_fail_primary_ok", "in_reply_to": 2, "new_oracle": "backup", "safety_margin_ms": 100}
 
-请求:  {"type": "oracle_get_time", "msg_id": 3}
-响应: {"type": "oracle_get_time_ok", "in_reply_to": 3, "pt": 1100, "c": 0, "oracle": "backup"}
+Request:  {"type": "oracle_get_time", "msg_id": 3}
+Response: {"type": "oracle_get_time_ok", "in_reply_to": 3, "pt": 1100, "c": 0, "oracle": "backup"}
 
-请求:  {"type": "oracle_status", "msg_id": 4}
-响应: {"type": "oracle_status_ok", "in_reply_to": 4, "primary_alive": false, "active_oracle": "backup", "timestamps_issued": 2}
+Request:  {"type": "oracle_status", "msg_id": 4}
+Response: {"type": "oracle_status_ok", "in_reply_to": 4, "primary_alive": false, "active_oracle": "backup", "timestamps_issued": 2}
 ```
 
 ## 涉及概念
@@ -56,17 +50,17 @@ Implement handlers:
 
 ## 实现提示
 
-- The oracle maintains an HLC和issues globally consistent timestamps
-- 节点 query the oracle instead of使用their own clocks用于ordering
-- If the primary oracle crashes, the backup takes over，包含a higher 计数器
-- The backup oracle must start，包含a timestamp guaranteed to be higher than any issued by the primary
-- Use a lease mechanism: the oracle is valid only while its lease is active
+- 预言机维护一个 HLC，对外发放全局一致的时间戳
+- 各节点向预言机查询时间戳，而不用自己的本地时钟来排序
+- 如果主预言机崩溃，备用预言机以更大的计数器接管
+- 备用预言机必须从一个保证比主预言机发出过的任何时间戳都大的值开始
+- 使用租约机制：预言机只在租约有效期内才是合法的
 
 ## 测试用例
 
-### 1. Primary oracle issues timestamps
+### 1. 主预言机发放时间戳
 
-Two oracle_get_time_ok responses from primary oracle. Second timestamp must be strictly greater than first.
+两次 `oracle_get_time_ok` 响应来自主预言机，第二个时间戳必须严格大于第一个。
 
 输入：
 
@@ -82,9 +76,9 @@ Two oracle_get_time_ok responses from primary oracle. Second timestamp must be s
 {"src": "n1", "dest": "c0", "body": {"type": "init_ok", "in_reply_to": 1, "msg_id": 0}}
 ```
 
-### 2. Failover to backup oracle
+### 2. 故障转移到备用预言机
 
-After oracle_fail_primary, oracle_get_time_ok should show oracle: backup和pt >= last_primary_pt + safety_margin.
+在 `oracle_fail_primary` 之后，`oracle_get_time_ok` 应显示 oracle 为 backup，且 pt 大于等于上一次主预言机发出的 pt 加上 safety_margin。
 
 输入：
 
@@ -103,7 +97,7 @@ After oracle_fail_primary, oracle_get_time_ok should show oracle: backup和pt >=
 
 ## 参考资料
 
-- [TiDB - Timestamp Oracle Design](https://docs.pingcap.com/tidb/stable/tidb-architecture)：How TiDB uses a centralized timestamp oracle (TSO)用于事务 ordering
+- [TiDB - Timestamp Oracle Design](https://docs.pingcap.com/tidb/stable/tidb-architecture)：介绍 TiDB 如何使用集中式时间戳预言机来实现事务排序
 
 ## 本地文件
 

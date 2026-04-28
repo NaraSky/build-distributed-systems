@@ -1,81 +1,74 @@
-# Validate Uniqueness Across Distributed Nodes
+# 验证分布式节点间的 ID 唯一性
 
-英文标题：Validate Uniqueness Across Distributed Nodes
 网页：<https://builddistributedsystem.com/tracks/identifier/tasks/task-2-4-uniqueness-validation>
 
 课程：2. 标识符：分布式唯一 ID
 任务序号：4
-短标题：Uniqueness 校验
-难度：intermediate
-子主题：Why 唯一 IDs Are Hard
+短标题：唯一性验证
+难度：进阶
+子主题：为什么唯一 ID 这么难
 
 ## 中文导读
 
-本题要求你完成 `Validate Uniqueness Across Distributed Nodes`。
-
-重点关注：`testing`、`verification`、`global uniqueness`。
-
-建议先按提示逐步实现：Maelstrom will verify uniqueness automatically。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题让你用 Maelstrom 测试框架来验证 ID 生成器的正确性。Maelstrom 会收集所有节点生成的全部 ID，并检查是否有重复。这是从"觉得正确"到"证明正确"的关键一步。
 
 ## 题目说明
 
-Run your ID generator through Maelstrom verification to prove uniqueness. Maelstrom collects all generated IDs across all 节点和checks用于duplicates.
+将你的 ID 生成器放到 Maelstrom 验证框架中运行，以证明其唯一性。Maelstrom 会收集所有节点生成的全部 ID，然后检查是否存在重复。
 
-Your implementation must pass with:
+你的实现必须在以下条件下通过验证：
 
-- Multiple 节点 generating concurrently
-- High throughput (thousands of IDs per second)
-- 网络 partitions separating 节点
+- 多个节点同时并发生成 ID
+- 高吞吐量（每秒数千个 ID）
+- 网络分区导致节点被隔离
 
-Think about **why** your scheme guarantees uniqueness. What assumptions does it make? What could cause collisions?
+请思考：你的方案**为什么**能保证唯一性？它依赖了哪些假设？什么情况下可能产生冲突？
 
 ## 概念说明
 
-## Proving Uniqueness
+### 证明唯一性
 
-A strong ID scheme should have a **provable uniqueness guarantee**.
+一个好的 ID 方案应该有**可证明的唯一性保证**。
 
-### The Proof Structure
+### 证明的结构
 
-If IDs combine:
+如果 ID 由以下三部分组成：
 
-  - `node_id` - unique per 节点
+  - `node_id` - 每个节点唯一
 
-  - `timestamp` - monotonic
+  - `timestamp` - 单调递增
 
-  - `sequence` - unique per timestamp
+  - `sequence` - 每个时间戳内唯一
 
-Then uniqueness is guaranteed as long as:
+那么只要满足以下条件，唯一性就能得到保证：
 
-  - 节点 IDs are unique
+  - 节点 ID 不重复
 
-  - Clocks do not go backwards more than a tolerable amount
+  - 时钟回退不超过可容忍的范围
 
-  - Sequence does not overflow
+  - 序列号不会溢出
 
-### Failure模式s
+### 失败场景分析
 
   
-    Failure
-    Cause
-    Mitigation
+    失败类型
+    原因
+    应对策略
   
   
-    Clock sync issue
-    NTP adjustment
-    Wait or use previous timestamp
+    时钟同步问题
+    NTP 调整
+    等待或沿用上一个时间戳
   
   
-   节点ID reuse
-   节点restart，包含same ID
-    Persist counter or use epoch
+    节点 ID 重用
+    节点用相同 ID 重启
+    持久化计数器或使用纪元
   
   
-    Sequence overflow
-    >4096 IDs/ms
-    Wait用于next millisecond
+    序列号溢出
+    每毫秒超过 4096 个 ID
+    等待下一个毫秒
 
 ## 涉及概念
 
@@ -85,13 +78,13 @@ Then uniqueness is guaranteed as long as:
 
 ## 实现提示
 
-- Maelstrom will verify uniqueness automatically
-- Consider mathematical proof of your ID uniqueness
-- Document your uniqueness guarantees
+- Maelstrom 会自动验证唯一性
+- 思考一下你的 ID 唯一性的数学证明
+- 记录你的唯一性保证条件
 
 ## 测试用例
 
-### 1. Generate two IDs，包含正确的 format
+### 1. 生成两个格式正确的 ID
 
 输入：
 
@@ -111,7 +104,7 @@ Then uniqueness is guaranteed as long as:
 
 ## 参考资料
 
-- [Maelstrom Unique IDs Workload](https://github.com/jepsen-io/maelstrom/blob/main/doc/workloads.md#workload-unique-ids)：Specification用于the unique-ids workload
+- [Maelstrom Unique IDs Workload](https://github.com/jepsen-io/maelstrom/blob/main/doc/workloads.md#workload-unique-ids)：Maelstrom 唯一 ID 工作负载的规范说明
 
 ## 本地文件
 

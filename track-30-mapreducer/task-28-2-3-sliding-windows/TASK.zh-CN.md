@@ -1,64 +1,62 @@
-# 实现 Sliding Windows
+# 实现滑动窗口
 
 英文标题：Implement Sliding Windows
 网页：<https://builddistributedsystem.com/tracks/mapreducer/tasks/task-28-2-3-sliding-windows>
 
 课程：30. MapReducer：批处理与流处理
 任务序号：8
-短标题：Sliding Windows
-难度：advanced
+短标题：滑动窗口
+难度：高级
 子主题：Stream Processing
 
 ## 中文导读
 
-本题要求你完成 `实现 Sliding Windows`。
-
-重点关注：`sliding windows`、`overlapping windows`、`window size`、`slide interval`、`moving average`。
-
-建议先按提示逐步实现：An event at time T belongs to every window whose [start, end) contains T。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你实现流处理中的滑动窗口（Sliding Window）。与翻滚窗口不同，滑动窗口之间是可以重叠的，同一个事件可能同时属于多个窗口。这使得滑动窗口非常适合计算"最近 5 分钟的平均延迟，每分钟更新一次"这类平滑的滚动统计。理解滑动窗口是掌握流处理高级窗口模型的关键一步。
 
 ## 题目说明
 
-Tumbling windows are non-overlapping — an event belongs to exactly one window. Sliding windows **overlap**: each event belongs to multiple windows, enabling smooth rolling aggregations like "average latency over the last 5 minutes, updated every minute".
+翻滚窗口是互不重叠的，每个事件恰好属于一个窗口。滑动窗口（Sliding Window）则是**可重叠**的：每个事件同时属于多个窗口，从而实现平滑的滚动聚合，比如"最近 5 分钟的平均延迟，每分钟更新一次"。
 
 ```
-window_size=5min, slide=1min
+窗口大小=5分钟, 滑动步长=1分钟
 
-Events at 10:02: ---e1---
+10:02 时刻的事件: ---e1---
 
-Windows containing e1:
-  [10:00 - 10:05]  <- window starting at 10:00
-  [10:01 - 10:06]  <- window starting at 10:01
-  [10:02 - 10:07]  <- window starting at 10:02
+包含 e1 的窗口:
+  [10:00 - 10:05]  <- 从 10:00 开始的窗口
+  [10:01 - 10:06]  <- 从 10:01 开始的窗口
+  [10:02 - 10:07]  <- 从 10:02 开始的窗口
 ```
 
-Your 节点 handles two 消息 types:
+你的节点需要处理两种消息类型：
 
-```JSON
-// Assign one event to all sliding windows it belongs to
+```json
+// 将一个事件分配到它所属的所有滑动窗口
 { "type": "assign", "msg_id": 1,
   "event_timestamp": "2024-01-15T10:02:00Z",
   "current_time":    "2024-01-15T10:03:00Z",
   "window_size_ms":  300000,
   "slide_ms":        60000 }
-→ { "type": "assigned", "in_reply_to": 1,
+-> { "type": "assigned", "in_reply_to": 1,
     "windows": [
       {"window_id": "...", "window_start": "2024-01-15T10:00:00Z", "window_end": "2024-01-15T10:05:00Z"},
       {"window_id": "...", "window_start": "2024-01-15T10:01:00Z", "window_end": "2024-01-15T10:06:00Z"},
       {"window_id": "...", "window_start": "2024-01-15T10:02:00Z", "window_end": "2024-01-15T10:07:00Z"}
     ]}
 
-// List all windows active at the given time
+// 列出在给定时间点处于活跃状态的所有窗口
 { "type": "active_windows", "msg_id": 2,
   "current_time": "2024-01-15T10:03:00Z",
   "window_size_ms": 300000,
   "slide_ms": 60000 }
-→ { "type": "active_windows_result", "in_reply_to": 2, "count": 5 }
+-> { "type": "active_windows_result", "in_reply_to": 2, "count": 5 }
 ```
 
-The key difference from tumbling windows: `window_size_ms / slide_ms` windows are active at any point in time.
+与翻滚窗口的关键区别在于：在任意时间点，同时处于活跃状态的窗口数量等于 `window_size_ms / slide_ms`。
+
+## 概念说明
+
+如果说翻滚窗口像传送带上不重叠的篮子，那滑动窗口就像一组相互交叠的放大镜在时间轴上滑动。每隔一个滑动步长就有一个新窗口开始，但每个窗口的持续时间比滑动步长长得多，所以窗口之间是有重叠的。一个事件可以同时被多个"放大镜"看到。这样做的好处是统计结果更平滑，不会因为窗口边界的变化产生突变。
 
 ## 涉及概念
 
@@ -70,17 +68,17 @@ The key difference from tumbling windows: `window_size_ms / slide_ms` windows ar
 
 ## 实现提示
 
-- An event at time T belongs to every window whose [start, end) contains T
-- Window starts: all multiples of slide_ms from (T - window_size_ms) up to T
-- Number of windows per event = window_size_ms / slide_ms
-- For active_windows, list all windows that overlap，包含current_time
-- Moving average: sum event values across the window, divide by count
+- 时间 T 的事件属于每一个区间 [start, end) 包含 T 的窗口
+- 窗口起始时间：从 (T - window_size_ms) 到 T 之间所有 slide_ms 的整数倍
+- 每个事件所属的窗口数量 = window_size_ms / slide_ms
+- 对于活跃窗口查询，列出所有与当前时间重叠的窗口
+- 移动平均值：对窗口内的事件值求和，再除以事件数量
 
 ## 测试用例
 
-### 1. Assign to sliding windows
+### 1. 分配到滑动窗口
 
-Event at 10:02 should belong to 3 overlapping 5-min windows.
+10:02 的事件应属于 3 个重叠的 5 分钟窗口。
 
 输入：
 
@@ -94,9 +92,9 @@ Event at 10:02 should belong to 3 overlapping 5-min windows.
 {"type": "assigned", "in_reply_to": 1, "windows": [{"window_id": "window-1705305600000-1705307400000", "window_start": "2024-01-15T10:00:00Z", "window_end": "2024-01-15T10:05:00Z"}, {"window_id": "window-1705305660000-1705307460000", "window_start": "2024-01-15T10:01:00Z", "window_end": "2024-01-15T10:06:00Z"}, {"window_id": "window-1705305720000-1705307520000", "window_start": "2024-01-15T10:02:00Z", "window_end": "2024-01-15T10:07:00Z"}]}
 ```
 
-### 2. Count active windows
+### 2. 统计活跃窗口数量
 
-window_size/slide = 300000/60000 = 5 active windows at any moment.
+窗口大小除以滑动步长 = 300000 / 60000 = 在任意时刻有 5 个活跃窗口。
 
 输入：
 
@@ -112,7 +110,7 @@ window_size/slide = 300000/60000 = 5 active windows at any moment.
 
 ## 参考资料
 
-- [Streaming 102 — The World Beyond Batch](https://www.oreilly.com/ideas/the-world-beyond-batch-streaming-102)：Windowing models: tumbling, sliding,和session windows
+- [Streaming 102 — The World Beyond Batch](https://www.oreilly.com/ideas/the-world-beyond-batch-streaming-102)：介绍翻滚窗口、滑动窗口和会话窗口等窗口模型
 
 ## 本地文件
 

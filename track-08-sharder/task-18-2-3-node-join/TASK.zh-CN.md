@@ -1,39 +1,33 @@
-#处理Node Addition，包含Minimal Key Migration
+# 处理节点加入与最小化键迁移
 
-英文标题：Handle节点Addition，包含Minimal Key Migration
+英文标题：Handle Node Addition with Minimal Key Migration
 网页：<https://builddistributedsystem.com/tracks/sharder/tasks/task-18-2-3-node-join>
 
 课程：8. 分片器：水平扩展与数据迁移
 任务序号：8
-短标题：Node Join
-难度：intermediate
+短标题：节点加入
+难度：进阶
 子主题：Consistent Hashing
 
 ## 中文导读
 
-本题要求你完成 `Handle节点Addition，包含Minimal Key Migration`。
-
-重点关注：`node addition`、`key migration`、`minimal disruption`、`predecessor takeover`、`data transfer`。
-
-建议先按提示逐步实现：When a new 节点 joins, it takes keys from its clockwise neighbor。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你处理新节点加入一致性哈希环时的键迁移过程。新节点加入后会接管其顺时针邻居的一部分键空间，关键在于只需迁移很少的键（约 1/N），而不是像取模哈希那样几乎全部重新分配。理解这个过程有助于你实现平滑的集群扩容。
 
 ## 题目说明
 
-When a 节点 joins, it takes over a portion of the key space from its clockwise neighbor. Only the keys that now fall in the new 节点's range need to migrate.
+当一个节点加入哈希环时，它会接管其顺时针邻居的一部分键空间。只有落入新节点范围内的键需要迁移。
 
-**Join process**:
-1. New 节点 N4 calculates its position on the ring
-2. N4 finds its clockwise neighbor (successor) N2
-3. Keys between N4's 计数器-clockwise neighbor和N4 are transferred from N2 to N4
-4. Only ~1/N of total keys are affected (minimal disruption)
+**加入流程**：
+1. 新节点 N4 计算自己在环上的位置
+2. N4 找到自己的顺时针邻居（后继节点）N2
+3. 位于 N4 的逆时针邻居和 N4 之间的键从 N2 转移到 N4
+4. 只有总键数的约 1/N 受到影响（最小化扰动）
 
-**With virtual 节点**: the new 节点 takes V positions on the ring, taking small ranges from multiple existing 节点. This distributes the migration load evenly.
+**配合虚拟节点**：新节点会在环上占据 V 个位置，从多个现有节点各取一小段范围，使迁移负载均匀分散。
 
-```JSON
-请求:  {"type": "ring_add_node", "msg_id": 1, "new_node": "n4"}
-响应: {"type": "ring_add_node_ok", "in_reply_to": 1, "keys_migrated": 250, "total_keys": 1000, "migration_pct": 25.0, "source_nodes": ["n1", "n2", "n3"]}
+```json
+Request:  {"type": "ring_add_node", "msg_id": 1, "new_node": "n4"}
+Response: {"type": "ring_add_node_ok", "in_reply_to": 1, "keys_migrated": 250, "total_keys": 1000, "migration_pct": 25.0, "source_nodes": ["n1", "n2", "n3"]}
 ```
 
 ## 涉及概念
@@ -46,17 +40,17 @@ When a 节点 joins, it takes over a portion of the key space from its clockwise
 
 ## 实现提示
 
-- When a new 节点 joins, it takes keys from its clockwise neighbor
-- Only keys between the new 节点和its 计数器-clockwise neighbor migrate
-- This is ~1/N of total keys (vs. nearly 100%，包含modulo hashing)
-- During migration, the old owner continues serving reads用于migrating keys
-- After migration completes, redirect new requests to the new owner
+- 新节点加入时，从其顺时针邻居处接管键
+- 只有新节点和它逆时针邻居之间的键需要迁移
+- 迁移量约为总键数的 1/N（而取模哈希接近 100%）
+- 迁移期间，旧的拥有者继续为迁移中的键提供读服务
+- 迁移完成后，将新请求转发给新的拥有者
 
 ## 测试用例
 
-### 1.节点join migrates roughly 1/N keys
+### 1. 节点加入时大约迁移 1/N 的键
 
-migration_pct should be roughly 25% (1/4用于4 节点).
+迁移百分比应大约为 25%（4 个节点时为 1/4）。
 
 输入：
 
@@ -71,9 +65,9 @@ migration_pct should be roughly 25% (1/4用于4 节点).
 {"src": "n1", "dest": "c0", "body": {"type": "init_ok", "in_reply_to": 1, "msg_id": 0}}
 ```
 
-### 2. Keys are still accessible after migration
+### 2. 迁移后键仍可访问
 
-ring_lookup_ok should return the new owner用于migrated keys.
+`ring_lookup_ok` 应为已迁移的键返回新的拥有者。
 
 输入：
 
@@ -91,7 +85,7 @@ ring_lookup_ok should return the new owner用于migrated keys.
 
 ## 参考资料
 
-- [Consistent Hashing:节点Addition](https://www.cs.princeton.edu/courses/archive/fall09/cos518/papers/chash.pdf)：Karger et al. - Consistent Hashing和Random Trees
+- [Consistent Hashing: Node Addition](https://www.cs.princeton.edu/courses/archive/fall09/cos518/papers/chash.pdf)：Karger 等人关于一致性哈希与随机树的论文
 
 ## 本地文件
 

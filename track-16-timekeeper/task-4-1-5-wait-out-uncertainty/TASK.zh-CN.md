@@ -1,35 +1,29 @@
-# Wait-Out-Uncertainty用于External Consistency
+# 等待不确定性窗口以实现外部一致性
 
-英文标题：Wait-Out-Uncertainty用于External Consistency
+英文标题：Wait-Out-Uncertainty for External Consistency
 网页：<https://builddistributedsystem.com/tracks/timekeeper/tasks/task-4-1-5-wait-out-uncertainty>
 
 课程：16. 时间守卫：逻辑时钟
 任务序号：5
-短标题：Wait Uncertainty
-难度：advanced
-子主题：Physical Time和Its Failures
+短标题：等待不确定性
+难度：高级
+子主题：物理时间及其缺陷
 
 ## 中文导读
 
-本题要求你完成 `Wait-Out-Uncertainty用于External Consistency`。
-
-重点关注：`external consistency`、`commit wait`、`Spanner`、`linearizability`。
-
-建议先按提示逐步实现：Before committing, wait until TrueTime.now().earliest > commit_timestamp。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题让你实现 Spanner 的"提交等待"机制。核心思想很简单：在提交事务时，不要立刻返回，而是等一小段时间，直到你确定所有后来的事务都能看到你的提交。这段等待时间就是 TrueTime 的不确定性窗口。虽然等待会增加延迟，但它换来了外部一致性（External Consistency）——这是比线性一致性更强的保证。
 
 ## 题目说明
 
-Spanner achieves external consistency by waiting out the uncertainty window: before committing a 事务 at timestamp T, wait until `TrueTime.now().earliest > T`. This guarantees causally-later transactions see this commit.
+Spanner 通过"等待不确定性窗口"来实现外部一致性：在以时间戳 T 提交事务之前，必须等到 `TrueTime.now().earliest > T`，这样就能保证因果关系上更晚的事务一定能看到这次提交。
 
-Implement a `commit` handler，包含wait-out-uncertainty:
-```JSON
-请求:  {"type": "commit", "msg_id": 1, "key": "x", "value": "v1"}
-响应: {"type": "commit_ok", "in_reply_to": 1, "commit_ts": 1234567, "wait_ms": 7}
+实现一个带有"等待不确定性"机制的 `commit` 消息处理器：
+```json
+Request:  {"type": "commit", "msg_id": 1, "key": "x", "value": "v1"}
+Response: {"type": "commit_ok", "in_reply_to": 1, "commit_ts": 1234567, "wait_ms": 7}
 
-请求:  {"type": "commit_stats", "msg_id": 2}
-响应: {"type": "commit_stats_ok", "in_reply_to": 2, "total_commits": 5, "total_wait_ms": 35, "avg_wait_ms": 7}
+Request:  {"type": "commit_stats", "msg_id": 2}
+Response: {"type": "commit_stats_ok", "in_reply_to": 2, "total_commits": 5, "total_wait_ms": 35, "avg_wait_ms": 7}
 ```
 
 ## 涉及概念
@@ -41,17 +35,17 @@ Implement a `commit` handler，包含wait-out-uncertainty:
 
 ## 实现提示
 
-- Before committing, wait until TrueTime.now().earliest > commit_timestamp
-- This guarantees that any future read will see this commit
-- The wait duration equals the uncertainty window
-- This is how Spanner achieves external consistency without locks
-- Track total wait time用于performance analysis
+- 提交前，必须等待到 `TrueTime.now().earliest > commit_timestamp`
+- 这保证了未来的任何读操作都能看到这次提交
+- 等待时长等于不确定性窗口的大小
+- 这就是 Spanner 在不使用锁的情况下实现外部一致性的方式
+- 记录总等待时间，便于进行性能分析
 
 ## 测试用例
 
-### 1. Commit stores value
+### 1. 提交并存储值
 
-commit_ok，包含commit_ts和wait_ms, then kv_read_ok，包含value=v1.
+返回的 `commit_ok` 中应包含 `commit_ts` 和 `wait_ms`，随后通过 `kv_read_ok` 读取到 `value=v1`。
 
 输入：
 
@@ -67,7 +61,7 @@ commit_ok，包含commit_ts和wait_ms, then kv_read_ok，包含value=v1.
 {"src": "n1", "dest": "c0", "body": {"type": "init_ok", "in_reply_to": 1, "msg_id": 0}}
 ```
 
-### 2. Commit stats，包含no commits
+### 2. 无提交时查询统计信息
 
 输入：
 
@@ -85,7 +79,7 @@ commit_ok，包含commit_ts和wait_ms, then kv_read_ok，包含value=v1.
 
 ## 参考资料
 
-- [Spanner Commit Wait](https://cloud.google.com/spanner/docs/true-time-external-consistency)：Google Cloud documentation on TrueTime commit wait
+- [Spanner Commit Wait](https://cloud.google.com/spanner/docs/true-time-external-consistency)：关于 TrueTime 提交等待机制的 Google Cloud 文档
 
 ## 本地文件
 

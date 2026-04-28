@@ -1,43 +1,37 @@
-# Simulate并发Mutex Requests from Multiple Nodes
+# 模拟多节点并发互斥请求
 
-英文标题：Simulate并发Mutex Requests from Multiple Nodes
+英文标题：Simulate Concurrent Mutex Requests from Multiple Nodes
 网页：<https://builddistributedsystem.com/tracks/timekeeper/tasks/task-4-2-4-mutex-contention>
 
 课程：16. 时间守卫：逻辑时钟
 任务序号：9
-短标题：Mutex Contention
-难度：advanced
-子主题：Lamport Clocks
+短标题：互斥竞争
+难度：高级
+子主题：Lamport 时钟
 
 ## 中文导读
 
-本题要求你完成 `Simulate并发Mutex Requests from Multiple Nodes`。
-
-重点关注：`contention`、`fairness`、`wait time`、`queue ordering`。
-
-建议先按提示逐步实现：When multiple 节点 请求 simultaneously, the one，包含the lowest (ts, node_id) wins。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题模拟的是一个高竞争场景：5 个节点同时请求互斥锁。在 Lamport 算法中，同一时刻只能有一个节点持有锁，那么当多个请求同时到达时，谁先获得锁？答案是按 `(时间戳, 节点编号)` 排序——时间戳最小的优先，时间戳相同则节点编号小的优先。通过这道题，你可以直观感受分布式互斥中的竞争和公平性问题。
 
 ## 题目说明
 
-Simulate 5 节点 all requesting the mutex simultaneously. With Lamport's algorithm, only one can hold it at a time. The 请求，包含the lowest (timestamp, node_id) pair wins.
+模拟 5 个节点同时请求互斥锁的场景。在 Lamport 算法下，同一时刻只有一个节点可以持有锁。拥有最小 `(时间戳, 节点编号)` 对的请求会最先获得锁。
 
-Your task is to process multiple lock requests和verify mutual exclusion:
+你的任务是处理多个加锁请求，并验证互斥性：
 
-```JSON
-请求:  {"type": "multi_request", "msg_id": 1, "requests": [
-    {"节点": "n1", "ts": 3}, {"节点": "n2", "ts": 1}, {"节点": "n3", "ts": 3},
-    {"节点": "n4", "ts": 2}, {"节点": "n5", "ts": 1}
+```json
+Request:  {"type": "multi_request", "msg_id": 1, "requests": [
+    {"node": "n1", "ts": 3}, {"node": "n2", "ts": 1}, {"node": "n3", "ts": 3},
+    {"node": "n4", "ts": 2}, {"node": "n5", "ts": 1}
 ]}
-响应: {"type": "multi_request_ok", "in_reply_to": 1, "grant_order": ["n2","n5","n4","n1","n3"],
+Response: {"type": "multi_request_ok", "in_reply_to": 1, "grant_order": ["n2","n5","n4","n1","n3"],
            "violations": 0}
 ```
 
-Also implement a `release_lock` handler:
-```JSON
-请求:  {"type": "release_lock", "msg_id": 2, "节点": "n2"}
-响应: {"type": "release_lock_ok", "in_reply_to": 2, "next_holder": "n5"}
+同时实现 `release_lock` 消息处理器：
+```json
+Request:  {"type": "release_lock", "msg_id": 2, "node": "n2"}
+Response: {"type": "release_lock_ok", "in_reply_to": 2, "next_holder": "n5"}
 ```
 
 ## 涉及概念
@@ -49,15 +43,15 @@ Also implement a `release_lock` handler:
 
 ## 实现提示
 
-- When multiple 节点 请求 simultaneously, the one，包含the lowest (ts, node_id) wins
-- Track how long each 节点 waits before acquiring the lock
-- Verify mutual exclusion: only one holder at a time
-- After release, the next 节点 in the 队列 should be able to acquire
-- Report average和max wait times across all requests
+- 当多个节点同时请求锁时，拥有最小 `(时间戳, 节点编号)` 的节点优先获得锁
+- 跟踪每个节点从请求到获得锁的等待时间
+- 验证互斥性：任意时刻只有一个节点持有锁
+- 释放锁后，队列中的下一个节点应自动获得锁
+- 统计并报告所有请求的平均和最大等待时间
 
 ## 测试用例
 
-### 1. Multi request orders by (ts, node_id)
+### 1. 批量请求按 (时间戳, 节点编号) 排序
 
 输入：
 
@@ -73,7 +67,7 @@ Also implement a `release_lock` handler:
 {"src": "n1", "dest": "c1", "body": {"type": "multi_request_ok", "in_reply_to": 2, "grant_order": ["n2", "n5", "n4", "n1", "n3"], "violations": 0, "msg_id": 1}}
 ```
 
-### 2. Single request gets immediate grant
+### 2. 单个请求立即获得锁
 
 输入：
 
@@ -91,7 +85,7 @@ Also implement a `release_lock` handler:
 
 ## 参考资料
 
-- [Mutual Exclusion in Distributed Systems](https://www.cs.helsinki.fi/group/cosco/Teaching/2012/DS-lect/Lect09.pdf)：Lecture on distributed mutual exclusion和contention handling
+- [Mutual Exclusion in Distributed Systems](https://www.cs.helsinki.fi/group/cosco/Teaching/2012/DS-lect/Lect09.pdf)：关于分布式互斥与竞争处理的课程讲义
 
 ## 本地文件
 

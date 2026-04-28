@@ -1,39 +1,33 @@
-# 实现 API Gateway 服务 Routing
+# 实现 API 网关的服务路由
 
 英文标题：Implement API Gateway Service Routing
 网页：<https://builddistributedsystem.com/tracks/proxies/tasks/task-21-2-1-api-gateway-routing>
 
 课程：12. 代理
 任务序号：6
-短标题：API Gateway Routing
-难度：intermediate
-子主题：API Gateway
+短标题：API 网关路由
+难度：进阶
+子主题：API 网关
 
 ## 中文导读
 
-本题要求你完成 `实现 API Gateway 服务 Routing`。
-
-重点关注：`API gateway`、`service routing`、`microservices`、`unified entry point`、`service discovery`。
-
-建议先按提示逐步实现：API gateway provides unified entry point用于multiple microservices。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现一个 API 网关（API Gateway）的服务路由功能。API 网关是微服务架构中的统一入口，客户端只需向网关发送一个请求，网关根据 URL 模式将请求路由到对应的后端微服务。这样客户端不需要知道后端有多少个服务，也不需要知道每个服务的地址，大大简化了客户端的复杂度。
 
 ## 题目说明
 
-An API Gateway provides a unified entry point用于multiple microservices. Clients make one 请求 to the gateway, which routes to the appropriate backend service.
+API 网关为多个微服务提供统一的入口。客户端向网关发送一个请求，网关负责将其路由到正确的后端服务。
 
-**Gateway architecture**:
+**网关架构**：
 ```
-Clients → API Gateway → Microservices
-  - /api/users/*    → users-service (3 instances)
-  - /api/orders/*   → orders-service (2 instances)
-  - /api/products/* → products-service (4 instances)
-  - /api/payments/* → payments-service (2 instances)
+客户端 → API 网关 → 微服务
+  - /api/users/*    → users-service（3 个实例）
+  - /api/orders/*   → orders-service（2 个实例）
+  - /api/products/* → products-service（4 个实例）
+  - /api/payments/* → payments-service（2 个实例）
 ```
 
-**Routing rules**:
-```JSON
+**路由规则**：
+```json
 {
   "routes": [
     {
@@ -61,15 +55,15 @@ Clients → API Gateway → Microservices
 }
 ```
 
-**Example gateway routing**:
-```JSON
-// 请求 to gateway:
-请求:  {"type": "api_request", "msg_id": 1, "method": "GET", "path": "/api/users/123", "headers": {"Host": "api.example.com"}}
-响应: {"type": "api_response", "in_reply_to": 1, "status": 200, "service": "users-service", "backend": "users-1", "body": "{"id": 123, "name": "Alice"}"}
+**网关路由示例**：
+```json
+// 发送到网关的请求：
+Request:  {"type": "api_request", "msg_id": 1, "method": "GET", "path": "/api/users/123", "headers": {"Host": "api.example.com"}}
+Response: {"type": "api_response", "in_reply_to": 1, "status": 200, "service": "users-service", "backend": "users-1", "body": "{"id": 123, "name": "Alice"}"}
 
-// 请求，包含versioning:
-请求:  {"type": "api_request", "msg_id": 2, "method": "GET", "path": "/api/v2/users/123", "headers": {"Host": "api.example.com"}}
-响应: {"type": "api_response", "in_reply_to": 2, "status": 200, "service": "users-service", "backend": "users-v2-1", "body": "{"id": 123, "name": "Alice", "email": "alice@example.com"}"}
+// 带版本号的请求：
+Request:  {"type": "api_request", "msg_id": 2, "method": "GET", "path": "/api/v2/users/123", "headers": {"Host": "api.example.com"}}
+Response: {"type": "api_response", "in_reply_to": 2, "status": 200, "service": "users-service", "backend": "users-v2-1", "body": "{"id": 123, "name": "Alice", "email": "alice@example.com"}"}
 ```
 
 ## 涉及概念
@@ -82,17 +76,17 @@ Clients → API Gateway → Microservices
 
 ## 实现提示
 
-- API gateway provides unified entry point用于multiple microservices
-- Route requests to backend services based on URL patterns
-- Example: /api/users/* → users-service, /api/orders/* → orders-service
-- Support service versioning: /api/v1/users vs /api/v2/users
--处理service discovery: dynamically resolve service instances
+- API 网关为多个微服务提供统一的入口
+- 根据 URL 模式将请求路由到对应的后端服务
+- 例如：/api/users/* 路由到 users-service，/api/orders/* 路由到 orders-service
+- 支持服务版本管理：/api/v1/users 和 /api/v2/users 路由到不同版本
+- 处理服务发现：动态解析服务实例的地址
 
 ## 测试用例
 
-### 1. Route to correct 服务
+### 1. 路由到正确的服务
 
-api_response should route to users-service backend.
+api_response 应该路由到 users-service 后端。
 
 输入：
 
@@ -107,9 +101,9 @@ api_response should route to users-service backend.
 {"src": "gateway", "dest": "client", "body": {"type": "init_ok", "in_reply_to": 1}}
 ```
 
-### 2. 服务 versioning
+### 2. 服务版本路由
 
-Should route to v2 of users-service based on URL path.
+应根据 URL 路径将请求路由到 users-service 的 v2 版本。
 
 输入：
 
@@ -125,7 +119,7 @@ Should route to v2 of users-service based on URL path.
 
 ## 参考资料
 
-- [API Gateway Pattern](https://microservices.io/patterns/apigateway.html)：Microservices.io documentation on API Gateway pattern
+- [API Gateway Pattern](https://microservices.io/patterns/apigateway.html)：Microservices.io 上关于 API 网关模式的文档
 
 ## 本地文件
 

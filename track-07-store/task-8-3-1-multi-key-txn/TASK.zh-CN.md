@@ -1,40 +1,34 @@
-# 实现 Multi-Key Transactions as Atomic 日志 Entries
+# 实现多键事务的原子日志条目
 
 英文标题：Implement Multi-Key Transactions as Atomic Log Entries
 网页：<https://builddistributedsystem.com/tracks/store/tasks/task-8-3-1-multi-key-txn>
 
-课程：7. 存储：线性一致 KV Store
+课程：7. 存储：线性一致键值存储
 任务序号：11
 短标题：Multi-Key Transactions
-难度：advanced
-子主题：Transactions on Raft
+难度：高级
+子主题：基于 Raft 的事务
 
 ## 中文导读
 
-本题要求你完成 `实现 Multi-Key Transactions as Atomic 日志 Entries`。
-
-重点关注：`multi-key transaction`、`atomic batch`、`log entry`、`all-or-nothing`。
-
-建议先按提示逐步实现：A 事务 is a batch of Get/Put/Delete operations committed as a single 日志 entry。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现多键事务（Multi-Key Transaction）。之前的任务只涉及单个键的操作，而现实中的应用常常需要同时修改多个键，比如转账时同时扣减一方余额、增加另一方余额。这道题让你把一组操作打包成一条日志条目，保证它们要么全部执行，要么全部不执行。
 
 ## 题目说明
 
-Implement multi-key transactions. A 事务 is a batch of operations committed as a single 日志 entry用于atomicity.
+实现多键事务。一个事务（Transaction）是一批操作的集合，作为单条日志条目提交，从而保证原子性。
 
-```JSON
-请求:  {"type": "txn_execute", "msg_id": 1, "operations": [
+```json
+Request:  {"type": "txn_execute", "msg_id": 1, "operations": [
     {"op": "put", "key": "balance_a", "value": "900"},
     {"op": "put", "key": "balance_b", "value": "1100"}
 ]}
-响应: {"type": "txn_execute_ok", "in_reply_to": 1, "committed": true, "log_index": 5, "ops_applied": 2}
+Response: {"type": "txn_execute_ok", "in_reply_to": 1, "committed": true, "log_index": 5, "ops_applied": 2}
 
-请求:  {"type": "txn_execute", "msg_id": 2, "operations": [
+Request:  {"type": "txn_execute", "msg_id": 2, "operations": [
     {"op": "get", "key": "balance_a"},
     {"op": "get", "key": "balance_b"}
 ]}
-响应: {"type": "txn_execute_ok", "in_reply_to": 2, "committed": true, "results": [
+Response: {"type": "txn_execute_ok", "in_reply_to": 2, "committed": true, "results": [
     {"op": "get", "key": "balance_a", "value": "900"},
     {"op": "get", "key": "balance_b", "value": "1100"}
 ]}
@@ -49,17 +43,17 @@ Implement multi-key transactions. A 事务 is a batch of operations committed as
 
 ## 实现提示
 
-- A 事务 is a batch of Get/Put/Delete operations committed as a single 日志 entry
-- All operations in the batch succeed or fail together (atomicity)
-- The batch is serialized as a single command in the Raft 日志
-- The state machine applies all operations in the batch atomically
-- If any operation fails validation, the entire batch is rejected
+- 一个事务是一批 Get/Put/Delete 操作，作为单条日志条目一起提交
+- 批次中的所有操作要么全部成功，要么全部失败（原子性）
+- 整个批次作为一条命令序列化写入 Raft 日志
+- 状态机在应用时原子地执行批次中的所有操作
+- 如果任何一个操作校验失败，整个批次都会被拒绝
 
 ## 测试用例
 
-### 1. Atomic multi-key write
+### 1. 原子多键写入
 
-First txn should commit both puts. Second txn should read a: "1"和b: "2".
+第一个事务应该同时提交两个 put 操作。第二个事务读取时应该返回 a 为 "1"、b 为 "2"。
 
 输入：
 
@@ -77,7 +71,7 @@ First txn should commit both puts. Second txn should read a: "1"和b: "2".
 
 ## 参考资料
 
-- [TiKV - Distributed Transactions](https://tikv.org/docs/deep-dive/distributed-transaction/introduction/)：How TiKV implements distributed transactions on top of Raft
+- [TiKV - Distributed Transactions](https://tikv.org/docs/deep-dive/distributed-transaction/introduction/)：TiKV 如何在 Raft 之上实现分布式事务
 
 ## 本地文件
 

@@ -1,32 +1,28 @@
-# 实现 Secure Key Management
+# 实现安全密钥管理
 
 英文标题：Implement Secure Key Management
 网页：<https://builddistributedsystem.com/tracks/securitor/tasks/task-24-2-4-key-management>
 
-课程：26. 安全器：认证、授权与加密
+课程：26. 安全器
 任务序号：9
-短标题：Key Management
-难度：advanced
-子主题：Encryption at Rest和in Transit
+短标题：密钥管理
+难度：高级
+子主题：静态和传输中的加密
 
 ## 中文导读
 
-本题要求你完成 `实现 Secure Key Management`。
-
-重点关注：`KMS`、`envelope encryption`、`key rotation`、`data key`、`master key`。
-
-建议先按提示逐步实现：Generate a random AES data key; return both the plaintext version (use it once)和the encrypted version (store it)。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现一个简单的密钥管理系统（KMS）。密钥管理和加密本身同等重要——再强的加密算法，如果密钥管理不当也形同虚设。你需要实现数据密钥生成、信封加密和密钥轮换这三个核心能力，这些是企业级数据安全架构的基石。
 
 ## 题目说明
 
-Managing cryptographic keys is as important as the encryption itself. A KMS (Key Management System) generates data keys, wraps them，包含a master key (envelope encryption),和handles rotation so old data remains decryptable while new data uses fresh keys.
+密码学密钥的管理和加密本身同等重要。密钥管理系统（KMS）负责生成数据密钥，用主密钥对数据密钥进行包装（即信封加密），并处理密钥轮换，确保旧数据仍然可以解密，同时新数据使用新的密钥。
 
-Implement a 节点 that acts as a simple KMS:
+信封加密（Envelope Encryption）就像在信封里再套一个信封：你把秘密数据装进内信封并用数据密钥封好，然后把数据密钥装进外信封并用主密钥封好。这样即使数据密钥泄露，攻击者还需要主密钥才能拆开外信封。密钥轮换则像定期更换门锁：新装的锁用于以后进出，但旧钥匙要保留，因为仓库里还有用旧锁锁着的箱子需要打开。
 
-```JSON
-// Generate a random AES-256 data key
+你需要实现一个节点，充当简单的密钥管理系统：
+
+```json
+// 生成一个随机的 AES-256 数据密钥
 { "type": "generate_data_key", "msg_id": 1,
   "key_id": "data-key-1", "key_spec": "AES_256" }
 -> { "type": "data_key_generated", "in_reply_to": 1,
@@ -34,14 +30,14 @@ Implement a 节点 that acts as a simple KMS:
     "plaintext_key": "<use once, then discard>",
     "encrypted_key": "<store this alongside the ciphertext>" }
 
-// Envelope encryption: encrypt data，包含data key, encrypt data key，包含master key
+// 信封加密：用数据密钥加密数据，用主密钥加密数据密钥
 { "type": "envelope_encrypt", "msg_id": 2,
   "plaintext": "Secret data", "data_key": "DATA_KEY" }
 -> { "type": "envelope_encrypted", "in_reply_to": 2,
     "encrypted_data_key": "<master-key-wrapped data key>",
     "ciphertext": "<base64>" }
 
-// Rotate key to a new version (retain old用于decryption)
+// 轮换密钥到新版本（保留旧版本用于解密）
 { "type": "rotate_key", "msg_id": 3,
   "key_id": "data-key-1", "new_version": 2 }
 -> { "type": "key_rotated", "in_reply_to": 3,
@@ -51,26 +47,26 @@ Implement a 节点 that acts as a simple KMS:
 
 ## 涉及概念
 
-- `KMS`
-- `envelope encryption`
-- `key rotation`
-- `data key`
-- `master key`
-- `escrow`
+- KMS
+- envelope encryption
+- key rotation
+- data key
+- master key
+- escrow
 
 ## 实现提示
 
-- Generate a random AES data key; return both the plaintext version (use it once)和the encrypted version (store it)
-- Envelope encryption: encrypt data，包含the data key, encrypt the data key，包含the master key
-- Key rotation: create a new version of the key; keep the old version so old data can still be decrypted
-- previous_key_stored=true confirms the old key is retained after rotation
-- Escrow backup requires multiple approvals和returns an encrypted backup_id
+- 生成一个随机的 AES 数据密钥；同时返回明文版本（使用一次后丢弃）和加密版本（与密文一起存储）
+- 信封加密：用数据密钥加密数据，用主密钥加密数据密钥
+- 密钥轮换：创建密钥的新版本；保留旧版本以便旧数据仍可解密
+- `previous_key_stored=true` 表示确认旧密钥在轮换后被保留
+- 密钥托管（Escrow）备份需要多人审批，并返回一个加密的 backup_id
 
 ## 测试用例
 
-### 1. Generate data key，包含KMS
+### 1. 通过密钥管理系统生成数据密钥
 
-Should return both plaintext和encrypted versions of the data key.
+应当同时返回数据密钥的明文版本和加密版本。
 
 输入：
 
@@ -84,9 +80,9 @@ Should return both plaintext和encrypted versions of the data key.
 {"type": "data_key_generated", "in_reply_to": 1, "key_id": "data-key-1", "plaintext_key": ".*", "encrypted_key": ".*"}
 ```
 
-### 2. 信封 encryption
+### 2. 信封加密
 
-Should encrypt data，包含data key和wrap data key，包含master key.
+应当用数据密钥加密数据，并用主密钥包装数据密钥。
 
 输入：
 
@@ -102,8 +98,8 @@ Should encrypt data，包含data key和wrap data key，包含master key.
 
 ## 参考资料
 
-- [AWS KMS Concepts](https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html)：Key management concepts: data keys, master keys,和envelope encryption
-- [NIST Key Management](https://csrc.nist.gov/publications/detail/sp/800-57-part-1/rev-5/final)：NIST Key Management Guidelines (SP 800-57)
+- [AWS KMS Concepts](https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html)：密钥管理核心概念，包括数据密钥、主密钥和信封加密
+- [NIST Key Management](https://csrc.nist.gov/publications/detail/sp/800-57-part-1/rev-5/final)：NIST 密钥管理指南（SP 800-57）
 
 ## 本地文件
 

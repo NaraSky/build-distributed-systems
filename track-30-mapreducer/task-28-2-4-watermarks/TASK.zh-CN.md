@@ -1,51 +1,45 @@
-#处理Out-of-Order Events，包含Watermarks
+# 使用水位线处理乱序事件
 
-英文标题：Handle Out-of-Order Events，包含Watermarks
+英文标题：Handle Out-of-Order Events with Watermarks
 网页：<https://builddistributedsystem.com/tracks/mapreducer/tasks/task-28-2-4-watermarks>
 
 课程：30. MapReducer：批处理与流处理
 任务序号：9
-短标题：Watermarks
-难度：advanced
+短标题：水位线
+难度：高级
 子主题：Stream Processing
 
 ## 中文导读
 
-本题要求你完成 `Handle Out-of-Order Events，包含Watermarks`。
-
-重点关注：`watermarks`、`out-of-order events`、`event time`、`allowed lateness`、`late event handling`。
-
-建议先按提示逐步实现：Watermark = max event timestamp seen so far - allowed_lateness_ms。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你实现水位线（Watermark）机制来处理乱序事件。在分布式流处理中，事件不一定按发生的先后顺序到达。比如 10:00:00 发生的点击事件，可能因为网络延迟，反而在 10:00:05 的事件之后才到达。水位线告诉系统"在这个时间点之前的事件大概率都已经到了"，从而决定何时可以安全地关闭窗口。迟到太多的事件则直接丢弃。
 
 ## 题目说明
 
-Events in a distributed stream do not always arrive in the order they occurred. A click at 10:00:00 may arrive after a click at 10:00:05 due to 网络 delays. Without handling this, the 10:00:00 event gets dropped when its window has already closed.
+分布式流中的事件并不总是按照发生顺序到达。由于网络延迟，10:00:00 的点击事件可能在 10:00:05 的事件之后才到达。如果不处理这种情况，10:00:00 的事件会因为窗口已经关闭而被丢弃。
 
-**Watermarks** solve this: the watermark represents the point in event time up to which the processor believes it has seen all data. It advances as newer events arrive,和a window only closes once the watermark passes its end boundary.
+**水位线（Watermark）** 解决了这个问题：水位线代表处理器认为"在此时间点之前的所有数据都已到达"的事件时间点。随着更新的事件到达，水位线不断推进。只有当水位线超过窗口的结束边界时，窗口才会关闭。
 
 ```
-allowed_lateness = 30s
+允许延迟时间 = 30秒
 
-Events arriving:
-  10:00:10  -> watermark = 10:00:10 - 30s = 09:59:40
-  10:00:30  -> watermark = 10:00:30 - 30s = 10:00:00
-  10:00:00  -> LATE (event_time < watermark), window still open -> accepted
-  10:01:00  -> watermark = 10:01:00 - 30s = 10:00:30
+事件到达情况:
+  10:00:10  -> 水位线 = 10:00:10 - 30秒 = 09:59:40
+  10:00:30  -> 水位线 = 10:00:30 - 30秒 = 10:00:00
+  10:00:00  -> 迟到（事件时间 < 水位线），但窗口仍然开放 -> 接受
+  10:01:00  -> 水位线 = 10:01:00 - 30秒 = 10:00:30
 ```
 
-Your 节点 handles two 消息 types:
+你的节点需要处理两种消息类型：
 
-```JSON
-// Compute the watermark given the max timestamp seen
+```json
+// 根据已观察到的最大时间戳计算水位线
 { "type": "watermark", "msg_id": 1,
   "max_timestamp": "2024-01-15T10:00:00Z",
   "allowed_lateness_ms": 30000 }
 -> { "type": "watermark", "in_reply_to": 1,
     "watermark": "2024-01-15T09:59:30Z" }
 
-// Process an event — determine if it is late or on-time
+// 处理一个事件 -- 判断它是迟到还是准时
 { "type": "process", "msg_id": 2,
   "event": {"id": 1},
   "event_time": "2024-01-15T10:00:00Z",
@@ -54,7 +48,11 @@ Your 节点 handles two 消息 types:
     "event_id": 1, "handled": "dropped" }
 ```
 
-An event is late when event_time < watermark. Late events are dropped.
+当事件时间小于水位线时，该事件被视为迟到事件。迟到事件会被丢弃。
+
+## 概念说明
+
+水位线可以类比为火车站的发车时间。假设火车（窗口关闭）定于 10:00 发车，但允许乘客迟到 30 秒。那么水位线就是"当前时间减去 30 秒"。如果现在是 10:00:30，水位线就推进到 10:00:00，意味着 10:00:00 之前的乘客已经不能上车了（窗口关闭）。10:00:00 之后到的乘客还有机会赶上。
 
 ## 涉及概念
 
@@ -66,17 +64,17 @@ An event is late when event_time < watermark. Late events are dropped.
 
 ## 实现提示
 
-- Watermark = max event timestamp seen so far - allowed_lateness_ms
-- An event is late if its event_time < current watermark
-- A window closes when the watermark passes window_end
-- Late events that fall within a still-open window are accepted; others are dropped
-- The watermark only moves forward — it never decreases
+- 水位线 = 迄今观察到的最大事件时间戳 - 允许延迟时间
+- 如果事件时间小于当前水位线，则该事件为迟到事件
+- 当水位线超过窗口结束时间时，窗口关闭
+- 落在仍然开放的窗口内的迟到事件可以被接受；其他的则被丢弃
+- 水位线只会向前推进，不会回退
 
 ## 测试用例
 
-### 1. Generate watermark
+### 1. 生成水位线
 
-Watermark = max_timestamp - allowed_lateness_ms (30s before).
+水位线 = 最大时间戳 - 允许延迟时间（提前 30 秒）。
 
 输入：
 
@@ -90,9 +88,9 @@ Watermark = max_timestamp - allowed_lateness_ms (30s before).
 {"type": "watermark", "in_reply_to": 1, "watermark": "2024-01-15T09:59:30Z"}
 ```
 
-### 2.处理late event
+### 2. 处理迟到事件
 
-event_time 10:00:00 < watermark 10:00:30, so event is late和dropped.
+事件时间 10:00:00 小于水位线 10:00:30，因此事件迟到并被丢弃。
 
 输入：
 
@@ -108,7 +106,7 @@ event_time 10:00:00 < watermark 10:00:30, so event is late和dropped.
 
 ## 参考资料
 
-- [Watermarks in Stream Processing](https://www.oreilly.com/ideas/the-world-beyond-batch-streaming-102)：How watermarks enable correct out-of-order event handling
+- [Watermarks in Stream Processing](https://www.oreilly.com/ideas/the-world-beyond-batch-streaming-102)：水位线如何实现正确的乱序事件处理
 
 ## 本地文件
 

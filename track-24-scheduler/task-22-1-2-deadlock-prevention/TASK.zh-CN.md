@@ -1,54 +1,48 @@
-# 实现 Deadlock Prevention in Scheduling
+# 实现调度中的死锁预防
 
 英文标题：Implement Deadlock Prevention in Scheduling
 网页：<https://builddistributedsystem.com/tracks/scheduler/tasks/task-22-1-2-deadlock-prevention>
 
-课程：24. 调度器：任务调度
+课程：24. 任务调度器
 任务序号：2
-短标题：Deadlock Prevention
-难度：advanced
-子主题：Centralized Job Scheduling
+短标题：死锁预防
+难度：高级
+子主题：集中式任务调度
 
 ## 中文导读
 
-本题要求你完成 `实现 Deadlock Prevention in Scheduling`。
-
-重点关注：`Banker's algorithm`、`safe state`、`wait-for graph`、`preemption`、`cycle detection`。
-
-建议先按提示逐步实现：A system is in a safe state if there is an ordering in which all jobs can eventually complete。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现死锁预防（Deadlock Prevention）机制。死锁就像两个人各拿着对方需要的东西互不相让，谁也走不了。预防胜于检测：在分配资源前先判断是否安全，如果会导致不安全状态就直接拒绝，从根源上避免死锁发生。
 
 ## 题目说明
 
-Deadlock happens when two jobs each hold a resource the other needs, so neither can proceed. Prevention is better than detection: refuse any allocation that would leave the system in an unsafe state.
+死锁（Deadlock）发生在两个任务互相持有对方所需的资源，导致双方都无法继续执行。预防优于检测：拒绝任何会使系统进入不安全状态的资源分配请求。
 
-Implement a 节点 that manages resource allocation，包含deadlock prevention:
+实现一个管理资源分配并预防死锁的节点：
 
-```JSON
-// Initialize resource pool
+```json
+// 初始化资源池
 { "type": "init", "msg_id": 1,
   "resources": {"total_cpu": 16, "total_memory": 64} }
 -> { "type": "init_ok", "in_reply_to": 1 }
 
-// Safe allocation: system remains in safe state
+// 安全分配：系统仍处于安全状态
 { "type": "allocate_resources", "msg_id": 2,
   "job_id": "job1", "resources": {"cpu": 4, "memory": 16} }
 -> { "type": "allocation_ok", "in_reply_to": 2,
     "job_id": "job1", "safe_state": true }
 
-// Would exhaust resources -> unsafe -> deny
+// 会耗尽资源 -> 不安全 -> 拒绝
 { "type": "allocate_resources", "msg_id": 3,
   "job_id": "job2", "resources": {"cpu": 8, "memory": 32} }
 -> denied
 
-// Waiting too long -> preempt
+// 等待超时 -> 抢占
 { "type": "allocate_resources", "msg_id": 4,
   "job_id": "job3", "resources": {"cpu": 16, "memory": 64}, "timeout_ms": 5000 }
 -> { "type": "allocation_timeout", "in_reply_to": 4,
     "job_id": "job3", "action": "preempted" }
 
-// Inspect wait-for graph
+// 查看等待图
 { "type": "get_wait_graph", "msg_id": 5 }
 -> { "type": "wait_graph_ok", "in_reply_to": 5,
     "graph": {"job1":["job3"],"job2":["job1"],"job3":["job2"]},
@@ -57,25 +51,25 @@ Implement a 节点 that manages resource allocation，包含deadlock prevention:
 
 ## 涉及概念
 
-- `Banker's algorithm`
-- `safe state`
-- `wait-for graph`
-- `preemption`
-- `cycle detection`
+- Banker's algorithm
+- safe state
+- wait-for graph
+- preemption
+- cycle detection
 
 ## 实现提示
 
-- A system is in a safe state if there is an ordering in which all jobs can eventually complete
-- Reject an allocation that would make the system unsafe (Banker's algorithm)
-- Wait-for graph: edge A->B means A is waiting用于a resource currently held by B
-- A cycle in the wait-for graph means deadlock exists
-- Preempt a job that has been waiting beyond timeout_ms和free its held resources
+- 安全状态是指存在一种调度顺序，使得所有任务最终都能完成
+- 如果某次分配会使系统进入不安全状态，则拒绝该请求（银行家算法）
+- 等待图（Wait-for Graph）：边 A->B 表示 A 正在等待 B 当前持有的资源
+- 等待图中如果出现环，说明存在死锁
+- 对于等待超过 `timeout_ms` 的任务，执行抢占并释放其持有的资源
 
 ## 测试用例
 
-### 1. Detect deadlock cycle
+### 1. 检测死锁环路
 
-Allocating all remaining resources to job2 would create unsafe state和should be denied.
+将所有剩余资源分配给 job2 会使系统进入不安全状态，应被拒绝。
 
 输入：
 
@@ -91,9 +85,9 @@ Allocating all remaining resources to job2 would create unsafe state和should be
 {"src": "scheduler", "dest": "client", "body": {"type": "init_ok", "in_reply_to": 1}}
 ```
 
-### 2. Safe state allocation
+### 2. 安全状态下的分配
 
-Allocation that leaves system in safe state should be granted.
+不会导致不安全状态的资源分配应被批准。
 
 输入：
 
@@ -109,7 +103,7 @@ Allocation that leaves system in safe state should be granted.
 
 ## 参考资料
 
-- [Banker's Algorithm](https://en.wikipedia.org/wiki/Banker%27s_algorithm)：Dijkstra's algorithm用于safe resource allocation
+- [Banker's Algorithm](https://en.wikipedia.org/wiki/Banker%27s_algorithm)：Dijkstra 提出的安全资源分配算法
 
 ## 本地文件
 

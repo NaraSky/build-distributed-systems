@@ -1,4 +1,4 @@
-# 实现 Consumer Group Offset Tracking
+# 实现消费者组的偏移量追踪
 
 英文标题：Implement Consumer Group Offset Tracking
 网页：<https://builddistributedsystem.com/tracks/logger/tasks/task-10-4-2-consumer-offsets>
@@ -6,43 +6,37 @@
 课程：19. 日志器：WAL、LSM 与分布式日志
 任务序号：17
 短标题：Consumer Offsets
-难度：intermediate
-子主题：Distributed 日志 (Kafka Architecture)
+难度：进阶
+子主题：Distributed Log (Kafka Architecture)
 
 ## 中文导读
 
-本题要求你完成 `实现 Consumer Group Offset Tracking`。
-
-重点关注：`consumer offset`、`consumer group`、`commit offset`、`fetch offset`、`at-least-once delivery`。
-
-建议先按提示逐步实现：Each consumer group maintains an independent offset per partition (their "bookmark")。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你实现消费者组（Consumer Group）的偏移量追踪机制。每个消费者组独立记录自己在各分区中"读到哪里了"，这样消费者就能按自己的节奏消费消息，并在重启后从上次的位置继续。这是 Kafka 实现可靠消息消费的核心机制。
 
 ## 题目说明
 
-Consumer offset tracking enables consumers to read at their own pace和resume after restarts. Each consumer group independently tracks its position in each partition.
+消费者偏移量追踪（Consumer Offset Tracking）让消费者能够按自己的节奏读取消息，并在重启后恢复到之前的位置。每个消费者组独立跟踪它在每个分区中的消费进度。
 
-The offset lifecycle:
-1. **Consumer starts**: calls `fetch_offset` to find where it last left off
-2. **Consumer reads**: fetches 消息 starting from its offset
-3. **Consumer processes**: performs application logic on the 消息
-4. **Consumer commits**: calls `commit_offset` to save its new position
-5. **Consumer crashes**: on restart, calls `fetch_offset` again和resumes from the last committed offset
+偏移量的生命周期如下：
+1. **消费者启动**：调用 `fetch_offset` 获取上次停止的位置
+2. **消费者读取**：从偏移量所在位置开始拉取消息
+3. **消费者处理**：对消息执行业务逻辑
+4. **消费者提交**：调用 `commit_offset` 保存当前的消费位置
+5. **消费者崩溃**：重启后再次调用 `fetch_offset`，从上次提交的偏移量继续消费
 
-This gives **at-least-once delivery**: if a consumer crashes after processing but before committing, it will re-process those 消息 on restart. For **exactly-once**, additional mechanisms are needed.
+这提供了**至少一次投递（At-Least-Once Delivery）**语义：如果消费者在处理完消息后、提交偏移量之前崩溃，重启后会重新处理这些消息。要实现**精确一次（Exactly-Once）**语义，需要额外的机制。
 
-Multiple consumer groups can read the same partition independently at different speeds — a key Kafka design principle.
+多个消费者组可以独立地、以不同的速度读取同一个分区——这是 Kafka 的一个核心设计原则。
 
-```JSON
-请求:  {"type": "commit_offset", "msg_id": 1, "group": "analytics", "topic": "orders", "partition": 0, "offset": 42}
-响应: {"type": "commit_offset_ok", "in_reply_to": 1}
+```json
+Request:  {"type": "commit_offset", "msg_id": 1, "group": "analytics", "topic": "orders", "partition": 0, "offset": 42}
+Response: {"type": "commit_offset_ok", "in_reply_to": 1}
 
-请求:  {"type": "fetch_offset", "msg_id": 2, "group": "analytics", "topic": "orders", "partition": 0}
-响应: {"type": "fetch_offset_ok", "in_reply_to": 2, "offset": 42}
+Request:  {"type": "fetch_offset", "msg_id": 2, "group": "analytics", "topic": "orders", "partition": 0}
+Response: {"type": "fetch_offset_ok", "in_reply_to": 2, "offset": 42}
 
-请求:  {"type": "fetch_offset", "msg_id": 3, "group": "billing", "topic": "orders", "partition": 0}
-响应: {"type": "fetch_offset_ok", "in_reply_to": 3, "offset": 0}
+Request:  {"type": "fetch_offset", "msg_id": 3, "group": "billing", "topic": "orders", "partition": 0}
+Response: {"type": "fetch_offset_ok", "in_reply_to": 3, "offset": 0}
 ```
 
 ## 涉及概念
@@ -55,15 +49,15 @@ Multiple consumer groups can read the same partition independently at different 
 
 ## 实现提示
 
-- Each consumer group maintains an independent offset per partition (their "bookmark")
-- commit_offset: 客户端 saves its current position after processing 消息
-- fetch_offset: retrieve where the consumer last left off (for resuming after restart)
-- If a consumer crashes before committing, it re-reads from the last committed offset (at-least-once)
-- In real Kafka, offsets are stored in a special internal topic (__consumer_offsets)
+- 每个消费者组为每个分区维护一个独立的偏移量（相当于一个"书签"）
+- commit_offset：客户端在处理完消息后保存当前的消费位置
+- fetch_offset：获取消费者上次停止的位置（用于重启后恢复消费）
+- 如果消费者在提交偏移量之前崩溃，它会从上次提交的位置重新读取（至少一次语义）
+- 在真正的 Kafka 中，偏移量存储在一个特殊的内部主题（__consumer_offsets）中
 
 ## 测试用例
 
-### 1. Commit和fetch offset roundtrip
+### 1. 提交和获取偏移量的往返测试
 
 输入：
 
@@ -81,7 +75,7 @@ Multiple consumer groups can read the same partition independently at different 
 {"src": "n1", "dest": "c1", "body": {"type": "fetch_offset_ok", "in_reply_to": 3, "offset": 10, "msg_id": 2}}
 ```
 
-### 2. Different groups track independent offsets
+### 2. 不同消费者组独立追踪偏移量
 
 输入：
 
@@ -105,7 +99,7 @@ Multiple consumer groups can read the same partition independently at different 
 
 ## 参考资料
 
-- [Kafka Consumer Offset Management](https://kafka.apache.org/documentation/#impl_offsettracking)：How Kafka tracks consumer group offsets使用the __consumer_offsets internal topic
+- [Kafka Consumer Offset Management](https://kafka.apache.org/documentation/#impl_offsettracking)：Kafka 官方文档，讲解如何通过 __consumer_offsets 内部主题追踪消费者组偏移量
 
 ## 本地文件
 

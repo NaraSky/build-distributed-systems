@@ -1,4 +1,4 @@
-# 实现 Rate Limiting
+# 实现限流
 
 英文标题：Implement Rate Limiting
 网页：<https://builddistributedsystem.com/tracks/loadbalancers/tasks/task-20-2-5-rate-limiting>
@@ -6,24 +6,20 @@
 课程：14. 负载均衡器
 任务序号：10
 短标题：Rate Limiting
-难度：intermediate
-子主题：Layer 7 Load Balancing
+难度：进阶
+子主题：七层负载均衡
 
 ## 中文导读
 
-本题要求你完成 `实现 Rate Limiting`。
-
-重点关注：`rate limiting`、`token bucket`、`per-IP limits`、`per-API-key limits`、`DDoS protection`。
-
-建议先按提示逐步实现：Use token bucket algorithm: refill tokens at a fixed rate, consume tokens per 请求。
+本题要求你实现限流（Rate Limiting）功能。限流就像高速公路的入口匝道——当车流量过大时，通过控制进入的速率来防止拥堵。在分布式系统中，限流保护后端服务不被过多请求压垮，防止恶意刷接口，同时确保所有用户公平使用资源。你将使用经典的令牌桶算法来实现。
 
 协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
 
 ## 题目说明
 
-Rate limiting protects backend services from being overwhelmed by too many requests. It prevents abuse, ensures fair usage,和maintains service availability during traffic spikes.
+限流保护后端服务免受过多请求的冲击。它能防止滥用、确保公平使用，并在流量高峰期维持服务可用性。
 
-**Token bucket algorithm**:
+**令牌桶算法**：
 ```
 bucket: {
     tokens: number,           // Current tokens (max: capacity)
@@ -41,14 +37,14 @@ function allowRequest(): boolean {
 
     if (bucket.tokens >= 1) {
         bucket.tokens -= 1;
-        return true;  // Allow 请求
+        return true;  // Allow request
     }
     return false;  // Rate limited
 }
 ```
 
-**Rate limit configuration**:
-```JSON
+**限流配置**：
+```json
 {
   "rate_limits": {
     "per_ip": {
@@ -63,21 +59,21 @@ function allowRequest(): boolean {
 }
 ```
 
-**Example rate limiting**:
-```JSON
+**限流示例**：
+```json
 // First 10 requests succeed:
-请求:  {"type": "http_request", "msg_id": 1, "method": "GET", "path": "/api/users", "client_ip": "1.2.3.4"}
-响应: {"type": "http_response", "in_reply_to": 1, "status": 200, "headers": {"X-RateLimit-Remaining": 9, "X-RateLimit-Limit": 10, "X-RateLimit-Reset": 1680123460}}
+Request:  {"type": "http_request", "msg_id": 1, "method": "GET", "path": "/api/users", "client_ip": "1.2.3.4"}
+Response: {"type": "http_response", "in_reply_to": 1, "status": 200, "headers": {"X-RateLimit-Remaining": 9, "X-RateLimit-Limit": 10, "X-RateLimit-Reset": 1680123460}}
 
-// 11th 请求 is rate limited:
-请求:  {"type": "http_request", "msg_id": 11, "method": "GET", "path": "/api/users", "client_ip": "1.2.3.4"}
-响应: {"type": "http_response", "in_reply_to": 11, "status": 429, "error": "Rate limit exceeded", "headers": {"X-RateLimit-Remaining": 0, "重试-After": 1}}
+// 11th request is rate limited:
+Request:  {"type": "http_request", "msg_id": 11, "method": "GET", "path": "/api/users", "client_ip": "1.2.3.4"}
+Response: {"type": "http_response", "in_reply_to": 11, "status": 429, "error": "Rate limit exceeded", "headers": {"X-RateLimit-Remaining": 0, "Retry-After": 1}}
 ```
 
-**Per-API-key rate limiting**:
-```JSON
-请求:  {"type": "http_request", "msg_id": 1, "method": "GET", "path": "/api/users", "headers": {"X-API-Key": "key_free_tier"}, "client_ip": "1.2.3.4"}
-响应: {"type": "http_response", "in_reply_to": 1, "status": 200, "headers": {"X-RateLimit-Remaining": 0, "X-RateLimit-Limit": 1}}
+**按 API 密钥限流**：
+```json
+Request:  {"type": "http_request", "msg_id": 1, "method": "GET", "path": "/api/users", "headers": {"X-API-Key": "key_free_tier"}, "client_ip": "1.2.3.4"}
+Response: {"type": "http_response", "in_reply_to": 1, "status": 200, "headers": {"X-RateLimit-Remaining": 0, "X-RateLimit-Limit": 1}}
 ```
 
 ## 涉及概念
@@ -90,17 +86,17 @@ function allowRequest(): boolean {
 
 ## 实现提示
 
-- Use token bucket algorithm: refill tokens at a fixed rate, consume tokens per 请求
-- Track rate limits per IP address和per API key
-- Return 429 Too Many Requests when bucket is empty
-- Include rate limit headers: X-RateLimit-Remaining, X-RateLimit-Reset
-- Burst allowance: allow short bursts above sustained rate
+- 使用令牌桶算法：以固定速率补充令牌，每个请求消耗一个令牌
+- 按 IP 地址和 API 密钥分别跟踪限流状态
+- 当令牌桶为空时返回 429 Too Many Requests
+- 在响应头中包含限流信息：X-RateLimit-Remaining、X-RateLimit-Reset
+- 支持突发流量容忍：允许短时间内超过持续速率的突发请求
 
 ## 测试用例
 
-### 1. Enforce per-IP rate limit
+### 1. 执行按 IP 限流
 
-First 10 requests should succeed (200), 11th should fail，包含429 Too Many Requests.
+前 10 个请求应成功（状态码 200），第 11 个请求应返回 429 Too Many Requests。
 
 输入：
 
@@ -115,9 +111,9 @@ First 10 requests should succeed (200), 11th should fail，包含429 Too Many Re
 {"src": "l7_proxy", "dest": "client", "body": {"type": "init_ok", "in_reply_to": 1}}
 ```
 
-### 2. Rate limit headers included
+### 2. 响应中包含限流头
 
-响应 should include X-RateLimit-Remaining和X-RateLimit-Limit headers.
+响应应包含 X-RateLimit-Remaining 和 X-RateLimit-Limit 响应头。
 
 输入：
 
@@ -133,7 +129,7 @@ First 10 requests should succeed (200), 11th should fail，包含429 Too Many Re
 
 ## 参考资料
 
-- [Rate Limiting Algorithms](https://cloud.google.com/architecture/rate-limiting-strategies-techniques)：Google Cloud architecture guide on rate limiting
+- [Rate Limiting Algorithms](https://cloud.google.com/architecture/rate-limiting-strategies-techniques)：关于限流策略和技术的架构指南
 
 ## 本地文件
 

@@ -1,35 +1,31 @@
-# 构建 Flat Tree Topology Gossip
+# 构建树形拓扑广播
 
 英文标题：Build Flat Tree Topology Gossip
 网页：<https://builddistributedsystem.com/tracks/gossiper/tasks/task-3-2-tree-topology>
 
 课程：3. 传播者：Gossip 信息传播
 任务序号：2
-短标题：Tree Topology
-难度：intermediate
-子主题：Naive 广播 (Flooding)
+短标题：树形拓扑
+难度：进阶
+子主题：朴素广播（洪泛）
 
 ## 中文导读
 
-本题要求你完成 `构建 Flat Tree Topology Gossip`。
-
-重点关注：`tree topology`、`spanning tree`、`efficient propagation`。
-
-建议先按提示逐步实现：Use the provided topology to form a tree。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题让你用树形拓扑来优化广播。上一题的洪泛方式虽然简单，但消息量太大。通过把节点组织成一棵生成树，每条消息只沿着树的边传播一次，就能大幅减少消息数量。这是从"能用"到"好用"的第一步优化。
 
 ## 题目说明
 
-Optimize your 广播 by使用a tree topology. Instead of flooding to all neighbors, organize 节点 into a spanning tree where each 消息 travels along tree edges exactly once.
+利用树形拓扑来优化你的广播系统。不再向所有邻居洪泛，而是把节点组织成一棵生成树（Spanning Tree），让每条消息沿着树的边恰好传播一次。
 
-This reduces 消息 complexity from O(n*m) to O(n)用于each 广播, where n is the number of 节点.
+这样可以把每次广播的消息复杂度从 O(n*m) 降低到 O(n)，其中 n 是节点数量。
 
 ## 概念说明
 
-### Spanning Trees
+### 生成树
 
-A spanning tree connects all 节点，包含exactly n-1 edges和no cycles. Broadcasting along a tree ensures each 消息 is delivered exactly once to each 节点, minimizing 网络 traffic.
+生成树（Spanning Tree）是一种用恰好 n-1 条边连接所有 n 个节点、且没有环的结构。沿着生成树广播可以保证每条消息只被传递到每个节点一次，从而最大限度地减少网络流量。
+
+你可以把它想象成公司的组织架构树——消息从老板传到部门经理，再传到基层员工，每个人只需要通知自己的直接下属，既不会遗漏也不会重复。
 
 ## 涉及概念
 
@@ -39,14 +35,14 @@ A spanning tree connects all 节点，包含exactly n-1 edges和no cycles. Broad
 
 ## 实现提示
 
-- Use the provided topology to form a tree
-- Avoid sending back to parent
-- Tree ensures O(n) 消息
-- Reply，包含broadcast_ok before forwarding to neighbors - this ensures deterministic msg_id ordering in the output
+- 利用系统提供的拓扑信息来构建树结构
+- 避免将消息回传给发送者（父节点）
+- 树形结构能保证消息数量为 O(n) 级别
+- 先回复 `broadcast_ok`，再转发给邻居节点——这能确保输出中 `msg_id` 的顺序是确定性的
 
 ## 测试用例
 
-### 1. Tree 广播，包含3 nodes
+### 1. 三节点的树形广播
 
 输入：
 

@@ -1,43 +1,36 @@
-# 实现 a Multi-Value Register (MV-Register)
+# 实现多值寄存器
 
-英文标题：Implement a Multi-Value Register (MV-Register)
 网页：<https://builddistributedsystem.com/tracks/counter/tasks/task-17-3-2-mv-register>
 
 课程：4. 计数器：分布式状态与 CRDT
 任务序号：12
 短标题：MV-Register
-难度：advanced
-子主题：More CRDTs
+难度：高级
+子主题：更多 CRDT
 
 ## 中文导读
 
-本题要求你完成 `实现 a Multi-Value Register (MV-Register)`。
-
-重点关注：`MV-Register`、`concurrent writes`、`sibling values`、`vector clock`、`conflict resolution`。
-
-建议先按提示逐步实现：Each write is tagged，包含a vector 时钟 timestamp。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题让你实现多值寄存器（MV-Register），它通过保留所有并发写入的值作为"兄弟版本"来处理冲突，由客户端在读取时自行决定如何解决冲突。这正是 Amazon DynamoDB 和 Riak 采用的方案，体现了"永不拒绝写入，把冲突解决权交给应用层"的设计哲学。
 
 ## 题目说明
 
-A Multi-Value Register (MV-Register) handles concurrent writes by keeping ALL concurrent values as siblings. The 客户端 resolves conflicts on read.
+多值寄存器（MV-Register，Multi-Value Register）通过保留所有并发写入的值作为"兄弟版本（Siblings）"来处理并发写入冲突。冲突的解决交由客户端在读取时完成。
 
-**How it works**:
-- Each value is tagged，包含a vector 时钟
-- `write("v1")` at vector 时钟 {A:1} -> stores ("v1", {A:1})
-- `write("v2")` at vector 时钟 {B:1} (concurrent) -> stores ("v2", {B:1})
-- `read()` returns ["v1", "v2"] (both siblings, 客户端 picks)
-- `write("v3")` at vector 时钟 {A:1, B:1} (causally after both) -> replaces both
+**工作原理**：
+- 每个值都附带一个向量时钟（Vector Clock）
+- `write("v1")` 在向量时钟 {A:1} 时写入 -> 存储 ("v1", {A:1})
+- `write("v2")` 在向量时钟 {B:1} 时写入（与上一个并发）-> 存储 ("v2", {B:1})
+- `read()` 返回 ["v1", "v2"]（两个兄弟版本，由客户端选择）
+- `write("v3")` 在向量时钟 {A:1, B:1} 时写入（因果上在前两者之后）-> 替换前两者
 
-This is the approach used by Amazon DynamoDB和Riak. It maximizes availability (never rejects a write) at the cost of forcing the 客户端 to handle conflicts.
+这是 Amazon DynamoDB 和 Riak 采用的方案。它最大化了可用性（永远不会拒绝写入），代价是要求客户端自行处理冲突。
 
-```JSON
-请求:  {"type": "mv_write", "msg_id": 1, "key": "cart", "value": ["item1", "item2"]}
-响应: {"type": "mv_write_ok", "in_reply_to": 1, "vclock": {"n1": 1}}
+```json
+Request:  {"type": "mv_write", "msg_id": 1, "key": "cart", "value": ["item1", "item2"]}
+Response: {"type": "mv_write_ok", "in_reply_to": 1, "vclock": {"n1": 1}}
 
-请求:  {"type": "mv_read", "msg_id": 2, "key": "cart"}
-响应: {"type": "mv_read_ok", "in_reply_to": 2, "values": [{"value": ["item1", "item2"], "vclock": {"n1": 1}}, {"value": ["item1", "item3"], "vclock": {"n2": 1}}]}
+Request:  {"type": "mv_read", "msg_id": 2, "key": "cart"}
+Response: {"type": "mv_read_ok", "in_reply_to": 2, "values": [{"value": ["item1", "item2"], "vclock": {"n1": 1}}, {"value": ["item1", "item3"], "vclock": {"n2": 1}}]}
 ```
 
 ## 涉及概念
@@ -50,17 +43,17 @@ This is the approach used by Amazon DynamoDB和Riak. It maximizes availability (
 
 ## 实现提示
 
-- Each write is tagged，包含a vector 时钟 timestamp
--并发writes produce multiple sibling values (like DynamoDB)
-- On read, return ALL concurrent values — the 客户端 resolves the conflict
-- A write that causally follows another replaces it (not concurrent)
-- Merge: keep all values from concurrent writes, discard causally dominated ones
+- 每次写入都附带向量时钟时间戳
+- 并发写入会产生多个兄弟版本（类似 DynamoDB 的做法）
+- 读取时返回所有并发的值，由客户端来解决冲突
+- 因果上在另一个写入之后的写入会替换它（不是并发的）
+- 合并：保留来自并发写入的所有值，丢弃被因果支配的值
 
 ## 测试用例
 
-### 1. Write和read single value
+### 1. 写入并读取单个值
 
-mv_read_ok values should contain exactly one entry，包含value "v1".
+验证 mv_read_ok 的 values 应恰好包含一个值为 "v1" 的条目。
 
 输入：
 
@@ -76,9 +69,9 @@ mv_read_ok values should contain exactly one entry，包含value "v1".
 {"src": "n1", "dest": "c0", "body": {"type": "init_ok", "in_reply_to": 1, "msg_id": 0}}
 ```
 
-### 2.并发writes produce siblings
+### 2. 并发写入产生兄弟版本
 
-mv_read_ok values should contain two siblings: "v1"和"v2".
+验证 mv_read_ok 的 values 应包含两个兄弟版本："v1" 和 "v2"。
 
 输入：
 
@@ -97,7 +90,7 @@ mv_read_ok values should contain two siblings: "v1"和"v2".
 
 ## 参考资料
 
-- [DynamoDB Conflict Resolution](https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf)：DeCandia et al. - Dynamo: Amazon Highly Available Key-value Store
+- [DynamoDB Conflict Resolution](https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf)：DeCandia 等人的论文，介绍 Amazon Dynamo 高可用键值存储
 
 ## 本地文件
 

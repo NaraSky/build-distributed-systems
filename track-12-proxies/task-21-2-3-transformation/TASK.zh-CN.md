@@ -1,64 +1,58 @@
-# 实现 Request/Response Transformation
+# 实现请求与响应转换
 
 英文标题：Implement Request/Response Transformation
 网页：<https://builddistributedsystem.com/tracks/proxies/tasks/task-21-2-3-transformation>
 
 课程：12. 代理
 任务序号：8
-短标题：Request/Response Transformation
-难度：intermediate
-子主题：API Gateway
+短标题：请求/响应转换
+难度：进阶
+子主题：API 网关
 
 ## 中文导读
 
-本题要求你完成 `实现 Request/Response Transformation`。
-
-重点关注：`request transformation`、`response transformation`、`protocol translation`、`format conversion`、`legacy integration`。
-
-建议先按提示逐步实现：Transform 请求 format before sending to backend (e.g., JSON → XML)。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你在 API 网关中实现请求和响应的格式转换功能。在实际系统中，客户端和后端服务可能使用不同的数据格式或协议。例如，客户端使用 JSON，而老旧的后端系统只接受 XML。网关可以在中间进行格式转换，让双方无需做任何修改就能正常通信。
 
 ## 题目说明
 
-API gateways transform requests和responses to bridge the gap between 客户端 expectations和backend implementations. This enables legacy integration和protocol translation.
+API 网关通过转换请求和响应来弥合客户端期望与后端实现之间的差异。这使得遗留系统集成和协议转换成为可能。
 
-**Transformation types**:
+**转换类型**：
 ```
-1.格式 transformation:
-   客户端 (JSON) → Gateway → Backend (XML)
+1. 格式转换：
+   客户端 (JSON) → 网关 → 后端 (XML)
 
-2. Protocol translation:
-   客户端 (REST) → Gateway → Backend (gRPC)
+2. 协议转换：
+   客户端 (REST) → 网关 → 后端 (gRPC)
 
-3. Field mapping:
-   客户端 (userId) → Gateway → Backend (user_id)
+3. 字段映射：
+   客户端 (userId) → 网关 → 后端 (user_id)
 
-4. Aggregation:
-   客户端 → Gateway → [Backend A, Backend B] → Gateway → 客户端
-```
-
-**Example: JSON to XML transformation**:
-```JSON
-// 客户端 sends JSON:
-请求:  {"type": "api_request", "msg_id": 1, "method": "POST", "path": "/api/users", "headers": {"Content-Type": "application/JSON"}, "body": {"name": "Alice", "email": "alice@example.com"}}
-
-// Gateway transforms to XML和sends to backend:
-Backend 请求:  {"method": "POST", "path": "/users", "headers": {"Content-Type": "application/xml"}, "body": "<?xml version="1.0"?><user><name>Alice</name><email>alice@example.com</email></user>"}
-
-// Backend responds，包含XML:
-Backend 响应:  {"status": 201, "body": "<?xml version="1.0"?><user><id>123</id><name>Alice</name><email>alice@example.com</email></user>"}
-
-// Gateway transforms to JSON和sends to 客户端:
-响应: {"type": "api_response", "in_reply_to": 1, "status": 201, "body": {"id": 123, "name": "Alice", "email": "alice@example.com"}}
+4. 聚合：
+   客户端 → 网关 → [后端 A, 后端 B] → 网关 → 客户端
 ```
 
-**Field mapping configuration**:
-```JSON
+**示例：JSON 转 XML**：
+```json
+// 客户端发送 JSON：
+Request:  {"type": "api_request", "msg_id": 1, "method": "POST", "path": "/api/users", "headers": {"Content-Type": "application/json"}, "body": {"name": "Alice", "email": "alice@example.com"}}
+
+// 网关将 JSON 转为 XML 后发送给后端：
+Backend Request:  {"method": "POST", "path": "/users", "headers": {"Content-Type": "application/xml"}, "body": "<?xml version=\"1.0\"?><user><name>Alice</name><email>alice@example.com</email></user>"}
+
+// 后端返回 XML 响应：
+Backend Response:  {"status": 201, "body": "<?xml version=\"1.0\"?><user><id>123</id><name>Alice</name><email>alice@example.com</email></user>"}
+
+// 网关将 XML 转为 JSON 后返回给客户端：
+Response: {"type": "api_response", "in_reply_to": 1, "status": 201, "body": {"id": 123, "name": "Alice", "email": "alice@example.com"}}
+```
+
+**字段映射配置**：
+```json
 {
   "transformations": {
     "/api/users": {
-      "请求": {
+      "request": {
         "field_mappings": {
           "userId": "user_id",
           "firstName": "first_name",
@@ -66,7 +60,7 @@ Backend 响应:  {"status": 201, "body": "<?xml version="1.0"?><user><id>123</id
         },
         "format": "json_to_xml"
       },
-      "响应": {
+      "response": {
         "field_mappings": {
           "user_id": "userId",
           "first_name": "firstName",
@@ -89,17 +83,17 @@ Backend 响应:  {"status": 201, "body": "<?xml version="1.0"?><user><id>123</id
 
 ## 实现提示
 
-- Transform 请求 format before sending to backend (e.g., JSON → XML)
-- Transform 响应 format before returning to 客户端 (e.g., XML → JSON)
-- Protocol translation: REST → gRPC, GraphQL → REST
-- Legacy integration: modern JSON clients → legacy XML backends
-- Field mapping: rename fields between 客户端和backend schemas
+- 在发送给后端之前转换请求格式（例如 JSON 转 XML）
+- 在返回给客户端之前转换响应格式（例如 XML 转 JSON）
+- 协议转换：REST 转 gRPC、GraphQL 转 REST
+- 遗留系统集成：让使用 JSON 的现代客户端能够与使用 XML 的老旧后端通信
+- 字段映射：在客户端和后端的数据模型之间进行字段名重命名
 
 ## 测试用例
 
-### 1. JSON to XML transformation
+### 1. JSON 转 XML
 
-Gateway should transform JSON 请求 to XML before sending to backend.
+网关应在将请求发送给后端之前，将 JSON 格式转换为 XML 格式。
 
 输入：
 
@@ -114,9 +108,9 @@ Gateway should transform JSON 请求 to XML before sending to backend.
 {"src": "gateway", "dest": "client", "body": {"type": "init_ok", "in_reply_to": 1}}
 ```
 
-### 2. Field mapping
+### 2. 字段映射
 
-Gateway should map userId→user_id in 请求, user_id→userId in 响应.
+网关应在请求中将 userId 映射为 user_id，在响应中将 user_id 映射回 userId。
 
 输入：
 
@@ -132,7 +126,7 @@ Gateway should map userId→user_id in 请求, user_id→userId in 响应.
 
 ## 参考资料
 
-- [API Gateway Transformation](https://aws.amazon.com/api-gateway/)：AWS API Gateway documentation on 请求/响应 transformation
+- [API Gateway Transformation](https://aws.amazon.com/api-gateway/)：AWS API Gateway 关于请求/响应转换的文档
 
 ## 本地文件
 

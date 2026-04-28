@@ -1,48 +1,41 @@
-# 实现 Request节点缓存
+# 实现请求节点缓存
 
-英文标题：Implement Request节点Cache
 网页：<https://builddistributedsystem.com/tracks/caches/tasks/task-11-1-request-cache>
 
 课程：11. 缓存
 任务序号：1
-短标题：Request 缓存
-难度：intermediate
+短标题：请求缓存
+难度：进阶
 
 ## 中文导读
 
-本题要求你完成 `实现 Request节点缓存`。
-
-重点关注：`caching`、`local cache`、`TTL`。
-
-建议先按提示逐步实现：缓存 responses at the 请求 节点。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你在每个处理请求的节点上实现一个本地缓存。缓存是分布式系统中最常见的性能优化手段之一，通过把热点数据存在离请求最近的地方，可以大幅减少后端压力和响应延迟。掌握缓存的基本读写流程和过期机制，是理解后续更复杂缓存策略的基础。
 
 ## 题目说明
 
-Implement a local 缓存 at each 请求-handling 节点. When a 请求 comes in:
+在每个处理请求的节点（Node）上实现一个本地缓存。当收到请求时，按以下流程处理：
 
-1. Check if the key exists in the local 缓存
-2. If 缓存 hit和not expired, return cached value
-3. If 缓存 miss or expired, fetch from backend
-4. Store result in 缓存，包含TTL
-5. Return result
+1. 检查本地缓存中是否存在该键
+2. 如果缓存命中且未过期，直接返回缓存中的值
+3. 如果缓存未命中或已过期，从后端获取数据
+4. 将结果存入缓存，并设置过期时间
+5. 返回结果
 
-Track 缓存 hit rate to measure effectiveness.
+同时需要记录缓存命中率，以衡量缓存效果。
 
 ## 概念说明
 
-### Why Caching?
+### 为什么需要缓存
 
-Caching trades space用于time. By storing frequently accessed data closer to the requester, we reduce latency和backend load. A 缓存，包含90% hit rate reduces backend traffic by 10x.
+缓存的本质是用空间换时间。通过把经常访问的数据存储在离请求者更近的地方，可以降低响应延迟并减轻后端负载。举个例子，如果缓存命中率达到 90%，后端实际承受的流量就只有原来的十分之一。
 
-### Request节点缓存
+### 请求节点缓存
 
-The simplest 缓存 sits at each 请求 handler. It is fast (no 网络 hop) but duplicates data across 节点. This works well用于hot data that all 节点 access.
+最简单的缓存方案是在每个请求处理节点上各放一份缓存。这种方式的优点是速度快（不需要额外的网络通信），缺点是各节点之间会存在重复数据。对于所有节点都频繁访问的热点数据，这种方案效果很好。
 
-### TTL (Time-To-Live)
+### 过期时间
 
-TTL defines how long cached data remains valid. Short TTL = more freshness, more backend load. Long TTL = less freshness, less load. Choose based on how often data changes和tolerance用于staleness.
+过期时间（TTL，Time-To-Live）定义了缓存数据的有效期。过期时间设得短，数据更新更及时，但后端压力更大；过期时间设得长，后端压力更小，但数据可能不够新鲜。选择合适的过期时间需要权衡数据更新频率和对过时数据的容忍程度。
 
 ## 涉及概念
 
@@ -52,13 +45,13 @@ TTL defines how long cached data remains valid. Short TTL = more freshness, more
 
 ## 实现提示
 
-- 缓存 responses at the 请求 节点
-- Use TTL用于freshness control
-- Check 缓存 before calling backend
+- 在请求节点上缓存响应结果
+- 使用过期时间来控制数据的新鲜度
+- 在调用后端之前先检查缓存
 
 ## 测试用例
 
-### 1. 缓存 hit
+### 1. 缓存命中
 
 输入：
 
@@ -78,8 +71,8 @@ TTL defines how long cached data remains valid. Short TTL = more freshness, more
 
 ## 参考资料
 
-- [Caching Strategies](https://aws.amazon.com/caching/)：AWS guide to caching strategies
-- [DDIA Chapter 5](https://dataintensive.net/)：复制和caching concepts
+- [Caching Strategies](https://aws.amazon.com/caching/)：亚马逊云关于缓存策略的指南
+- [DDIA Chapter 5](https://dataintensive.net/)：数据密集型应用中关于复制与缓存的概念
 
 ## 本地文件
 

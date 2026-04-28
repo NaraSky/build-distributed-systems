@@ -1,33 +1,26 @@
-# Prevent Split Votes Through Term Management
+# 通过任期管理防止选票瓜分
 
-英文标题：Prevent Split Votes Through Term Management
 网页：<https://builddistributedsystem.com/tracks/elector/tasks/task-5-5-split-vote>
 
-课程：5. 选举器：Leader Election
+课程：5. 选举器：领导者选举
 任务序号：5
-短标题：Term Management
-难度：advanced
-子主题：Raft Leader 选举
+短标题：任期管理
+难度：高级
+子主题：Raft 领导者选举
 
 ## 中文导读
 
-本题要求你完成 `Prevent Split Votes Through Term Management`。
-
-重点关注：`term`、`split vote`、`election retry`。
-
-建议先按提示逐步实现：Increment term when starting election。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题让你处理选票瓜分的情况：没有任何候选人获得多数票。此时候选人需要递增任期号并重新发起选举。正确的任期管理能确保集群最终选出领导者。任期号就像一个逻辑时钟，是 Raft 判断信息新旧的核心依据。
 
 ## 题目说明
 
-Handle split votes where no Candidate receives a majority. Candidates increment their term和重试. Proper term management ensures the 集群 eventually elects a Leader.
+处理选票瓜分（Split Vote）的情况，即没有候选人获得多数票。候选人递增自己的任期号并重新发起选举。正确的任期管理能确保集群最终选出一个领导者。
 
 ## 概念说明
 
-### Term Management
+### 任期管理
 
-The term acts as a logical 时钟. Higher terms always win. When a 节点 sees a higher term, it immediately becomes a Follower. This prevents stale leaders from causing inconsistency.
+任期号（Term）相当于一个逻辑时钟。更高的任期号总是优先。当一个节点看到比自己更高的任期号时，它会立即退回到跟随者状态。这可以防止过时的领导者造成不一致。就像朝代更替：一旦新朝代建立（更高的任期号），旧朝代的命令就不再有效，所有人都必须服从新朝代。
 
 ## 涉及概念
 
@@ -37,15 +30,15 @@ The term acts as a logical 时钟. Higher terms always win. When a 节点 sees a
 
 ## 实现提示
 
-- Increment term when starting election
-- Step down if see higher term
-- 重试 election on 超时
+- 发起选举时递增任期号
+- 如果看到更高的任期号，立即退回跟随者状态
+- 选举超时后重新发起选举
 
 ## 测试用例
 
-### 1. Increment term on new 选举
+### 1. 发起新选举时递增任期号
 
-节点 increments term from 1→2 when starting election, becomes Candidate, votes用于itself.
+节点在发起选举时将任期号从 1 递增到 2，变成候选人，并给自己投票。
 
 输入：
 

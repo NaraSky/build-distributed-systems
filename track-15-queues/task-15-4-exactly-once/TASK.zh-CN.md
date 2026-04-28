@@ -1,48 +1,42 @@
-# 实现 Exactly-Once Semantics
+# 实现精确一次语义
 
 英文标题：Implement Exactly-Once Semantics
 网页：<https://builddistributedsystem.com/tracks/queues/tasks/task-15-4-exactly-once>
 
 课程：15. 队列
 任务序号：4
-短标题：Exactly-Once
-难度：advanced
-子主题：At-Most-Once和At-Least-Once Delivery
+短标题：精确一次
+难度：高级
+子主题：至多一次与至少一次投递
 
 ## 中文导读
 
-本题要求你完成 `实现 Exactly-Once Semantics`。
-
-重点关注：`exactly-once`、`idempotency`、`deduplication`。
-
-建议先按提示逐步实现：Dedup on producer side，包含消息 ID。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你实现"精确一次"（Exactly-Once）处理语义——保证每条消息恰好被处理一次，既不丢失也不重复。这是消息系统中最难实现的投递保证，需要生产者、队列和消费者三方协作，是理解分布式系统事务性处理的关键。
 
 ## 题目说明
 
-Achieve exactly-once processing semantics:
+实现精确一次处理语义：
 
-Producer side:
-1. Assign unique ID to each 消息
-2. 队列 deduplicates by ID
+生产者侧：
+1. 为每条消息分配唯一标识
+2. 队列根据标识进行去重
 
-Consumer side:
-1. Track processed 消息 IDs
-2. Skip 消息 already processed
-3. Atomically: process + commit offset + record as processed
+消费者侧：
+1. 记录已处理过的消息标识
+2. 跳过已经处理过的消息
+3. 将"处理消息 + 提交偏移量 + 记录已处理"这三步作为一个原子操作执行
 
-This requires cooperation between producer, 队列,和consumer.
+精确一次语义需要生产者、队列和消费者三方的协同配合。
 
 ## 概念说明
 
-### Exactly-Once Semantics
+### 精确一次语义
 
-True exactly-once is end-to-end: exactly-once production + exactly-once consumption + idempotent processing. Kafka achieves this through idempotent producers, transactional consumers,和offset commits within transactions.
+真正的精确一次是端到端的保证：生产者精确一次发送 + 消费者精确一次消费 + 幂等处理。Kafka 通过幂等生产者、事务性消费者和在事务中提交偏移量来实现这一目标。可以把它想象成银行转账——你希望钱恰好转一次，既不多扣也不漏转。
 
-### Idempotency Keys
+### 幂等键
 
-Using unique 消息 IDs, producers 重试 safely (队列 rejects duplicates)和consumers skip already-processed 消息. The challenge is tracking和garbage-collecting these IDs efficiently.
+利用唯一的消息标识，生产者可以安全地重试（队列会拒绝重复的消息），消费者也可以跳过已经处理过的消息。难点在于如何高效地存储和清理这些标识，避免无限增长占用过多资源。
 
 ## 涉及概念
 
@@ -52,15 +46,15 @@ Using unique 消息 IDs, producers 重试 safely (队列 rejects duplicates)和c
 
 ## 实现提示
 
-- Dedup on producer side，包含消息 ID
-- Track processed IDs on consumer side
-- Use transactions用于consume-produce
+- 在生产者侧通过消息标识进行去重
+- 在消费者侧记录已处理的消息标识
+- 对于"消费再生产"的场景，使用事务来保证原子性
 
 ## 测试用例
 
-### 1. Producer 去重
+### 1. 生产者去重
 
-Producer sends 消息，包含id="msg1" twice (due to 重试). 队列 should detect duplicate based on 消息 ID和only store once. Verify consumer receives 消息 exactly once, not twice.
+生产者由于重试将标识为 "msg1" 的消息发送了两次。队列应该根据消息标识检测到重复，只存储一份。验证消费者只会收到一次该消息，而不是两次。
 
 输入：
 
@@ -74,9 +68,9 @@ Producer sends 消息，包含id="msg1" twice (due to 重试). 队列 should det
 {"src":"n1","dest":"c0","body":{"type":"init_ok","in_reply_to":1,"msg_id":0}}
 ```
 
-### 2. Consumer skip duplicate
+### 2. 消费者跳过重复消息
 
-Consumer processes 消息 id="msg2", stores processed ID. 消息 is redelivered (due to 超时 or crash). Consumer should detect already processed this ID和skip it. Verify idempotent processing on consumer side.
+消费者处理了标识为 "msg2" 的消息，并记录了该标识。由于超时或崩溃，消息被重新投递。消费者应该检测到已经处理过该标识的消息并跳过。验证消费者侧的幂等处理能力。
 
 输入：
 
@@ -92,7 +86,7 @@ Consumer processes 消息 id="msg2", stores processed ID. 消息 is redelivered 
 
 ## 参考资料
 
-- [Kafka Exactly-Once](https://www.confluent.io/blog/exactly-once-semantics-are-possible-heres-how-apache-kafka-does-it/)：How Kafka achieves exactly-once
+- [Kafka Exactly-Once](https://www.confluent.io/blog/exactly-once-semantics-are-possible-heres-how-apache-kafka-does-it/)：Kafka 如何实现精确一次语义
 
 ## 本地文件
 

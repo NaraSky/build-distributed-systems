@@ -1,42 +1,36 @@
-# 实现 Chunk Creation和Allocation
+# 实现数据块的创建与分配
 
-英文标题：Implement Chunk Creation和Allocation
+英文标题：Implement Chunk Creation and Allocation
 网页：<https://builddistributedsystem.com/tracks/filesystem/tasks/task-12-1-3-chunk-creation>
 
 课程：20. 文件系统：分布式文件存储
 任务序号：3
 短标题：Chunk Creation
-难度：advanced
+难度：高级
 子主题：Distributed File Storage
 
 ## 中文导读
 
-本题要求你完成 `实现 Chunk Creation和Allocation`。
-
-重点关注：`chunk allocation`、`placement policy`、`rack awareness`、`primary assignment`。
-
-建议先按提示逐步实现：客户端 asks master用于a new chunk; master allocates it on 3 servers和returns their addresses。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现数据块的创建与分配逻辑。当客户端创建文件或追加数据时，主节点需要决定把新的数据块放在哪些服务器上。这个"放置策略"直接影响系统的容错能力和性能。
 
 ## 题目说明
 
-When a 客户端 creates a file or appends a new chunk, the master must allocate chunk 存储 on appropriate chunk servers.
+当客户端创建文件或追加新的数据块时，主节点需要在合适的块服务器上分配存储空间。
 
-Chunk creation flow:
-1. 客户端 sends `allocate_chunk` to master
-2. Master selects 3 chunk servers based on placement policy:
-   - Prefer servers，包含below-average disk utilization
-   - Spread across racks用于故障 tolerance (if rack-aware)
-   - Prefer locally-close servers用于the primary
-3. Master creates chunk 元数据, assigns a unique chunk handle
-4. Master designates one 服务端 as the **primary** (via a lease)
-5. Returns chunk handle和服务端 addresses to the 客户端
-6. 客户端 writes data directly to the primary
+数据块创建的流程：
+1. 客户端向主节点发送 `allocate_chunk` 请求
+2. 主节点根据放置策略选择 3 台块服务器：
+   - 优先选择磁盘使用率低于平均值的服务器
+   - 将副本分散到不同的机架上以提高容错能力（如果支持机架感知）
+   - 优先为主副本选择网络距离较近的服务器
+3. 主节点创建数据块的元数据，并分配一个唯一的数据块句柄
+4. 主节点指定其中一台服务器作为**主副本（Primary）**（通过租约机制）
+5. 将数据块句柄和服务器地址返回给客户端
+6. 客户端直接向主副本写入数据
 
-```JSON
-请求:  {"type": "allocate_chunk", "msg_id": 1, "file": "/data/日志.dat", "chunk_index": 0}
-响应: {"type": "allocate_chunk_ok", "in_reply_to": 1, "chunk_handle": "ch_00042", "primary": "cs1", "secondaries": ["cs2", "cs3"], "lease_expires_ms": 60000}
+```json
+Request:  {"type": "allocate_chunk", "msg_id": 1, "file": "/data/log.dat", "chunk_index": 0}
+Response: {"type": "allocate_chunk_ok", "in_reply_to": 1, "chunk_handle": "ch_00042", "primary": "cs1", "secondaries": ["cs2", "cs3"], "lease_expires_ms": 60000}
 ```
 
 ## 涉及概念
@@ -48,17 +42,17 @@ Chunk creation flow:
 
 ## 实现提示
 
-- 客户端 asks master用于a new chunk; master allocates it on 3 servers和returns their addresses
-- Placement policy: spread replicas across different racks用于故障 tolerance
-- The master picks a primary chunk 服务端和grants it a lease
-- 客户端 writes to the primary chunk 服务端 directly — master is NOT in the data path
-- Return addresses in order: primary first, then secondaries
+- 客户端向主节点请求新的数据块；主节点将其分配到 3 台服务器上并返回地址
+- 放置策略：将副本分散到不同机架上以提高容错能力
+- 主节点选择一台块服务器作为主副本并授予租约
+- 客户端直接向主副本写入数据，主节点不参与数据传输
+- 返回的地址按顺序排列：先是主副本，然后是从副本
 
 ## 测试用例
 
-### 1. Allocate chunk returns primary和secondaries
+### 1. 分配数据块并返回主副本和从副本
 
-allocate_chunk_ok should have a unique chunk_handle, a primary,和2 secondaries.
+allocate_chunk_ok 应当包含唯一的 chunk_handle、一个 primary 和 2 个 secondaries。
 
 输入：
 
@@ -73,9 +67,9 @@ allocate_chunk_ok should have a unique chunk_handle, a primary,和2 secondaries.
 {"src": "n1", "dest": "c0", "body": {"type": "init_ok", "in_reply_to": 1, "msg_id": 0}}
 ```
 
-### 2. Multiple allocations produce 唯一 chunk handles
+### 2. 多次分配产生唯一的数据块句柄
 
-Each allocation should produce a different chunk_handle.
+每次分配应当生成不同的 chunk_handle。
 
 输入：
 
@@ -93,7 +87,7 @@ Each allocation should produce a different chunk_handle.
 
 ## 参考资料
 
-- [GFS Chunk Allocation](https://research.google/pubs/pub51/)：GFS paper section on chunk creation, placement,和replica management
+- [GFS Chunk Allocation](https://research.google/pubs/pub51/)：GFS 论文中关于数据块创建、放置和副本管理的章节
 
 ## 本地文件
 

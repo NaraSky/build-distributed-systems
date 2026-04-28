@@ -1,66 +1,60 @@
-# 实现 a JSON Document 存储
+# 实现文档存储
 
 英文标题：Implement a JSON Document Store
 网页：<https://builddistributedsystem.com/tracks/searcher/tasks/task-16-1-1-document-store>
 
-课程：23. 搜索器：分布式搜索
+课程：23. 搜索引擎
 任务序号：1
-短标题：Document 存储
-难度：intermediate
-子主题：Document模式l和Mapping
+短标题：文档存储
+难度：进阶
+子主题：文档模型与映射
 
 ## 中文导读
 
-本题要求你完成 `实现 a JSON Document 存储`。
-
-重点关注：`document store`、`JSON document`、`UUID primary key`、`index operation`、`CRUD`。
-
-建议先按提示逐步实现：Each document is a JSON object，包含a system-assigned "_id" field (UUID v4)。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现一个最基础的文档存储（Document Store），支持对文档的增删查操作。文档存储是搜索引擎的地基，所有后续的索引、搜索功能都建立在它之上。理解文档的存储和检索方式，是构建搜索引擎的第一步。
 
 ## 题目说明
 
-The foundation of a search engine is the document store. Each document is a JSON object，包含arbitrary fields, identified by a unique UUID.
+搜索引擎的基础是文档存储（Document Store）。每个文档是一个任意结构的 JSON 对象，通过唯一的 UUID 来标识。
 
-**Core operations**:
-- `索引(doc)`: store a JSON document. If no `_id` is provided, generate a UUID v4. Return the `_id`和a version number.
-- `get(id)`: retrieve the document by its `_id`. Return the full JSON document including 元数据 (`_id`, `_version`, `_source`).
-- `delete(id)`: mark the document as deleted. Return success/故障.
+**核心操作**：
+- `index(doc)`：存储一个 JSON 文档。如果文档中没有 `_id` 字段，则自动生成一个 UUID v4。返回 `_id` 和版本号。
+- `get(id)`：根据 `_id` 检索文档。返回完整的 JSON 文档，包含元数据（`_id`、`_version`、`_source`）。
+- `delete(id)`：将文档标记为已删除。返回操作是否成功。
 
-**存储**:用于now, use an in-memory hash map or a simple file-per-document store. Each document is stored as a JSON blob keyed by `_id`.
+**存储方式**：目前使用内存中的哈希表，或者简单的"一个文件存一个文档"的方式。每个文档以 JSON 格式存储，以 `_id` 作为键。
 
-Documents are schema-free: any JSON structure is valid. Field types are inferred or explicitly mapped (covered in the next task).
+文档不要求固定的结构：任何合法的 JSON 都可以作为文档。字段类型可以自动推断，也可以显式映射（将在下一个任务中介绍）。
 
-```JSON
-请求:  {"type": "doc_index", "msg_id": 1, "doc": {"title": "分布式系统", "author": "Kleppmann", "year": 2017}}
-响应: {"type": "doc_index_ok", "in_reply_to": 1, "_id": "a1b2c3d4", "_version": 1, "result": "created"}
+```json
+Request:  {"type": "doc_index", "msg_id": 1, "doc": {"title": "Distributed Systems", "author": "Kleppmann", "year": 2017}}
+Response: {"type": "doc_index_ok", "in_reply_to": 1, "_id": "a1b2c3d4", "_version": 1, "result": "created"}
 
-请求:  {"type": "doc_get", "msg_id": 2, "_id": "a1b2c3d4"}
-响应: {"type": "doc_get_ok", "in_reply_to": 2, "_id": "a1b2c3d4", "_source": {"title": "分布式系统", "author": "Kleppmann", "year": 2017}}
+Request:  {"type": "doc_get", "msg_id": 2, "_id": "a1b2c3d4"}
+Response: {"type": "doc_get_ok", "in_reply_to": 2, "_id": "a1b2c3d4", "_source": {"title": "Distributed Systems", "author": "Kleppmann", "year": 2017}}
 ```
 
 ## 涉及概念
 
-- `document store`
-- `JSON document`
-- `UUID primary key`
-- `index operation`
-- `CRUD`
+- document store
+- JSON document
+- UUID primary key
+- index operation
+- CRUD
 
 ## 实现提示
 
-- Each document is a JSON object，包含a system-assigned "_id" field (UUID v4)
-- 索引(doc) stores the document和returns the assigned _id
-- get(id) retrieves the document by _id, returning null if not found
-- delete(id) removes the document和returns success/故障
-- Store documents in a simple file or hash map keyed by _id
+- 每个文档是一个 JSON 对象，系统会为它分配一个 `_id` 字段（UUID v4 格式）
+- `index(doc)` 用于存储文档，并返回分配的 `_id`
+- `get(id)` 根据 `_id` 检索文档，如果不存在则返回空
+- `delete(id)` 删除文档，并返回操作是否成功
+- 使用简单的文件或哈希表来存储文档，以 `_id` 作为键
 
 ## 测试用例
 
-### 1. 索引和retrieve a document
+### 1. 索引并检索文档
 
-doc_index_ok should return a valid _id和result "created".
+`doc_index_ok` 应返回一个合法的 `_id` 以及 `result` 为 `"created"`。
 
 输入：
 
@@ -75,9 +69,9 @@ doc_index_ok should return a valid _id和result "created".
 {"src": "n1", "dest": "c0", "body": {"type": "init_ok", "in_reply_to": 1, "msg_id": 0}}
 ```
 
-### 2. Get returns indexed document
+### 2. 获取已索引的文档
 
-doc_get_ok should return the same document in _source.
+`doc_get_ok` 应在 `_source` 中返回之前存入的同一份文档。
 
 输入：
 
@@ -95,7 +89,7 @@ doc_get_ok should return the same document in _source.
 
 ## 参考资料
 
-- [Elasticsearch Document API](https://www.elastic.co/guide/en/elasticsearch/reference/current/docs.html)：Elasticsearch documentation on the Document API
+- [Elasticsearch Document API](https://www.elastic.co/guide/en/elasticsearch/reference/current/docs.html)：关于文档增删改查接口的官方文档
 
 ## 本地文件
 

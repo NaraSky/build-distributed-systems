@@ -1,43 +1,37 @@
-#处理Node Removal，包含Graceful和Crash Recovery
+# 处理节点移除：优雅下线与崩溃恢复
 
-英文标题：Handle节点Removal，包含Graceful和Crash Recovery
+英文标题：Handle Node Removal with Graceful and Crash Recovery
 网页：<https://builddistributedsystem.com/tracks/sharder/tasks/task-18-2-4-node-removal>
 
 课程：8. 分片器：水平扩展与数据迁移
 任务序号：9
-短标题：Node Removal
-难度：advanced
+短标题：节点移除
+难度：高级
 子主题：Consistent Hashing
 
 ## 中文导读
 
-本题要求你完成 `Handle节点Removal，包含Graceful和Crash Recovery`。
-
-重点关注：`node removal`、`graceful shutdown`、`crash recovery`、`key takeover`、`successor promotion`。
-
-建议先按提示逐步实现：On graceful shutdown: 节点 transfers its keys to its clockwise successor before leaving。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你处理节点从一致性哈希环中移除的两种场景：优雅下线和崩溃恢复。优雅下线时节点可以主动将数据转移给后继节点；崩溃场景下则需要通过副本来恢复数据。这是构建高可用分布式系统必须掌握的能力。
 
 ## 题目说明
 
-When a 节点 leaves the ring (graceful shutdown or crash), its key range must be taken over by its successor. The two scenarios require different handling.
+当一个节点离开哈希环时（无论是优雅下线还是崩溃），它的键范围必须由后继节点接管。这两种场景需要不同的处理方式。
 
-**Graceful shutdown**:
-1. 节点 announces it is leaving
-2. 节点 transfers all its keys to its clockwise successor(s)
-3. Ring topology is updated
-4. No data loss, minimal disruption
+**优雅下线**：
+1. 节点宣布即将离开
+2. 节点将自己所有的键转移给顺时针方向的后继节点
+3. 更新环的拓扑结构
+4. 无数据丢失，最小化影响
 
-**Crash recovery**:
-1. Other 节点 detect the 故障 (missed heartbeats)
-2. The successor takes over the key range
-3. Data is recovered from replica copies
-4. New replicas are created to restore the 复制 factor
+**崩溃恢复**：
+1. 其他节点检测到故障（心跳超时）
+2. 后继节点接管崩溃节点的键范围
+3. 从副本中恢复数据
+4. 创建新的副本以恢复复制因子
 
-```JSON
-请求:  {"type": "ring_remove_node", "msg_id": 1, "节点": "n2", "mode": "graceful"}
-响应: {"type": "ring_remove_node_ok", "in_reply_to": 1, "keys_migrated": 333, "target_nodes": ["n1", "n3"], "mode": "graceful"}
+```json
+Request:  {"type": "ring_remove_node", "msg_id": 1, "node": "n2", "mode": "graceful"}
+Response: {"type": "ring_remove_node_ok", "in_reply_to": 1, "keys_migrated": 333, "target_nodes": ["n1", "n3"], "mode": "graceful"}
 ```
 
 ## 涉及概念
@@ -50,17 +44,17 @@ When a 节点 leaves the ring (graceful shutdown or crash), its key range must b
 
 ## 实现提示
 
-- On graceful shutdown: 节点 transfers its keys to its clockwise successor before leaving
-- On crash: the successor detects the 故障和takes over the key range
-- Graceful is faster (pre-transfer), crash requires recovery from replicas
-- With virtual 节点, keys from the removed vnodes distribute to multiple successors
-- Replica copies ensure no data loss even on crash
+- 优雅下线时：节点在离开前将自己的键转移给顺时针后继节点
+- 崩溃时：后继节点检测到故障并接管键范围
+- 优雅下线更快（预先传输数据），崩溃恢复需要从副本恢复
+- 使用虚拟节点时，被移除的虚拟节点上的键会分散到多个后继节点
+- 副本机制保证即使在崩溃的情况下也不会丢失数据
 
 ## 测试用例
 
-### 1. Graceful removal migrates keys
+### 1. 优雅移除并迁移键
 
-ring_remove_node_ok should show keys migrated to remaining 节点.
+`ring_remove_node_ok` 应显示键已迁移到剩余节点。
 
 输入：
 
@@ -75,9 +69,9 @@ ring_remove_node_ok should show keys migrated to remaining 节点.
 {"src": "n1", "dest": "c0", "body": {"type": "init_ok", "in_reply_to": 1, "msg_id": 0}}
 ```
 
-### 2. Crash recovery takes over key range
+### 2. 崩溃恢复并接管键范围
 
-Crash mode should trigger recovery from replicas.
+崩溃模式应触发从副本进行数据恢复。
 
 输入：
 
@@ -94,7 +88,7 @@ Crash mode should trigger recovery from replicas.
 
 ## 参考资料
 
-- [Consistent Hashing:节点Removal](https://www.akamai.com/us/en/multimedia/documents/technical-publication/consistent-hashing-and-random-trees-distributed-caching-protocols-for-relieving-hot-spots-on-the-world-wide-web-technical-publication.pdf)：Akamai consistent hashing paper on 节点 join/leave strategies
+- [Consistent Hashing: Node Removal](https://www.akamai.com/us/en/multimedia/documents/technical-publication/consistent-hashing-and-random-trees-distributed-caching-protocols-for-relieving-hot-spots-on-the-world-wide-web-technical-publication.pdf)：Akamai 关于一致性哈希中节点加入和离开策略的论文
 
 ## 本地文件
 

@@ -1,43 +1,36 @@
-# 添加随机Salt to Prevent Collisions
+# 添加随机盐值防止 ID 冲突
 
-英文标题：Add随机Salt to Prevent Collisions
 网页：<https://builddistributedsystem.com/tracks/identifier/tasks/task-2-2-random-salt>
 
 课程：2. 标识符：分布式唯一 ID
 任务序号：2
-短标题：Random Salt
-难度：beginner
-子主题：Why 唯一 IDs Are Hard
+短标题：随机盐值
+难度：入门
+子主题：为什么唯一 ID 这么难
 
 ## 中文导读
 
-本题要求你完成 `添加随机Salt to Prevent Collisions`。
-
-重点关注：`randomness`、`collision prevention`、`UUID`。
-
-建议先按提示逐步实现：Add a random component to each generated ID。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+上一道题中，同一毫秒内连续调用可能产生重复 ID。这道题要求你在 ID 中加入随机成分或序列计数器，从而在高并发下也能保证唯一性。这是理解"雪花算法（Snowflake）"等工业级方案的基础。
 
 ## 题目说明
 
-Your basic ID generator might produce duplicates if called multiple times within the same millisecond. Add a random component or sequence 计数器 to ensure uniqueness even under high load.
+在上一个基础实现中，如果同一毫秒内多次调用生成函数，可能会产生重复的 ID。你需要添加一个随机成分或序列计数器，确保即使在高负载下也不会出现重复。
 
-Options用于enhanced uniqueness:
+增强唯一性的几种方案：
 
-1. Add a **sequence 计数器** that resets each millisecond
-2. Include **random bytes** in each ID
-3. Use a structure similar to **Twitter Snowflake IDs**
+1. 添加一个**序列计数器**，每毫秒重置一次
+2. 在每个 ID 中加入**随机字节**
+3. 采用类似 **Twitter 雪花 ID（Snowflake ID）** 的结构
 
-Your IDs must be unique across all 节点和all time, even if generate is called millions of times per second.
+你生成的 ID 必须在所有节点、所有时间上都保持唯一，即使每秒被调用数百万次也不能重复。
 
 ## 概念说明
 
-## The Same-Millisecond Problem
+### 同一毫秒问题
 
-High-throughput systems can generate **thousands of IDs per millisecond**. Timestamp alone is not granular enough. You need an additional component.
+高吞吐量系统每毫秒可能需要生成**数千个 ID**。仅靠时间戳的精度远远不够，你需要额外的区分手段。
 
-### Option 1: Sequence 计数器
+### 方案一：序列计数器
 
 ```text
 class IDGenerator:
@@ -56,7 +49,9 @@ class IDGenerator:
         return f"{node_id}-{timestamp}-{sequence}"
 ```
 
-### Option 2:随机Salt
+就像在同一秒发出的多封信件，可以用"信件 1、信件 2、信件 3"来编号区分。
+
+### 方案二：随机盐值
 
 ```text
 def generate():
@@ -65,17 +60,19 @@ def generate():
     return f"{node_id}-{timestamp}-{salt}"
 ```
 
-### Snowflake IDs
+4 个随机字节可以产生约 40 亿种组合，在同一毫秒内碰撞的概率极低。
 
-Twitter invented **Snowflake IDs**用于exactly this problem. A 64-bit Snowflake ID contains:
+### 雪花 ID
 
-  - **41 bits** - timestamp (69 years)
+Twitter 发明了**雪花 ID（Snowflake ID）** 来解决这个问题。一个 64 位的雪花 ID 包含：
 
-  - **10 bits** - machine ID (1024 machines)
+  - **41 位** - 时间戳（可用约 69 年）
 
-  - **12 bits** - sequence number (4096 IDs per millisecond)
+  - **10 位** - 机器 ID（最多 1024 台机器）
 
-This allows *4096 unique IDs per millisecond per machine*.
+  - **12 位** - 序列号（每毫秒最多 4096 个 ID）
+
+这样，每台机器每毫秒可以生成 *4096 个唯一 ID*。
 
 ## 涉及概念
 
@@ -85,13 +82,13 @@ This allows *4096 unique IDs per millisecond per machine*.
 
 ## 实现提示
 
-- Add a random component to each generated ID
-- Use a sequence 计数器用于IDs generated in the same millisecond
-- Consider combining timestamp, node_id,和random value
+- 在每个生成的 ID 中添加随机成分
+- 对同一毫秒内生成的 ID 使用序列计数器
+- 考虑将时间戳、节点标识和随机值组合起来
 
 ## 测试用例
 
-### 1. Generate single ID
+### 1. 生成单个 ID
 
 输入：
 
@@ -109,7 +106,7 @@ This allows *4096 unique IDs per millisecond per machine*.
 
 ## 参考资料
 
-- [Snowflake ID](https://en.wikipedia.org/wiki/Snowflake_ID)：Wikipedia article on Twitter Snowflake ID format
+- [Snowflake ID](https://en.wikipedia.org/wiki/Snowflake_ID)：维基百科上关于 Twitter 雪花 ID 格式的介绍
 
 ## 本地文件
 

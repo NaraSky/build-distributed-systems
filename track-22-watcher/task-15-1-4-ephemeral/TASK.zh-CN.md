@@ -1,43 +1,37 @@
-# 实现 Ephemeral Nodes用于Session-Bound State
+# 实现临时节点以关联会话生命周期
 
-英文标题：Implement Ephemeral Nodes用于Session-Bound State
+英文标题：Implement Ephemeral Nodes for Session-Bound State
 网页：<https://builddistributedsystem.com/tracks/watcher/tasks/task-15-1-4-ephemeral>
 
 课程：22. 观察者：ZooKeeper/etcd 模型
 任务序号：4
 短标题：Ephemeral Nodes
-难度：intermediate
-子主题：The ZNode Data模式l
+难度：进阶
+子主题：The ZNode Data Model
 
 ## 中文导读
 
-本题要求你完成 `实现 Ephemeral Nodes用于Session-Bound State`。
-
-重点关注：`ephemeral node`、`session lifetime`、`service registration`、`auto-deletion`、`failure detection`。
-
-建议先按提示逐步实现：Ephemeral 节点 are automatically deleted when the creating session expires。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现临时节点（Ephemeral Node）。临时节点的特点是"人走茶凉"：当创建它的客户端会话过期（比如客户端崩溃或断开连接），该节点就会被自动删除。这个特性是分布式服务注册和故障检测的基础，比如一个服务在 ZooKeeper 上注册了临时节点，当服务宕机后节点自动消失，其他服务立刻就能知道。
 
 ## 题目说明
 
-Ephemeral 节点 are ZNodes that are automatically deleted when the 客户端 session that created them expires. They are the foundation of distributed service registration和故障 detection.
+临时节点（Ephemeral Node）是一种特殊的 ZNode，当创建它的客户端会话过期时会被自动删除。它们是分布式服务注册和故障检测的基础。
 
-**Lifecycle**:
-1. 客户端 creates ephemeral 节点: `Create("/services/web/instance-1", data, EPHEMERAL)`
-2. While the 客户端 is alive, it sends heartbeats to keep the session active
-3. If the 客户端 crashes or disconnects, the session eventually expires
-4. ZooKeeper automatically deletes all ephemeral 节点 created by that session
-5. Other clients watching `/services/web/` are notified of the deletion
+**生命周期**：
+1. 客户端创建临时节点：`Create("/services/web/instance-1", data, EPHEMERAL)`
+2. 客户端存活期间，通过心跳保持会话活跃
+3. 如果客户端崩溃或断开连接，会话最终会过期
+4. ZooKeeper 自动删除该会话创建的所有临时节点
+5. 监听 `/services/web/` 的其他客户端会收到删除通知
 
-**Constraints**: ephemeral 节点 cannot have children.
+**约束**：临时节点不能有子节点。
 
-```JSON
-请求:  {"type": "znode_create", "msg_id": 1, "path": "/services/web/i-001", "data": "host:8080", "ephemeral": true, "sequential": false, "session_id": "s1"}
-响应: {"type": "znode_create_ok", "in_reply_to": 1, "path": "/services/web/i-001", "version": 0}
+```json
+Request:  {"type": "znode_create", "msg_id": 1, "path": "/services/web/i-001", "data": "host:8080", "ephemeral": true, "sequential": false, "session_id": "s1"}
+Response: {"type": "znode_create_ok", "in_reply_to": 1, "path": "/services/web/i-001", "version": 0}
 
-请求:  {"type": "session_expire", "msg_id": 2, "session_id": "s1"}
-响应: {"type": "session_expire_ok", "in_reply_to": 2, "ephemeral_nodes_deleted": ["/services/web/i-001"]}
+Request:  {"type": "session_expire", "msg_id": 2, "session_id": "s1"}
+Response: {"type": "session_expire_ok", "in_reply_to": 2, "ephemeral_nodes_deleted": ["/services/web/i-001"]}
 ```
 
 ## 涉及概念
@@ -50,17 +44,17 @@ Ephemeral 节点 are ZNodes that are automatically deleted when the 客户端 se
 
 ## 实现提示
 
-- Ephemeral 节点 are automatically deleted when the creating session expires
-- A session expires when the 服务端 misses heartbeats用于the session 超时 period
-- Ephemeral 节点 cannot have children (design constraint)
-- Use case: service registers an ephemeral 节点; when the service crashes, the 节点 disappears
-- This enables automatic 故障 detection without polling
+- 临时节点在创建它的会话过期时会被自动删除
+- 当服务端在会话超时时间内未收到心跳时，会话过期
+- 临时节点不能有子节点（这是设计约束）
+- 典型用例：服务注册一个临时节点，当服务崩溃后节点自动消失
+- 这使得无需轮询就能实现自动故障检测
 
 ## 测试用例
 
-### 1. Ephemeral node is created
+### 1. 成功创建临时节点
 
-znode_get_ok should show ephemeral: true和data "host".
+znode_get_ok 应当显示 ephemeral: true 和 data 为 "host"。
 
 输入：
 
@@ -76,9 +70,9 @@ znode_get_ok should show ephemeral: true和data "host".
 {"src": "n1", "dest": "c0", "body": {"type": "init_ok", "in_reply_to": 1, "msg_id": 0}}
 ```
 
-### 2. Session expiry deletes ephemeral nodes
+### 2. 会话过期时删除临时节点
 
-session_expire_ok should list /e in ephemeral_nodes_deleted.
+session_expire_ok 应当在 ephemeral_nodes_deleted 中列出 /e。
 
 输入：
 
@@ -96,7 +90,7 @@ session_expire_ok should list /e in ephemeral_nodes_deleted.
 
 ## 参考资料
 
-- [ZooKeeper Ephemeral Nodes](https://zookeeper.apache.org/doc/current/zookeeperProgrammers.html#Ephemeral+Nodes)：ZooKeeper documentation on ephemeral 节点和session management
+- [ZooKeeper Ephemeral Nodes](https://zookeeper.apache.org/doc/current/zookeeperProgrammers.html#Ephemeral+Nodes)：ZooKeeper 关于临时节点和会话管理的官方文档
 
 ## 本地文件
 

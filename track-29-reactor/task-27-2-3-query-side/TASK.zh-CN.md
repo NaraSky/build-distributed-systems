@@ -1,46 +1,40 @@
-# 实现 Query Side Optimization
+# 实现查询端优化
 
 英文标题：Implement Query Side Optimization
 网页：<https://builddistributedsystem.com/tracks/reactor/tasks/task-27-2-3-query-side>
 
 课程：29. 反应器：事件溯源与 CQRS
 任务序号：8
-短标题：Query Side
-难度：intermediate
+短标题：查询端
+难度：进阶
 子主题：CQRS (Command Query Responsibility Segregation)
 
 ## 中文导读
 
-本题要求你完成 `实现 Query Side Optimization`。
-
-重点关注：`read model`、`query optimization`、`caching`、`denormalization`、`pagination`。
-
-建议先按提示逐步实现：Read models are denormalized: pre-join和pre-aggregate data用于fast reads。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你实现 CQRS 中查询端的优化逻辑。查询端是系统的"读取路径"，它不直接查询写入模型，而是从预先构建好的读取模型（投影）中获取数据。这些读取模型经过反范式化处理和索引优化，查询速度非常快。再结合缓存机制，可以进一步减少重复计算。
 
 ## 题目说明
 
-The query side is the read path in CQRS. Instead of querying the write model directly (which is normalized用于writes), it reads from **pre-built read models** (projections) that are denormalized和indexed用于the specific query being served. Query results can also be cached to avoid redundant work.
+查询端是 CQRS 中的读取路径。它不直接查询写入模型（写入模型是为写入优化的范式化结构），而是从**预先构建的读取模型**（投影）中读取数据。这些读取模型是反范式化的，并且为特定查询场景建立了索引。查询结果还可以被缓存，以避免重复计算。
 
-Implement a 节点 that serves three query types:
+你需要实现一个支持三种查询类型的节点：
 
-```JSON
-// Paginated user list from a denormalized listing projection
+```json
+// 从反范式化的列表投影中分页查询用户
 { "type": "GetUserListing", "msg_id": 1,
   "params": {"page": 1, "limit": 10} }
 -> { "type": "query_result", "in_reply_to": 1,
     "data": [{"id": "user-123", "name": "John Doe"}],
     "cached": false }
 
-// Email lookup via 索引 (second call returns from 缓存)
+// 通过索引按邮箱查找（第二次调用从缓存返回）
 { "type": "GetUserByEmail", "msg_id": 2,
   "params": {"email": "john@example.com"} }
 -> { "type": "query_result", "in_reply_to": 2,
     "data": {"email": "john@example.com", "userId": "user-123"},
     "cached": true }
 
-// Filtered query: users in a specific city
+// 过滤查询：查找特定城市的用户
 { "type": "GetUsersByCity", "msg_id": 3,
   "params": {"city": "NYC"} }
 -> { "type": "query_result", "in_reply_to": 3,
@@ -48,7 +42,7 @@ Implement a 节点 that serves three query types:
     "cached": false }
 ```
 
-The `cached` field indicates whether the result was served from the query 缓存. A query handler never modifies any state.
+`cached` 字段标识结果是否来自查询缓存。查询处理器绝不修改任何状态。
 
 ## 涉及概念
 
@@ -60,17 +54,17 @@ The `cached` field indicates whether the result was served from the query 缓存
 
 ## 实现提示
 
-- Read models are denormalized: pre-join和pre-aggregate data用于fast reads
-- 缓存 query results，包含a TTL; return cached=true when the result comes from 缓存
-- GetUserListing uses pagination (page, limit) to return a slice of the users list
-- GetUserByEmail uses an email 索引用于O(1) lookup rather than a full scan
-- The query side never writes — it reads from projections built by the event side
+- 读取模型是反范式化的：提前做好关联查询和数据聚合，以加快读取速度
+- 为查询结果添加带过期时间的缓存；当结果来自缓存时返回 cached=true
+- GetUserListing 使用分页参数（page 和 limit）返回用户列表的一个切片
+- GetUserByEmail 使用邮箱索引实现常数时间查找，而不是全表扫描
+- 查询端绝不执行写操作，它只从事件端构建的投影中读取数据
 
 ## 测试用例
 
-### 1. Query user listing
+### 1. 查询用户列表
 
-Should return first page of user listing from read model.
+应从读取模型中返回用户列表的第一页。
 
 输入：
 
@@ -84,9 +78,9 @@ Should return first page of user listing from read model.
 {"type": "query_result", "in_reply_to": 1, "data": [{"id": "user-123", "name": "John Doe"}], "cached": false}
 ```
 
-### 2. Query，包含缓存 hit
+### 2. 查询命中缓存
 
-Email 索引 lookup should return cached=true on repeated query.
+重复的邮箱索引查找应返回 cached=true。
 
 输入：
 
@@ -102,7 +96,7 @@ Email 索引 lookup should return cached=true on repeated query.
 
 ## 参考资料
 
-- [CQRS Pattern](https://martinfowler.com/bliki/CQRS.html)：Query side design和read model optimizations
+- [CQRS Pattern](https://martinfowler.com/bliki/CQRS.html)：查询端设计与读取模型优化
 
 ## 本地文件
 

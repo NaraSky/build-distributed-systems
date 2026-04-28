@@ -1,45 +1,39 @@
-# 实现 Protocol Versioning，包含Backward Compatibility
+# 实现协议版本管理与向后兼容
 
-英文标题：Implement Protocol Versioning，包含Backward Compatibility
+英文标题：Implement Protocol Versioning with Backward Compatibility
 网页：<https://builddistributedsystem.com/tracks/networker/tasks/task-5-2-5-protocol-versioning>
 
 课程：17. 网络器：TCP 与协议基础
 任务序号：10
-短标题：Protocol Versioning
-难度：intermediate
-子主题：消息 Framing和Serialization
+短标题：协议版本管理
+难度：进阶
+子主题：消息分帧与序列化
 
 ## 中文导读
 
-本题要求你完成 `实现 Protocol Versioning，包含Backward Compatibility`。
-
-重点关注：`protocol versioning`、`backward compatibility`、`wire format`、`migration`。
-
-建议先按提示逐步实现：Include a protocol_version field in the 消息 header。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题让你实现协议的版本管理方案。在真实的分布式系统中，协议不可能一成不变，总会随着业务需求不断演进。问题在于：新版本上线后，旧版本的客户端还没来得及升级怎么办？向后兼容（Backward Compatibility）就是解决这个问题的关键。你需要让接收方能同时处理新旧两个版本的消息，收到旧版本消息时自动填入合理的默认值将其升级为新版本。
 
 ## 题目说明
 
-Implement a protocol versioning scheme. The sender includes a `protocol_version` in the header. The receiver handles backward compatibility用于older versions.
+实现一套协议版本管理方案。发送方在消息头中携带 `protocol_version`，接收方负责处理旧版本的向后兼容。
 
-Protocol versions:
-- **v1**: `{version: 1, key: string, value: string}`
-- **v2**: `{version: 2, key: string, value: string|int, timestamp_ms: number, tags: string[]}`
+协议版本定义：
+- **v1**：`{version: 1, key: string, value: string}`
+- **v2**：`{version: 2, key: string, value: string|int, timestamp_ms: number, tags: string[]}`
 
-When receiving a v1 消息, upgrade it to v2，包含defaults: `timestamp_ms = 0`, `tags = []`.
+当收到 v1 消息时，自动升级为 v2 格式，使用默认值：`timestamp_ms = 0`，`tags = []`。
 
-Implement handlers:
+实现以下消息处理器：
 
-```JSON
-请求:  {"type": "proto_send_v1", "msg_id": 1, "key": "name", "value": "Alice"}
-响应: {"type": "proto_send_v1_ok", "in_reply_to": 1, "wire_version": 1}
+```json
+Request:  {"type": "proto_send_v1", "msg_id": 1, "key": "name", "value": "Alice"}
+Response: {"type": "proto_send_v1_ok", "in_reply_to": 1, "wire_version": 1}
 
-请求:  {"type": "proto_send_v2", "msg_id": 2, "key": "age", "value": 30, "timestamp_ms": 1700000000, "tags": ["user"]}
-响应: {"type": "proto_send_v2_ok", "in_reply_to": 2, "wire_version": 2}
+Request:  {"type": "proto_send_v2", "msg_id": 2, "key": "age", "value": 30, "timestamp_ms": 1700000000, "tags": ["user"]}
+Response: {"type": "proto_send_v2_ok", "in_reply_to": 2, "wire_version": 2}
 
-请求:  {"type": "proto_receive", "msg_id": 3, "wire_version": 1, "key": "name", "value": "Alice"}
-响应: {"type": "proto_receive_ok", "in_reply_to": 3, "parsed_version": 2, "key": "name", "value": "Alice", "timestamp_ms": 0, "tags": []}
+Request:  {"type": "proto_receive", "msg_id": 3, "wire_version": 1, "key": "name", "value": "Alice"}
+Response: {"type": "proto_receive_ok", "in_reply_to": 3, "parsed_version": 2, "key": "name", "value": "Alice", "timestamp_ms": 0, "tags": []}
 ```
 
 ## 涉及概念
@@ -51,15 +45,15 @@ Implement handlers:
 
 ## 实现提示
 
-- Include a protocol_version field in the 消息 header
-- Version 1: basic key-value，包含string values only
-- Version 2: adds integer values和a timestamp field
-- The receiver must handle both v1和v2 消息
-- Use sensible defaults用于missing fields when upgrading v1 to v2
+- 在消息头中包含 protocol_version 字段
+- 版本 1：基础的键值对，值只支持字符串类型
+- 版本 2：新增了整数值支持和时间戳字段
+- 接收方必须同时处理 v1 和 v2 两种消息
+- 当将 v1 升级为 v2 时，为缺失的字段使用合理的默认值
 
 ## 测试用例
 
-### 1. Send v1 消息
+### 1. 发送 v1 消息
 
 输入：
 
@@ -75,7 +69,7 @@ Implement handlers:
 {"src": "n1", "dest": "c1", "body": {"type": "proto_send_v1_ok", "in_reply_to": 2, "wire_version": 1, "msg_id": 1}}
 ```
 
-### 2. Receive v1 消息 upgraded to v2
+### 2. 接收 v1 消息并升级为 v2
 
 输入：
 
@@ -93,7 +87,7 @@ Implement handlers:
 
 ## 参考资料
 
-- [Protocol Buffers - Language Guide (proto3)](https://protobuf.dev/programming-guides/proto3/)：How Protocol Buffers handle schema evolution和backward compatibility
+- [Protocol Buffers - Language Guide (proto3)](https://protobuf.dev/programming-guides/proto3/)：Protocol Buffers 如何处理模式演进和向后兼容
 
 ## 本地文件
 

@@ -1,4 +1,4 @@
-# 实现 Three-Phase Commit Protocol
+# 实现三阶段提交协议
 
 英文标题：Implement Three-Phase Commit Protocol
 网页：<https://builddistributedsystem.com/tracks/coordinator/tasks/task-19-2-1-three-phase>
@@ -6,40 +6,34 @@
 课程：9. 协调器：分布式事务
 任务序号：6
 短标题：Three-Phase Commit
-难度：advanced
+难度：高级
 子主题：Three-Phase Commit (3PC)
 
 ## 中文导读
 
-本题要求你完成 `实现 Three-Phase Commit Protocol`。
-
-重点关注：`three-phase commit`、`CanCommit`、`PreCommit`、`DoCommit`、`non-blocking commit`。
-
-建议先按提示逐步实现：Phase 1 (CanCommit): coordinator asks "Can you commit?" Participants vote Yes/No。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你完整实现三阶段提交（3PC）协议。与两阶段提交相比，三阶段提交多了一个"预提交"阶段，能在协调者崩溃时减少参与者的阻塞。通过这道题，你将深入理解三阶段提交的协议流程、状态转换以及它如何改善两阶段提交的阻塞问题。
 
 ## 题目说明
 
-Three-Phase Commit (3PC) adds an extra phase to 2PC to reduce blocking scenarios. The third phase (`PreCommit`) ensures participants know a commit is imminent.
+三阶段提交（3PC）在两阶段提交的基础上增加了一个额外的阶段，以减少阻塞场景。第三个阶段（预提交，PreCommit）确保参与者在协调者崩溃时也能知道提交即将发生。
 
-**Protocol phases**:
-1. **CanCommit**: Coordinator asks "Can you commit?" Participants acquire locks和write to WAL, then vote Yes/No
-2. **PreCommit**: If all voted Yes, coordinator sends `PreCommit`. Participants acknowledge和enter "pre-committed" state
-3. **DoCommit**: Coordinator sends `DoCommit`. Participants apply changes和send `HaveCommitted`
+**协议的三个阶段**：
+1. **CanCommit 阶段**：协调者询问所有参与者"你能提交吗？"参与者获取锁并写入预写日志（WAL），然后投票赞成或反对
+2. **PreCommit 阶段**：如果所有参与者都投了赞成票，协调者发送 PreCommit。参与者确认并进入"预提交"状态
+3. **DoCommit 阶段**：协调者发送 DoCommit。参与者执行变更并发送 HaveCommitted 确认
 
-**State transitions**:
+**状态转换**：
 ```
-Participant states:
+参与者状态：
   → INITIAL → CAN_COMMIT? → PRE_COMMITTED → COMMITTED
                   ↓              ↓
                 ABORTED        ABORTED
 ```
 
-**Example 3PC execution**:
-```JSON
-请求:  {"type": "txn_begin", "msg_id": 1, "participants": ["p1", "p2", "p3"], "operations": [{"transfer": 100, "from": "a", "to": "b"}]}
-响应: {"type": "txn_begin_ok", "in_reply_to": 1, "txn_id": "txn42"}
+**三阶段提交执行示例**：
+```json
+Request:  {"type": "txn_begin", "msg_id": 1, "participants": ["p1", "p2", "p3"], "operations": [{"transfer": 100, "from": "a", "to": "b"}]}
+Response: {"type": "txn_begin_ok", "in_reply_to": 1, "txn_id": "txn42"}
 
 // Phase 1: CanCommit
 {"type": "can_commit", "msg_id": 2, "txn_id": "txn42"}
@@ -60,11 +54,11 @@ Participant states:
 {"type": "have_committed", "in_reply_to": 4, "txn_id": "txn42", "participant": "p3"}
 ```
 
-**Why 3PC helps**:
-If coordinator crashes after `PreCommit`, participants know:
-- All participants voted Yes
-- A commit is imminent
-- They can safely commit without waiting用于recovery
+**三阶段提交为什么有效**：
+如果协调者在发送 PreCommit 之后崩溃，参与者能确定以下信息：
+- 所有参与者都投了赞成票
+- 提交即将发生
+- 它们可以安全地提交，无需等待协调者恢复
 
 ## 涉及概念
 
@@ -77,17 +71,17 @@ If coordinator crashes after `PreCommit`, participants know:
 
 ## 实现提示
 
-- Phase 1 (CanCommit): coordinator asks "Can you commit?" Participants vote Yes/No
-- Phase 2 (PreCommit): coordinator sends PreCommit if all voted Yes. Participants acknowledge
-- Phase 3 (DoCommit): coordinator sends DoCommit. Participants commit和acknowledge
-- The key: PreCommit lets participants know a commit is coming, enabling recovery
-- If coordinator crashes after PreCommit, participants can commit without waiting
+- 第一阶段（CanCommit）：协调者询问"你能提交吗？"，参与者投票赞成或反对
+- 第二阶段（PreCommit）：如果全部投赞成票，协调者发送 PreCommit，参与者确认
+- 第三阶段（DoCommit）：协调者发送 DoCommit，参与者执行提交并确认
+- 关键点：PreCommit 让参与者知道提交即将发生，从而支持故障恢复
+- 如果协调者在 PreCommit 之后崩溃，参与者可以自行提交而无需等待
 
 ## 测试用例
 
-### 1. Successful 3PC 事务
+### 1. 成功的三阶段提交事务
 
-txn_begin_ok should return txn_id和the 事务 should complete through all 3 phases.
+txn_begin_ok 应返回事务标识，事务应成功通过所有三个阶段。
 
 输入：
 
@@ -102,9 +96,9 @@ txn_begin_ok should return txn_id和the 事务 should complete through all 3 pha
 {"src": "coord", "dest": "c0", "body": {"type": "init_ok", "in_reply_to": 1, "msg_id": 0}}
 ```
 
-### 2. Participant votes No in CanCommit
+### 2. 参与者在 CanCommit 阶段投反对票
 
-If p2 votes No (insufficient funds), coordinator should send do_abort to all participants.
+如果 p2 投了反对票（例如余额不足），协调者应向所有参与者发送 do_abort 中止事务。
 
 输入：
 
@@ -121,7 +115,7 @@ If p2 votes No (insufficient funds), coordinator should send do_abort to all par
 
 ## 参考资料
 
-- [Three-Phase Commit Protocol](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr-96-49.pdf)：Original paper on 3PC
+- [Three-Phase Commit Protocol](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr-96-49.pdf)：三阶段提交协议的原始论文
 
 ## 本地文件
 

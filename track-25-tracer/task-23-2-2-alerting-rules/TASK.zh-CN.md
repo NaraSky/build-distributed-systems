@@ -1,4 +1,4 @@
-# 实现 Alerting Rules Engine
+# 实现告警规则引擎
 
 英文标题：Implement Alerting Rules Engine
 网页：<https://builddistributedsystem.com/tracks/tracer/tasks/task-23-2-2-alerting-rules>
@@ -6,34 +6,28 @@
 课程：25. 追踪器：可观测性
 任务序号：7
 短标题：Alerting Rules
-难度：intermediate
-子主题：Metrics和Alerting
+难度：进阶
+子主题：Metrics and Alerting
 
 ## 中文导读
 
-本题要求你完成 `实现 Alerting Rules Engine`。
-
-重点关注：`alert rules`、`threshold evaluation`、`alert routing`、`alert grouping`、`auto-resolution`。
-
-建议先按提示逐步实现：Fire alert when metric > threshold用于at least duration_sec seconds。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现一个告警规则引擎。它的核心职责是：当指标超过阈值时触发告警通知，根据严重程度将告警路由到对应的通知渠道，对重复告警进行分组以避免告警风暴，并在指标恢复正常时自动解除告警。告警机制是保障线上服务稳定运行的重要防线。
 
 ## 题目说明
 
-An alerting rules engine evaluates metric conditions和fires notifications when thresholds are breached. It routes alerts to the right channel based on severity, groups duplicate alerts to prevent storms,和auto-resolves when conditions return to normal.
+告警规则引擎负责评估指标条件，并在阈值被突破时发送通知。它根据严重程度将告警路由到正确的通知渠道，对重复告警进行分组以防止告警风暴，并在条件恢复正常时自动解除告警。
 
-Implement a 节点 that evaluates alert rules和manages notifications:
+请实现一个节点来评估告警规则并管理通知：
 
-```JSON
-// Error rate above threshold用于5 minutes -> WARNING
+```json
+// 错误率超过阈值持续 5 分钟 -> 发出 WARNING 告警
 { "type": "evaluate", "msg_id": 1,
   "metric": "error_rate", "value": 0.08,
   "threshold": 0.05, "duration_sec": 300 }
 -> { "type": "alert_triggered", "in_reply_to": 1,
     "rule": "High error rate", "severity": "WARNING", "value": 0.08 }
 
-// Service down -> CRITICAL -> page PagerDuty
+// 服务宕机 -> CRITICAL 告警 -> 呼叫 PagerDuty
 { "type": "evaluate", "msg_id": 2,
   "metric": "up", "value": 0, "threshold": 0,
   "duration_sec": 60, "service": "api" }
@@ -41,13 +35,17 @@ Implement a 节点 that evaluates alert rules和manages notifications:
 -> { "type": "alert_triggered", "in_reply_to": 2,
     "severity": "CRITICAL", "action": "page_sent", "service": "api" }
 
-// Metric returns to normal -> auto-resolve
+// 指标恢复正常 -> 自动解除告警
 { "type": "evaluate", "msg_id": 3,
   "metric": "error_rate", "value": 0.01,
   "threshold": 0.05, "alert_resolved": true }
 -> { "type": "alert_resolved", "in_reply_to": 3,
     "rule": "High error rate", "resolution": "Value returned to normal" }
 ```
+
+## 概念说明
+
+**告警规则引擎**就像一个 24 小时值守的监控员：它持续盯着各项指标，一旦发现某个指标超标（比如错误率连续 5 分钟超过 5%），就立即发出告警。**告警路由**决定了通知发到哪里——紧急的问题直接打电话叫醒值班工程师，普通的问题发到团队群就行。**自动解除**则在指标恢复正常后自动关闭告警，避免无意义的干扰。
 
 ## 涉及概念
 
@@ -59,17 +57,17 @@ Implement a 节点 that evaluates alert rules和manages notifications:
 
 ## 实现提示
 
-- Fire alert when metric > threshold用于at least duration_sec seconds
-- Route CRITICAL severity to PagerDuty (pager); WARNING to Slack or email
-- Grouping: alerts，包含the same fingerprint are merged into one notification
-- Resolution: fire alert_resolved when the metric returns below threshold
-- severity is determined by which threshold band the value falls in
+- 当指标超过阈值且持续时间达到 duration_sec 秒时，触发告警
+- CRITICAL 级别的告警路由到 PagerDuty（呼叫值班人员）；WARNING 级别的路由到 Slack 或邮件
+- 告警分组：具有相同指纹的告警合并为一条通知
+- 告警解除：当指标回落到阈值以下时，发送 alert_resolved
+- 严重程度由指标值落入的阈值区间决定
 
 ## 测试用例
 
-### 1. Threshold alert triggered
+### 1. 阈值告警触发
 
-Error rate 0.08 exceeds threshold 0.05用于300s -> WARNING.
+错误率 0.08 超过阈值 0.05 持续 300 秒，应触发 WARNING 告警。
 
 输入：
 
@@ -83,9 +81,9 @@ Error rate 0.08 exceeds threshold 0.05用于300s -> WARNING.
 {"type": "alert_triggered", "in_reply_to": 1, "rule": "High error rate", "severity": "WARNING", "value": 0.08}
 ```
 
-### 2. Alert routing to PagerDuty
+### 2. 告警路由到 PagerDuty
 
-Service down is CRITICAL和should page on-call via PagerDuty.
+服务宕机属于 CRITICAL 级别，应通过 PagerDuty 呼叫值班工程师。
 
 输入：
 
@@ -101,7 +99,7 @@ Service down is CRITICAL和should page on-call via PagerDuty.
 
 ## 参考资料
 
-- [Prometheus Alertmanager](https://prometheus.io/docs/alerting/latest/alertmanager/)：Alertmanager routing, grouping,和deduplication
+- [Prometheus Alertmanager](https://prometheus.io/docs/alerting/latest/alertmanager/)：介绍 Alertmanager 的路由、分组和去重机制
 
 ## 本地文件
 

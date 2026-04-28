@@ -1,40 +1,34 @@
-# 实现 Multi-Version Concurrency Control
+# 实现多版本并发控制
 
 英文标题：Implement Multi-Version Concurrency Control
 网页：<https://builddistributedsystem.com/tracks/store/tasks/task-8-3-3-mvcc>
 
-课程：7. 存储：线性一致 KV Store
+课程：7. 存储：线性一致键值存储
 任务序号：13
 短标题：MVCC
-难度：advanced
-子主题：Transactions on Raft
+难度：高级
+子主题：基于 Raft 的事务
 
 ## 中文导读
 
-本题要求你完成 `实现 Multi-Version Concurrency Control`。
-
-重点关注：`MVCC`、`versioned storage`、`snapshot isolation`、`readers never block writers`。
-
-建议先按提示逐步实现：Keep N versions of each key, each tagged，包含a commit timestamp。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现多版本并发控制（Multi-Version Concurrency Control，简称 MVCC）。MVCC 为每个键保留多个历史版本，读操作可以获取某个时间点的一致快照，完全不需要阻塞写操作。这是 PostgreSQL、MySQL InnoDB 和 TiKV 等主流数据库的核心并发控制机制。
 
 ## 题目说明
 
-Implement MVCC: keep multiple versions of each key. Readers get a consistent snapshot without blocking writers.
+实现多版本并发控制：为每个键保留多个版本。读操作可以获取一致的快照，而不会阻塞写操作。
 
-```JSON
-请求:  {"type": "mvcc_put", "msg_id": 1, "key": "x", "value": "v1", "timestamp": 100}
-响应: {"type": "mvcc_put_ok", "in_reply_to": 1, "version": 1, "timestamp": 100}
+```json
+Request:  {"type": "mvcc_put", "msg_id": 1, "key": "x", "value": "v1", "timestamp": 100}
+Response: {"type": "mvcc_put_ok", "in_reply_to": 1, "version": 1, "timestamp": 100}
 
-请求:  {"type": "mvcc_put", "msg_id": 2, "key": "x", "value": "v2", "timestamp": 200}
-响应: {"type": "mvcc_put_ok", "in_reply_to": 2, "version": 2, "timestamp": 200}
+Request:  {"type": "mvcc_put", "msg_id": 2, "key": "x", "value": "v2", "timestamp": 200}
+Response: {"type": "mvcc_put_ok", "in_reply_to": 2, "version": 2, "timestamp": 200}
 
-请求:  {"type": "mvcc_get", "msg_id": 3, "key": "x", "read_timestamp": 150}
-响应: {"type": "mvcc_get_ok", "in_reply_to": 3, "value": "v1", "version": 1, "as_of_timestamp": 100}
+Request:  {"type": "mvcc_get", "msg_id": 3, "key": "x", "read_timestamp": 150}
+Response: {"type": "mvcc_get_ok", "in_reply_to": 3, "value": "v1", "version": 1, "as_of_timestamp": 100}
 
-请求:  {"type": "mvcc_get", "msg_id": 4, "key": "x", "read_timestamp": 250}
-响应: {"type": "mvcc_get_ok", "in_reply_to": 4, "value": "v2", "version": 2, "as_of_timestamp": 200}
+Request:  {"type": "mvcc_get", "msg_id": 4, "key": "x", "read_timestamp": 250}
+Response: {"type": "mvcc_get_ok", "in_reply_to": 4, "value": "v2", "version": 2, "as_of_timestamp": 200}
 ```
 
 ## 涉及概念
@@ -46,17 +40,17 @@ Implement MVCC: keep multiple versions of each key. Readers get a consistent sna
 
 ## 实现提示
 
-- Keep N versions of each key, each tagged，包含a commit timestamp
-- Readers get a consistent snapshot at their start timestamp
-- Writers create new versions without blocking readers
-- Garbage collect old versions that are no longer needed
-- This is how PostgreSQL, MySQL InnoDB,和TiKV work internally
+- 为每个键保留 N 个版本，每个版本标记一个提交时间戳
+- 读操作根据自己的开始时间戳获取一致的快照
+- 写操作创建新版本，不会阻塞正在进行的读操作
+- 需要定期回收不再需要的旧版本
+- PostgreSQL、MySQL InnoDB 和 TiKV 内部都是这样实现的
 
 ## 测试用例
 
-### 1. Read at old timestamp gets old version
+### 1. 用旧时间戳读取到旧版本
 
-mvcc_get_ok should return value: "old" since read_timestamp 150 < write timestamp 200.
+验证 mvcc_get_ok 返回 value 为 "old"，因为读时间戳 150 小于新版本的写入时间戳 200。
 
 输入：
 
@@ -73,9 +67,9 @@ mvcc_get_ok should return value: "old" since read_timestamp 150 < write timestam
 {"src": "n1", "dest": "c0", "body": {"type": "init_ok", "in_reply_to": 1, "msg_id": 0}}
 ```
 
-### 2. Read at current timestamp gets latest
+### 2. 用当前时间戳读取到最新版本
 
-mvcc_get_ok should return value: "new" since read_timestamp 300 > write timestamp 200.
+验证 mvcc_get_ok 返回 value 为 "new"，因为读时间戳 300 大于最新版本的写入时间戳 200。
 
 输入：
 
@@ -94,7 +88,7 @@ mvcc_get_ok should return value: "new" since read_timestamp 300 > write timestam
 
 ## 参考资料
 
-- [MVCC in PostgreSQL](https://www.postgresql.org/docs/current/mvcc-intro.html)：How PostgreSQL implements MVCC用于concurrent access
+- [MVCC in PostgreSQL](https://www.postgresql.org/docs/current/mvcc-intro.html)：PostgreSQL 如何通过 MVCC 实现并发访问
 
 ## 本地文件
 

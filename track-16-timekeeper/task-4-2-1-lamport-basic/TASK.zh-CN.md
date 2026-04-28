@@ -1,46 +1,55 @@
-# 实现 a Lamport 时钟 from Scratch
+# 从零实现 Lamport 时钟
 
-英文标题：Implement a Lamport Clock from Scratch
 网页：<https://builddistributedsystem.com/tracks/timekeeper/tasks/task-4-2-1-lamport-basic>
 
 课程：16. 时间守卫：逻辑时钟
 任务序号：6
 短标题：Lamport 基础
-难度：intermediate
-子主题：Lamport Clocks
+难度：进阶
+子主题：Lamport 时钟
 
 ## 中文导读
 
-本题要求你完成 `实现 a Lamport 时钟 from Scratch`。
+在分布式系统中，不同机器上的物理时钟永远无法做到完全一致。但我们仍然需要判断"事件 A 和事件 B 谁先发生"。Lamport 时钟（Lamport Clock）用一个简单到令人惊讶的方法解决了这个问题：每个节点维护一个整数计数器，发消息时加一并附上，收消息时取较大值再加一。
 
-重点关注：`Lamport clock`、`logical time`、`happened-before`、`causal ordering`。
-
-建议先按提示逐步实现：A Lamport 时钟 is a single integer 计数器 per 节点。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题让你从零开始实现这个经典算法，亲身体会逻辑时钟如何在没有物理时钟同步的情况下捕捉事件之间的因果关系。
 
 ## 题目说明
 
-A Lamport 时钟 is the simplest logical 时钟. Each 节点 maintains a single integer 计数器 that increases，包含every event. The rules are:
+Lamport 时钟是最简单的逻辑时钟。每个节点（Node）维护一个整数计数器，随着每个事件的发生而递增。规则只有三条：
 
-1. **Internal event**: increment the 计数器
-2. **Send**: increment the 计数器, attach it to the 消息
-3. **Receive**: set 计数器 = max(local_counter, message_counter) + 1
+1. **内部事件**：计数器加 1
+2. **发送消息**：计数器加 1，然后将当前计数器值附加到消息中
+3. **接收消息**：取本地计数器和消息中计数器的较大值，再加 1
 
-Implement a Lamport 时钟 节点，包含these handlers:
+你需要实现一个支持以下四种消息的 Lamport 时钟节点：
 
-```JSON
-请求:  {"type": "tick", "msg_id": 1}
-响应: {"type": "tick_ok", "in_reply_to": 1, "时钟": 1}
+`tick` 模拟一次内部事件，递增计数器：
 
-请求:  {"type": "send_msg", "msg_id": 2, "dest": "n2", "payload": "hello"}
-响应: {"type": "send_msg_ok", "in_reply_to": 2, "时钟": 2}
+```json
+Request:  {"type": "tick", "msg_id": 1}
+Response: {"type": "tick_ok", "in_reply_to": 1, "clock": 1}
+```
 
-请求:  {"type": "recv_msg", "msg_id": 3, "from": "n2", "remote_clock": 5, "payload": "hi"}
-响应: {"type": "recv_msg_ok", "in_reply_to": 3, "时钟": 6}
+`send_msg` 模拟向另一个节点发送消息：
 
-请求:  {"type": "get_clock", "msg_id": 4}
-响应: {"type": "get_clock_ok", "in_reply_to": 4, "时钟": 6}
+```json
+Request:  {"type": "send_msg", "msg_id": 2, "dest": "n2", "payload": "hello"}
+Response: {"type": "send_msg_ok", "in_reply_to": 2, "clock": 2}
+```
+
+`recv_msg` 模拟从另一个节点接收消息，其中 `remote_clock` 是对方的时钟值：
+
+```json
+Request:  {"type": "recv_msg", "msg_id": 3, "from": "n2", "remote_clock": 5, "payload": "hi"}
+Response: {"type": "recv_msg_ok", "in_reply_to": 3, "clock": 6}
+```
+
+`get_clock` 查询当前时钟值：
+
+```json
+Request:  {"type": "get_clock", "msg_id": 4}
+Response: {"type": "get_clock_ok", "in_reply_to": 4, "clock": 6}
 ```
 
 ## 涉及概念
@@ -52,15 +61,15 @@ Implement a Lamport 时钟 节点，包含these handlers:
 
 ## 实现提示
 
-- A Lamport 时钟 is a single integer 计数器 per 节点
-- Rule 1: Increment before any send event
-- Rule 2: On receive, set 时钟 = max(local, msg_clock) + 1
-- Rule 3: Increment on any internal event
-- Test，包含3 节点 sending 消息 in a ring pattern
+- Lamport 时钟就是每个节点维护的一个整数，从 0 开始
+- 规则一：发送消息前先递增计数器
+- 规则二：接收消息时，计数器 = max(本地值, 消息中的值) + 1
+- 规则三：发生内部事件时递增计数器
+- 可以用 3 个节点以环形模式互发消息来测试各种场景
 
 ## 测试用例
 
-### 1. Tick increments 时钟
+### 1. 内部事件递增时钟
 
 输入：
 
@@ -80,7 +89,7 @@ Implement a Lamport 时钟 节点，包含these handlers:
 {"src": "n1", "dest": "c1", "body": {"type": "get_clock_ok", "in_reply_to": 4, "clock": 2, "msg_id": 3}}
 ```
 
-### 2. Receive updates 时钟 to max + 1
+### 2. 接收消息后时钟更新为较大值加 1
 
 输入：
 
@@ -102,7 +111,7 @@ Implement a Lamport 时钟 节点，包含these handlers:
 
 ## 参考资料
 
-- [Time, Clocks,和the Ordering of Events - Lamport 1978](https://lamport.azurewebsites.net/pubs/time-clocks.pdf)：The original paper by Leslie Lamport on logical clocks
+- [Time, Clocks, and the Ordering of Events - Lamport 1978](https://lamport.azurewebsites.net/pubs/time-clocks.pdf)：Leslie Lamport 关于逻辑时钟的原始论文，分布式系统领域最重要的奠基性文献之一
 
 ## 本地文件
 

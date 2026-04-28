@@ -1,50 +1,46 @@
-# 实现 a B-Tree Node和Search
+# 实现 B 树节点与查找
 
-英文标题：Implement a B-Tree Node和Search
 网页：<https://builddistributedsystem.com/tracks/logger/tasks/task-10-3-1-btree-node>
 
 课程：19. 日志器：WAL、LSM 与分布式日志
 任务序号：11
-短标题：B-Tree Node
-难度：intermediate
-子主题：B-Tree on Disk
+短标题：B 树节点
+难度：进阶
+子主题：磁盘上的 B 树
 
 ## 中文导读
 
-本题要求你完成 `实现 a B-Tree Node和Search`。
+你在数据库中执行一条查询，哪怕表里有上亿条数据，结果也几乎瞬间返回。背后的秘密就是 B 树（B-Tree）。PostgreSQL、MySQL、SQLite 等几乎所有关系型数据库都用 B 树来构建索引。
 
-重点关注：`B-Tree`、`page`、`node structure`、`disk reads`、`binary search`。
-
-建议先按提示逐步实现：Each B-Tree 节点 maps to a fixed-size disk page (typically 4KB)。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题让你实现 B 树最基础的部分：节点的数据结构和查找操作。你将理解 B 树是如何把数据组织在固定大小的磁盘页上，以及为什么只需要寥寥几次磁盘读取就能在上亿条记录中找到目标。
 
 ## 题目说明
 
-The B-Tree is the most widely used on-disk data structure. PostgreSQL, MySQL InnoDB, SQLite,和virtually every relational database uses B-Trees用于their indexes.
+B 树是使用最广泛的磁盘数据结构。PostgreSQL、MySQL InnoDB、SQLite，以及几乎所有的关系型数据库，都用 B 树来实现索引。
 
-A B-Tree 节点 maps to a fixed-size **page** on disk (typically 4KB, matching the OS page size). Each 节点 holds:
-- **Internal 节点**: sorted keys + child pointers. Each key acts as a separator between two subtrees.
-- **Leaf 节点**: sorted keys + values (or pointers to data rows).
+B 树的每个节点对应磁盘上一个固定大小的**页（Page）**，通常为 4KB，刚好和操作系统的内存页大小一致。节点分为两种类型：
 
-The search algorithm:
-1. Start at the root 节点 (1 disk read)
-2. Binary search within the 节点 to find the correct child pointer
-3. Follow the pointer to the next 节点 (1 disk read)
-4. Repeat until reaching a leaf 节点
-5. Binary search within the leaf用于the key
+- **内部节点**：存放有序的键和子节点指针。你可以把每个键想象成一个"路标"，告诉你接下来该往左走还是往右走。
+- **叶子节点**：存放有序的键和对应的值（或者指向实际数据行的指针），这里才是数据真正存放的地方。
 
-With a branching factor of 500 (typical用于4KB pages), a 3-level B-Tree can store ~125 million keys, requiring only **3 disk reads** per lookup.
+查找算法的流程如下：
+1. 从根节点开始，读取根节点所在的页（1 次磁盘读取）
+2. 在当前节点内用二分查找（Binary Search）定位到正确的子节点指针
+3. 沿着指针跳转到下一层节点（1 次磁盘读取）
+4. 重复上述过程，直到到达叶子节点
+5. 在叶子节点内用二分查找定位目标键
 
-```JSON
-请求:  {"type": "btree_search", "msg_id": 1, "key": "user:42"}
-响应: {"type": "btree_search_ok", "in_reply_to": 1, "found": true, "value": "Alice", "disk_reads": 3, "depth": 3}
+当分支因子（Branching Factor）为 500（4KB 页的典型值）时，一棵仅 3 层深的 B 树就可以存储约 1.25 亿个键，每次查找只需要 **3 次磁盘读取**。这就是 B 树高效的秘密：树非常"矮胖"，层数极少。
 
-请求:  {"type": "btree_search", "msg_id": 2, "key": "user:999999"}
-响应: {"type": "btree_search_ok", "in_reply_to": 2, "found": false, "disk_reads": 3, "depth": 3}
+```json
+Request:  {"type": "btree_search", "msg_id": 1, "key": "user:42"}
+Response: {"type": "btree_search_ok", "in_reply_to": 1, "found": true, "value": "Alice", "disk_reads": 3, "depth": 3}
 
-请求:  {"type": "btree_info", "msg_id": 3}
-响应: {"type": "btree_info_ok", "in_reply_to": 3, "depth": 3, "total_nodes": 512, "page_size_bytes": 4096, "branching_factor": 500}
+Request:  {"type": "btree_search", "msg_id": 2, "key": "user:999999"}
+Response: {"type": "btree_search_ok", "in_reply_to": 2, "found": false, "disk_reads": 3, "depth": 3}
+
+Request:  {"type": "btree_info", "msg_id": 3}
+Response: {"type": "btree_info_ok", "in_reply_to": 3, "depth": 3, "total_nodes": 512, "page_size_bytes": 4096, "branching_factor": 500}
 ```
 
 ## 涉及概念
@@ -57,17 +53,17 @@ With a branching factor of 500 (typical用于4KB pages), a 3-level B-Tree can st
 
 ## 实现提示
 
-- Each B-Tree 节点 maps to a fixed-size disk page (typically 4KB)
-- Internal 节点 hold keys和child pointers; leaf 节点 hold keys和values
-- Search: binary search within a 节点 to find the correct child pointer, then follow it to the next level
-- A B-Tree of depth 3，包含4KB pages can hold millions of keys，包含only 3 disk reads per lookup
-- The branching factor (keys per 节点) determines tree depth: higher branching = shallower tree
+- 每个 B 树节点对应磁盘上一个固定大小的页（通常 4KB）
+- 内部节点存放键和子节点指针；叶子节点存放键和值
+- 查找时在节点内部用二分查找定位正确的子节点指针，然后跳转到下一层
+- 深度为 3、页大小为 4KB 的 B 树可以容纳数百万个键，每次查找只需 3 次磁盘读取
+- 分支因子（每个节点能存放的键数量）决定了树的深度：分支因子越大，树越矮，查找越快
 
 ## 测试用例
 
-### 1. Search finds existing key
+### 1. 查找已存在的键
 
-btree_search_ok should show found: true，包含a value和disk_reads equal to tree depth.
+返回的 `btree_search_ok` 应包含 `found: true`、对应的值，以及等于树深度的 `disk_reads`。
 
 输入：
 
@@ -82,9 +78,9 @@ btree_search_ok should show found: true，包含a value和disk_reads equal to tr
 {"src": "n1", "dest": "c0", "body": {"type": "init_ok", "in_reply_to": 1, "msg_id": 0}}
 ```
 
-### 2. Search用于missing key returns not found
+### 2. 查找不存在的键应返回未找到
 
-btree_search_ok should show found: false. disk_reads should still equal tree depth (full traversal).
+返回的 `btree_search_ok` 应包含 `found: false`。`disk_reads` 仍然等于树的深度，因为需要从根到叶子完整遍历一条路径才能确定键不存在。
 
 输入：
 
@@ -101,7 +97,7 @@ btree_search_ok should show found: false. disk_reads should still equal tree dep
 
 ## 参考资料
 
-- [B-Tree Visualization](https://www.cs.usfca.edu/~galles/visualization/BTree.html)：Interactive visualization tool用于understanding B-Tree structure和operations
+- [B-Tree Visualization](https://www.cs.usfca.edu/~galles/visualization/BTree.html)：交互式的 B 树可视化工具，可以直观地观察 B 树的结构和各种操作过程
 
 ## 本地文件
 

@@ -1,46 +1,40 @@
-# Compare Mutex Algorithms: Lamport vs Token Ring vs Centralized
+# 对比互斥算法：Lamport、令牌环与集中式
 
 英文标题：Compare Mutex Algorithms: Lamport vs Token Ring vs Centralized
 网页：<https://builddistributedsystem.com/tracks/timekeeper/tasks/task-4-2-5-mutex-comparison>
 
 课程：16. 时间守卫：逻辑时钟
 任务序号：10
-短标题：Mutex Comparison
-难度：advanced
-子主题：Lamport Clocks
+短标题：互斥算法对比
+难度：高级
+子主题：Lamport 时钟
 
 ## 中文导读
 
-本题要求你完成 `Compare Mutex Algorithms: Lamport vs Token Ring vs Centralized`。
-
-重点关注：`message complexity`、`token ring`、`centralized mutex`、`algorithm comparison`。
-
-建议先按提示逐步实现：Lamport mutex: 3(N-1) 消息 per critical section entry (请求 + reply + release)。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题让你对比三种经典的分布式互斥算法。Lamport 算法完全去中心化但消息开销大，令牌环（Token Ring）算法消息少但令牌可能丢失，集中式算法最简单但协调者是单点故障。没有"最好"的算法，只有最适合特定场景的算法。通过实现对比逻辑，你能直观理解它们在消息复杂度、容错性和公平性上的权衡。
 
 ## 题目说明
 
-Different distributed mutex algorithms have different tradeoffs. Compare three approaches:
+不同的分布式互斥算法有着不同的权衡取舍。你需要对比以下三种方案：
 
-1. **Lamport's algorithm**: 3(N-1) 消息 per CS entry, fully distributed, fair
-2. **Token ring**: 0 to N-1 消息, no starvation, but token can be lost
-3. **Centralized**: 3 消息, simple, but coordinator is a single point of 故障
+1. **Lamport 算法**：每次进入临界区需要 `3(N-1)` 条消息，完全去中心化，公平
+2. **令牌环算法**：每次进入临界区需要 0 到 `N-1` 条消息，不会饥饿，但令牌可能丢失
+3. **集中式算法**：每次进入临界区只需 3 条消息，实现简单，但协调者是单点故障
 
-Implement a `compare_mutex` handler:
-```JSON
-请求:  {"type": "compare_mutex", "msg_id": 1, "节点": 5}
-响应: {"type": "compare_mutex_ok", "in_reply_to": 1, "comparison": [
+实现 `compare_mutex` 消息处理器：
+```json
+Request:  {"type": "compare_mutex", "msg_id": 1, "nodes": 5}
+Response: {"type": "compare_mutex_ok", "in_reply_to": 1, "comparison": [
     {"algorithm": "lamport", "messages_per_cs": 12, "fault_tolerant": true, "fair": true},
     {"algorithm": "token_ring", "messages_per_cs_avg": 2.5, "fault_tolerant": false, "fair": true},
     {"algorithm": "centralized", "messages_per_cs": 3, "fault_tolerant": false, "fair": true}
 ]}
 ```
 
-Also implement a `simulate_token_ring` handler:
-```JSON
-请求:  {"type": "simulate_token_ring", "msg_id": 2, "节点": 5, "requests": ["n3", "n1"]}
-响应: {"type": "simulate_token_ring_ok", "in_reply_to": 2, "total_messages": 5, "grant_order": ["n3", "n1"]}
+同时实现 `simulate_token_ring` 消息处理器：
+```json
+Request:  {"type": "simulate_token_ring", "msg_id": 2, "nodes": 5, "requests": ["n3", "n1"]}
+Response: {"type": "simulate_token_ring_ok", "in_reply_to": 2, "total_messages": 5, "grant_order": ["n3", "n1"]}
 ```
 
 ## 涉及概念
@@ -52,17 +46,17 @@ Also implement a `simulate_token_ring` handler:
 
 ## 实现提示
 
-- Lamport mutex: 3(N-1) 消息 per critical section entry (请求 + reply + release)
-- Token ring: 0 to N-1 消息 per entry (depends on token position)
-- Centralized: 3 消息 per entry (请求 + grant + release) but single point of 故障
-- Compare on: 消息 count, 故障 tolerance, fairness,和latency
-- Build a comparison table，包含all metrics
+- Lamport 互斥：每次进入临界区需要 `3(N-1)` 条消息（请求 + 回复 + 释放）
+- 令牌环：每次进入临界区需要 0 到 `N-1` 条消息（取决于令牌当前位置）
+- 集中式：每次进入临界区需要 3 条消息（请求 + 授权 + 释放），但存在单点故障
+- 从消息数量、容错性、公平性和延迟等维度进行对比
+- 构建一张包含所有指标的对比表
 
 ## 测试用例
 
-### 1. Compare mutex用于5 nodes
+### 1. 对比 5 个节点下的互斥算法
 
-compare_mutex_ok，包含3 algorithm entries. Lamport messages_per_cs = 3*(5-1) = 12.
+返回的 `compare_mutex_ok` 应包含 3 种算法的条目。Lamport 算法的 `messages_per_cs = 3*(5-1) = 12`。
 
 输入：
 
@@ -77,9 +71,9 @@ compare_mutex_ok，包含3 algorithm entries. Lamport messages_per_cs = 3*(5-1) 
 {"src": "n1", "dest": "c0", "body": {"type": "init_ok", "in_reply_to": 1, "msg_id": 0}}
 ```
 
-### 2. Compare mutex用于10 nodes
+### 2. 对比 10 个节点下的互斥算法
 
-Lamport messages_per_cs = 3*(10-1) = 27. Centralized stays at 3.
+Lamport 算法的 `messages_per_cs = 3*(10-1) = 27`，而集中式算法始终为 3。
 
 输入：
 
@@ -96,7 +90,7 @@ Lamport messages_per_cs = 3*(10-1) = 27. Centralized stays at 3.
 
 ## 参考资料
 
-- [Comparison of Mutual Exclusion Algorithms](https://www.geeksforgeeks.org/mutual-exclusion-in-distributed-system/)：Comparison table of distributed mutex algorithms
+- [Comparison of Mutual Exclusion Algorithms](https://www.geeksforgeeks.org/mutual-exclusion-in-distributed-system/)：分布式互斥算法的对比表
 
 ## 本地文件
 

@@ -1,4 +1,4 @@
-# 实现 Partition Leader 选举 via Raft
+# 实现基于 Raft 的分区领导者选举
 
 英文标题：Implement Partition Leader Election via Raft
 网页：<https://builddistributedsystem.com/tracks/logger/tasks/task-10-4-3-partition-leader>
@@ -6,43 +6,37 @@
 课程：19. 日志器：WAL、LSM 与分布式日志
 任务序号：18
 短标题：Partition Leader
-难度：advanced
-子主题：Distributed 日志 (Kafka Architecture)
+难度：高级
+子主题：Distributed Log (Kafka Architecture)
 
 ## 中文导读
 
-本题要求你完成 `实现 Partition Leader 选举 via Raft`。
-
-重点关注：`partition leader`、`Raft per partition`、`leader broker`、`follower replication`、`metadata`。
-
-建议先按提示逐步实现：Each Kafka partition has a Leader broker that handles all reads和writes。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你实现 Kafka 风格的分区领导者选举机制。在分布式日志系统中，每个分区必须有且仅有一个领导者（Leader）来处理所有的读写请求，其余的跟随者（Follower）负责复制数据以实现容错。当领导者宕机时，需要从跟随者中选出新的领导者，这是保证系统高可用的关键。
 
 ## 题目说明
 
-In a distributed 日志 like Kafka, each partition must have exactly one Leader broker that handles all reads和writes. Followers replicate data from the Leader用于故障 tolerance.
+在 Kafka 这样的分布式日志系统中，每个分区必须有且仅有一个领导者代理（Leader Broker）来处理所有的读写请求。跟随者（Follower）从领导者复制数据以实现容错。
 
-Architecture:
-- **Leader**: the broker responsible用于a partition. All producers和consumers interact，包含the Leader.
-- **Followers**: replicate the partition 日志 from the Leader. They do not serve reads (in standard Kafka).
-- **Leader election**: when the Leader crashes, one of the in-sync followers is elected as the new Leader.
+架构如下：
+- **领导者**：负责某个分区的代理节点。所有的生产者和消费者都与领导者交互。
+- **跟随者**：从领导者复制分区日志。在标准 Kafka 中，跟随者不对外提供读服务。
+- **领导者选举**：当领导者宕机时，从同步副本中选举一个跟随者成为新的领导者。
 
-The 元数据 flow:
-1. Producer calls `metadata_request` to discover which broker is the Leader用于a partition
-2. Producer sends `ProduceRequest` directly to the Leader broker
-3. Leader writes the 消息 to its local 日志
-4. Leader replicates to followers
-5. After 复制, Leader acknowledges the producer
+元数据的交互流程：
+1. 生产者调用 `metadata_request` 查询哪个代理是某个分区的领导者
+2. 生产者将写入请求直接发送给领导者代理
+3. 领导者将消息写入自己的本地日志
+4. 领导者将消息复制给跟随者
+5. 复制完成后，领导者向生产者确认写入成功
 
-This ensures total order within a partition — all 消息 pass through a single Leader.
+这确保了分区内的全序性——所有消息都经过同一个领导者处理。
 
-```JSON
-请求:  {"type": "partition_leader", "msg_id": 1, "topic": "orders", "partition": 0}
-响应: {"type": "partition_leader_ok", "in_reply_to": 1, "Leader": "broker-1", "followers": ["broker-2", "broker-3"], "term": 3}
+```json
+Request:  {"type": "partition_leader", "msg_id": 1, "topic": "orders", "partition": 0}
+Response: {"type": "partition_leader_ok", "in_reply_to": 1, "leader": "broker-1", "followers": ["broker-2", "broker-3"], "term": 3}
 
-请求:  {"type": "partition_failover", "msg_id": 2, "topic": "orders", "partition": 0, "failed_leader": "broker-1"}
-响应: {"type": "partition_failover_ok", "in_reply_to": 2, "new_leader": "broker-2", "new_term": 4, "failover_ms": 250}
+Request:  {"type": "partition_failover", "msg_id": 2, "topic": "orders", "partition": 0, "failed_leader": "broker-1"}
+Response: {"type": "partition_failover_ok", "in_reply_to": 2, "new_leader": "broker-2", "new_term": 4, "failover_ms": 250}
 ```
 
 ## 涉及概念
@@ -55,17 +49,17 @@ This ensures total order within a partition — all 消息 pass through a single
 
 ## 实现提示
 
-- Each Kafka partition has a Leader broker that handles all reads和writes
-- N-1 Follower brokers replicate from the Leader用于故障 tolerance
-- Use Raft用于Leader election within each partition group
-- Producers discover the Leader via a 元数据 请求和send writes directly to it
-- On Leader 故障, Raft automatically elects a new Leader from the followers
+- 每个 Kafka 分区都有一个领导者代理，负责处理所有的读写请求
+- 其余 N-1 个跟随者代理从领导者复制数据以实现容错
+- 使用 Raft 算法在每个分区组内进行领导者选举
+- 生产者通过元数据请求发现领导者，然后直接向领导者发送写入请求
+- 当领导者故障时，Raft 自动从跟随者中选举出新的领导者
 
 ## 测试用例
 
-### 1. Query partition Leader
+### 1. 查询分区领导者
 
-partition_leader_ok should include Leader 节点, followers list,和Raft term.
+返回的 partition_leader_ok 应包含领导者节点、跟随者列表和 Raft 任期号。
 
 输入：
 
@@ -80,9 +74,9 @@ partition_leader_ok should include Leader 节点, followers list,和Raft term.
 {"src": "n1", "dest": "c0", "body": {"type": "init_ok", "in_reply_to": 1, "msg_id": 0}}
 ```
 
-### 2. Leader failover elects new Leader
+### 2. 领导者故障转移后选举新领导者
 
-partition_failover_ok should show a new_leader different from failed_leader,和new_term > previous term.
+返回的 partition_failover_ok 中 new_leader 应不同于 failed_leader，且 new_term 应大于之前的任期号。
 
 输入：
 
@@ -99,7 +93,7 @@ partition_failover_ok should show a new_leader different from failed_leader,和n
 
 ## 参考资料
 
-- [Kafka Replication Design](https://kafka.apache.org/documentation/#replication)：Kafka documentation on partition 复制, Leader election,和failover
+- [Kafka Replication Design](https://kafka.apache.org/documentation/#replication)：Kafka 官方文档，讲解分区复制、领导者选举和故障转移
 
 ## 本地文件
 

@@ -1,43 +1,37 @@
-# 实现 Dependency-Aware Job Scheduling
+# 实现依赖感知的任务调度
 
 英文标题：Implement Dependency-Aware Job Scheduling
 网页：<https://builddistributedsystem.com/tracks/scheduler/tasks/task-22-1-4-dependency-scheduling>
 
-课程：24. 调度器：任务调度
+课程：24. 任务调度器
 任务序号：4
-短标题：Dependency Scheduling
-难度：advanced
-子主题：Centralized Job Scheduling
+短标题：依赖调度
+难度：高级
+子主题：集中式任务调度
 
 ## 中文导读
 
-本题要求你完成 `实现 Dependency-Aware Job Scheduling`。
-
-重点关注：`topological sort`、`critical path`、`circular dependency`、`failure propagation`、`parallel rounds`。
-
-建议先按提示逐步实现：Build execution plan: each round contains jobs whose all deps completed in prior rounds。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现依赖感知调度（Dependency Scheduling），即在任务之间存在先后依赖关系时，构建一个合理的执行计划。没有依赖关系的任务可以并行执行，有依赖关系的必须按序执行。这就像做菜时，"切菜"和"烧水"可以同时做，但"炒菜"必须等切完菜之后。
 
 ## 题目说明
 
-Some jobs can only start after others finish. Dependency-aware scheduling builds an execution plan that respects these constraints while maximising parallelism: jobs in the same round have no shared dependencies和can run simultaneously.
+有些任务必须等其他任务完成后才能开始。依赖感知调度会构建一个执行计划，在遵守依赖约束的同时最大化并行度：同一轮中的任务互不依赖，可以同时运行。
 
-Implement a 节点 that plans和executes dependency-constrained workflows:
+实现一个能规划和执行带依赖约束的工作流的节点：
 
-```JSON
-// a has no deps; b和c depend on a; d depends on b和c
+```json
+// a 没有依赖；b 和 c 依赖 a；d 依赖 b 和 c
 { "type": "submit_workflow", "msg_id": 1,
   "jobs": [{"id":"a","deps":[]},{"id":"b","deps":["a"]},
             {"id":"c","deps":["a"]},{"id":"d","deps":["b","c"]}] }
 -> { "type": "workflow_submitted", "in_reply_to": 1,
     "execution_plan": {"round_1":["a"],"round_2":["b","c"],"round_3":["d"]} }
 
-// Circular dependency detected
+// 检测到循环依赖
 -> { "type": "workflow_rejected",
     "error": "Circular dependency detected: a->b->c->a" }
 
-// Critical path: a(100ms)->b(200ms)=300ms vs a(100ms)->c(50ms)=150ms
+// 关键路径：a(100ms)->b(200ms)=300ms vs a(100ms)->c(50ms)=150ms
 { "type": "submit_workflow", "msg_id": 3,
   "jobs": [{"id":"a","duration_ms":100,"deps":[]},
             {"id":"b","duration_ms":200,"deps":["a"]},
@@ -46,29 +40,29 @@ Implement a 节点 that plans和executes dependency-constrained workflows:
     "critical_path": ["a","b"], "critical_path_length_ms": 300 }
 ```
 
-When a job fails, every job that (directly or transitively) depends on it must be cancelled.
+当某个任务失败时，所有直接或间接依赖它的任务都必须被取消。
 
 ## 涉及概念
 
-- `topological sort`
-- `critical path`
-- `circular dependency`
-- `failure propagation`
-- `parallel rounds`
+- topological sort
+- critical path
+- circular dependency
+- failure propagation
+- parallel rounds
 
 ## 实现提示
 
-- Build execution plan: each round contains jobs whose all deps completed in prior rounds
-- Detect circular deps，包含DFS — a back-edge during traversal means a cycle
-- Critical path: the chain of duration_ms values，包含the maximum total from source to sink
-- On job 故障, cancel all jobs that directly or transitively depend on it
-- Round 1 = jobs，包含no deps; Round 2 = jobs whose only deps are in Round 1;和so on
+- 构建执行计划：每一轮包含所有依赖已在前序轮次中完成的任务
+- 使用深度优先搜索检测循环依赖：遍历中遇到回边说明存在环
+- 关键路径：从源头到终点的最长耗时路径，由各任务的 `duration_ms` 累加得出
+- 任务失败时，取消所有直接或间接依赖该任务的后续任务
+- 第一轮 = 没有依赖的任务；第二轮 = 所有依赖仅在第一轮中的任务；以此类推
 
 ## 测试用例
 
-### 1. Topological sort scheduling
+### 1. 拓扑排序调度
 
-a first, then b/c in parallel, then d.
+先执行 a，然后 b 和 c 并行，最后执行 d。
 
 输入：
 
@@ -82,9 +76,9 @@ a first, then b/c in parallel, then d.
 {"src": "scheduler", "dest": "client", "body": {"type": "workflow_submitted", "in_reply_to": 1, "execution_plan": {"round_1": ["a"], "round_2": ["b", "c"], "round_3": ["d"]}}}
 ```
 
-### 2. Circular dependency detection
+### 2. 检测循环依赖
 
-Cycle a->b->c->a should be detected和workflow rejected.
+环路 a->b->c->a 应被检测到，工作流应被拒绝。
 
 输入：
 
@@ -100,7 +94,7 @@ Cycle a->b->c->a should be detected和workflow rejected.
 
 ## 参考资料
 
-- [Critical Path Method](https://en.wikipedia.org/wiki/Critical_path_method)：Finding the longest path through a dependency graph
+- [Critical Path Method](https://en.wikipedia.org/wiki/Critical_path_method)：在依赖图中寻找最长路径的方法
 
 ## 本地文件
 

@@ -1,48 +1,42 @@
-# Ensure Read Consistency
+# 保证读操作的一致性
 
 英文标题：Ensure Read Consistency
 网页：<https://builddistributedsystem.com/tracks/store/tasks/task-7-3-read-consistency>
 
-课程：7. 存储：线性一致 KV Store
+课程：7. 存储：线性一致键值存储
 任务序号：3
 短标题：Read Consistency
-难度：advanced
-子主题：Linearizable 键值 存储
+难度：高级
+子主题：线性一致键值存储
 
 ## 中文导读
 
-本题要求你完成 `Ensure Read Consistency`。
-
-重点关注：`linearizable reads`、`read index`、`lease`。
-
-建议先按提示逐步实现：Simple: reads also go through 日志。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现线性一致的读操作（Linearizable Reads）。在分布式系统中，简单地从领导者本地读取数据可能会返回过时的结果。这道题让你理解为什么会出现脏读，以及如何通过不同策略来保证读操作能反映所有已提交的写操作。
 
 ## 题目说明
 
-Implement 线性一致 reads:
+实现线性一致的读操作，有以下三种方案可选：
 
-Option 1: 日志 reads (simple but slow)
-- Treat reads as 日志 entries, wait用于commit
+方案一：将读请求写入日志（简单但较慢）
+- 把读操作当作一条日志条目，等待日志提交后再返回结果
 
-Option 2: ReadIndex (Raft optimization)
-- Record current commit 索引
-- Confirm still Leader (心跳 round)
-- Wait用于commit 索引 to be applied
-- Execute read
+方案二：ReadIndex 优化（Raft 的读优化方案）
+- 记录当前的提交索引（Commit Index）
+- 通过一轮心跳确认自己仍然是领导者
+- 等待该提交索引对应的日志被应用到状态机
+- 执行读操作并返回结果
 
-Option 3: Lease (fast but 时钟-dependent)
+方案三：租约（Lease）机制（速度快但依赖时钟）
 
 ## 概念说明
 
-### The Stale Read Problem
+### 脏读问题
 
-A Leader might be partitioned和not know it. If it serves reads from local state, it returns stale data. Linearizability requires that reads reflect all prior writes.
+一个领导者可能已经被网络分区隔离了，但它自己并不知道。如果它直接从本地状态读取数据并返回给客户端，返回的就是过时的数据。线性一致性（Linearizability）要求读操作必须能反映所有在它之前完成的写操作。打个比方，这就像你在银行柜台查余额，必须看到之前所有转账的结果，而不能看到一个"旧的"余额。
 
-### ReadIndex
+### ReadIndex 机制
 
-Before serving a read, confirm you are still Leader by getting acknowledgment from a majority. Then wait用于the commit 索引 at that moment to be applied. This ensures linearizability without logging reads.
+在处理读请求之前，先通过向多数节点发送心跳来确认自己仍然是领导者。然后等待当前的提交索引被应用到状态机后，再执行读操作。这样既保证了线性一致性，又不需要把读请求写入日志，性能更好。
 
 ## 涉及概念
 
@@ -52,15 +46,15 @@ Before serving a read, confirm you are still Leader by getting acknowledgment fr
 
 ## 实现提示
 
-- Simple: reads also go through 日志
-- Optimized: confirm leadership before read
-- Lease-based: use time bounds
+- 最简单的方式：让读操作也经过 Raft 日志
+- 优化方式：在处理读请求前先确认自己仍然是领导者
+- 租约方式：利用时间窗口来保证领导者身份
 
 ## 测试用例
 
-### 1. Read via 日志 is linearizable
+### 1. 通过日志读取保证线性一致性
 
-Multi-节点 test: Write x=1, commit, then read x. Verify read returns 1和only returns after write is committed (linearizability).
+多节点测试：先写入 x=1 并提交，然后读取 x。验证读操作返回 1，且只在写操作提交后才返回结果，从而保证线性一致性。
 
 输入：
 
@@ -76,7 +70,7 @@ Multi-节点 test: Write x=1, commit, then read x. Verify read returns 1和only 
 
 ## 参考资料
 
-- [Raft Section 8](https://raft.github.io/raft.pdf)：客户端 interaction in Raft
+- [Raft Section 8](https://raft.github.io/raft.pdf)：Raft 论文中关于客户端交互的章节
 
 ## 本地文件
 

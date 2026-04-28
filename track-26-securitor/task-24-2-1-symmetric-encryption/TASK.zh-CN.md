@@ -1,75 +1,71 @@
-# 实现 Symmetric Encryption
+# 实现对称加密
 
 英文标题：Implement Symmetric Encryption
 网页：<https://builddistributedsystem.com/tracks/securitor/tasks/task-24-2-1-symmetric-encryption>
 
-课程：26. 安全器：认证、授权与加密
+课程：26. 安全器
 任务序号：6
-短标题：Symmetric Encryption
-难度：advanced
-子主题：Encryption at Rest和in Transit
+短标题：对称加密
+难度：高级
+子主题：静态和传输中的加密
 
 ## 中文导读
 
-本题要求你完成 `实现 Symmetric Encryption`。
-
-重点关注：`AES-256-GCM`、`symmetric encryption`、`IV`、`authentication tag`、`tamper detection`。
-
-建议先按提示逐步实现：AES-256-GCM uses a 256-bit key, a random 12-byte IV,和produces a 16-byte auth tag。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现基于 AES-256-GCM 的对称加密和解密。对称加密是保护数据机密性的基础手段，使用同一个密钥进行加密和解密。AES-256-GCM 是当今的主流标准，它同时提供保密性和完整性保护，能检测数据是否被篡改。理解对称加密是学习更高级加密方案的前提。
 
 ## 题目说明
 
-Symmetric encryption uses the same key to encrypt和decrypt. AES-256-GCM is the modern standard: it is both a cipher (confidentiality)和a MAC (integrity). The auth tag proves the ciphertext has not been modified since it was encrypted.
+对称加密（Symmetric Encryption）使用同一个密钥来加密和解密数据。AES-256-GCM 是现代加密标准：它既提供保密性（别人看不懂），又提供完整性（能发现篡改）。认证标签（Auth Tag）就像密文上的防拆封条——如果数据被动过手脚，解密时就会发现。
 
-Implement a 节点 that encrypts和decrypts data使用AES-256-GCM:
+可以把对称加密想象成一个保险箱：你用一把钥匙锁上（加密），也用同一把钥匙打开（解密）。初始化向量（IV）就像每次锁保险箱时加入的一个随机数，即使存放的东西一样，外观也不同，这样攻击者就无法通过比较密文来推断内容。
 
-```JSON
-// Encrypt plaintext -> get IV, ciphertext,和auth tag
+你需要实现一个节点，使用 AES-256-GCM 加密和解密数据：
+
+```json
+// 加密明文 -> 得到 IV、密文和认证标签
 { "type": "encrypt", "msg_id": 1,
-  "plaintext": "Secret 消息" }
+  "plaintext": "Secret message" }
 -> { "type": "encrypted", "in_reply_to": 1,
     "iv": "<random 12-byte hex>",
     "encryptedData": "<ciphertext hex>",
     "authTag": "<16-byte hex>" }
 
-// Decrypt back to plaintext
+// 解密还原为明文
 { "type": "decrypt", "msg_id": 2,
   "iv": "abc123", "encryptedData": "xyz789", "authTag": "def456" }
 -> { "type": "decrypted", "in_reply_to": 2,
-    "plaintext": "Secret 消息" }
+    "plaintext": "Secret message" }
 
-// Tampered ciphertext -> authentication 故障
+// 密文被篡改 -> 认证失败
 { "type": "decrypt", "msg_id": 3,
   "iv": "abc123", "encryptedData": "TAMPERED", "authTag": "def456" }
 -> { "type": "decryption_failed", "in_reply_to": 3,
     "error": "Authentication failed - data has been tampered with" }
 ```
 
-Encrypting the same plaintext twice must produce different ciphertexts because each encryption uses a freshly generated random IV.
+对同一段明文加密两次，必须产生不同的密文，因为每次加密都会使用新生成的随机初始化向量。
 
 ## 涉及概念
 
-- `AES-256-GCM`
-- `symmetric encryption`
-- `IV`
-- `authentication tag`
-- `tamper detection`
+- AES-256-GCM
+- symmetric encryption
+- IV
+- authentication tag
+- tamper detection
 
 ## 实现提示
 
-- AES-256-GCM uses a 256-bit key, a random 12-byte IV,和produces a 16-byte auth tag
-- Generate a fresh random IV用于every encryption — never reuse IVs，包含the same key
-- The auth tag lets you detect if the ciphertext was tampered with
-- Decryption fails，包含an authentication error if IV, ciphertext, or auth tag is wrong
-- Encrypting the same plaintext twice should produce different ciphertexts (different IVs)
+- AES-256-GCM 使用 256 位密钥、随机 12 字节 IV，并产生 16 字节认证标签
+- 每次加密都必须生成新的随机 IV，绝对不要对同一个密钥重复使用 IV
+- 认证标签能帮你检测密文是否被篡改
+- 如果 IV、密文或认证标签有误，解密会以认证错误失败
+- 对同一段明文加密两次应产生不同的密文（因为使用了不同的 IV）
 
 ## 测试用例
 
-### 1. Encrypt data，包含AES-256-GCM
+### 1. 使用 AES-256-GCM 加密数据
 
-Should encrypt和return IV, ciphertext,和auth tag.
+应当加密数据并返回 IV、密文和认证标签。
 
 输入：
 
@@ -83,9 +79,9 @@ Should encrypt和return IV, ciphertext,和auth tag.
 {"type": "encrypted", "in_reply_to": 1, "iv": ".*", "encryptedData": ".*", "authTag": ".*"}
 ```
 
-### 2. Decrypt valid data
+### 2. 解密有效数据
 
-Valid IV/ciphertext/authTag should decrypt to the original plaintext.
+有效的 IV、密文和认证标签应当解密还原为原始明文。
 
 输入：
 
@@ -101,8 +97,8 @@ Valid IV/ciphertext/authTag should decrypt to the original plaintext.
 
 ## 参考资料
 
-- [AES-GCM](https://en.wikipedia.org/wiki/Galois/Counter_Mode)：AES-GCM: authenticated encryption providing both confidentiality和integrity
-- [NIST AES Specification](https://csrc.nist.gov/publications/detail/fips/197/final)：NIST Advanced Encryption Standard (FIPS 197)
+- [AES-GCM](https://en.wikipedia.org/wiki/Galois/Counter_Mode)：AES-GCM 认证加密，同时提供保密性和完整性
+- [NIST AES Specification](https://csrc.nist.gov/publications/detail/fips/197/final)：NIST 高级加密标准规范（FIPS 197）
 
 ## 本地文件
 

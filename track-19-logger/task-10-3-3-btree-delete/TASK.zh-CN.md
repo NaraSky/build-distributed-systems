@@ -1,47 +1,44 @@
-# 实现 B-Tree Delete，包含Merge和Borrow
+# 实现 B 树删除：合并与借用
 
-英文标题：Implement B-Tree Delete，包含Merge和Borrow
 网页：<https://builddistributedsystem.com/tracks/logger/tasks/task-10-3-3-btree-delete>
 
 课程：19. 日志器：WAL、LSM 与分布式日志
 任务序号：13
-短标题：B-Tree Delete
-难度：advanced
-子主题：B-Tree on Disk
+短标题：B 树删除
+难度：高级
+子主题：磁盘上的 B 树
 
 ## 中文导读
 
-本题要求你完成 `实现 B-Tree Delete，包含Merge和Borrow`。
+插入操作担心的是节点"太满"，删除操作担心的则是节点"太空"。当删除一个键导致节点中的键数量低于最小要求时，就需要想办法从旁边的兄弟节点"借"一个键过来；如果兄弟也没有多余的键可借，就只能把两个节点合并成一个。
 
-重点关注：`delete`、`underflow`、`merge`、`borrow`、`rebalancing`。
-
-建议先按提示逐步实现：B-Tree 节点 must maintain a minimum number of keys (typically ceil(order/2) - 1)。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题是 B 树三部曲的最后一题，也是最复杂的一题。掌握了删除操作中的借用和合并机制，你对 B 树的理解就完整了。
 
 ## 题目说明
 
-B-Tree deletion is the most complex operation because it must maintain two invariants:
-1. **Minimum occupancy**: every non-root 节点 must have at least `ceil(order/2) - 1` keys
-2. **Balance**: all leaf 节点 remain at the same depth
+B 树的删除操作是最复杂的，因为它必须同时维护两个不变量：
 
-Delete algorithm:
-1. **Find** the key in the tree
-2. **Delete from leaf**: remove the key. If the 节点 still has enough keys, done.
-3. **Handle underflow** (节点 has too few keys):
-   a. **Borrow from sibling**: if a sibling has more than the minimum keys, rotate through the parent. The sibling gives a key to the parent,和the parent gives its separator key to the deficient 节点.
-   b. **Merge，包含sibling**: if no sibling can lend, merge the 节点，包含a sibling和pull down the parent's separator key. This may cause the parent to underflow (recursion).
-4. **Root collapse**: if the root has zero keys (because its only two children merged), the merged child becomes the new root.
+1. **最小占用率**：每个非根节点必须至少有 `ceil(order/2) - 1` 个键。这个约束确保了 B 树不会退化成一棵又高又瘦的树。
+2. **平衡性**：所有叶子节点必须保持在同一深度。
 
-```JSON
-请求:  {"type": "btree_delete", "msg_id": 1, "key": "user:50"}
-响应: {"type": "btree_delete_ok", "in_reply_to": 1, "deleted": true, "rebalance": "none"}
+删除算法的具体步骤：
 
-请求:  {"type": "btree_delete", "msg_id": 2, "key": "user:25"}
-响应: {"type": "btree_delete_ok", "in_reply_to": 2, "deleted": true, "rebalance": "borrow_from_sibling"}
+1. **查找**：在树中找到要删除的键
+2. **从叶子节点删除**：直接移除该键。如果删除后节点中的键数量仍然满足最小要求，操作就完成了。
+3. **处理下溢（Underflow）**——如果节点的键太少了：
+   a. **从兄弟节点借用（Borrow）**：如果某个相邻的兄弟节点拥有超过最低要求的键，就通过父节点做一次"旋转"。具体来说，兄弟节点把一个键交给父节点，父节点把它原有的分隔键交给当前不够的节点。这就像两个人之间通过中间人交换物品。
+   b. **与兄弟节点合并（Merge）**：如果左右兄弟都没有多余的键可以借出，就把当前节点和一个兄弟节点合并成一个，同时从父节点拉下分隔键。合并后父节点少了一个键和一个子节点，它自己也可能因此下溢，需要递归处理。
+4. **根节点坍缩**：如果根节点在合并后变成了零个键（因为它仅有的两个子节点合并成了一个），那么这个合并后的子节点就成为新的根节点，树的高度减少 1 层。
 
-请求:  {"type": "btree_delete", "msg_id": 3, "key": "user:10"}
-响应: {"type": "btree_delete_ok", "in_reply_to": 3, "deleted": true, "rebalance": "merge_with_sibling", "new_depth": 2}
+```json
+Request:  {"type": "btree_delete", "msg_id": 1, "key": "user:50"}
+Response: {"type": "btree_delete_ok", "in_reply_to": 1, "deleted": true, "rebalance": "none"}
+
+Request:  {"type": "btree_delete", "msg_id": 2, "key": "user:25"}
+Response: {"type": "btree_delete_ok", "in_reply_to": 2, "deleted": true, "rebalance": "borrow_from_sibling"}
+
+Request:  {"type": "btree_delete", "msg_id": 3, "key": "user:10"}
+Response: {"type": "btree_delete_ok", "in_reply_to": 3, "deleted": true, "rebalance": "merge_with_sibling", "new_depth": 2}
 ```
 
 ## 涉及概念
@@ -55,17 +52,17 @@ Delete algorithm:
 
 ## 实现提示
 
-- B-Tree 节点 must maintain a minimum number of keys (typically ceil(order/2) - 1)
-- Deletion from a leaf: simply remove the key. If underflow occurs, rebalance.
-- Borrow (rotation): steal a key from a sibling through the parent. Preferred over merging.
-- Merge: if neither sibling can lend a key, merge the 节点，包含a sibling和pull down the parent separator key.
-- If the root becomes empty after a merge, the merged child becomes the new root (tree shrinks by 1 level).
+- B 树节点必须维持最少键数（通常为 ceil(order/2) - 1），低于这个数就叫"下溢"
+- 从叶子节点删除很简单：直接移除键。但如果导致了下溢，就需要重新平衡
+- 优先借用：从拥有多余键的兄弟节点通过父节点"旋转"一个键过来。借用比合并开销小
+- 不得不合并时：把当前节点和兄弟节点合并为一个，并从父节点拉下分隔键
+- 如果根节点在合并后变空了，合并后的子节点直接升格为新的根节点，树的高度减少 1 层
 
 ## 测试用例
 
-### 1. Delete existing key successfully
+### 1. 成功删除已存在的键
 
-btree_delete_ok should show deleted: true. Subsequent search should show found: false.
+返回的 `btree_delete_ok` 应包含 `deleted: true`。后续查找该键应返回 `found: false`。
 
 输入：
 
@@ -82,7 +79,7 @@ btree_delete_ok should show deleted: true. Subsequent search should show found: 
 {"src": "n1", "dest": "c0", "body": {"type": "init_ok", "in_reply_to": 1, "msg_id": 0}}
 ```
 
-### 2. Delete non-existent key returns not found
+### 2. 删除不存在的键应返回未删除
 
 输入：
 
@@ -100,7 +97,7 @@ btree_delete_ok should show deleted: true. Subsequent search should show found: 
 
 ## 参考资料
 
-- [B-Tree Deletion Algorithm](https://en.wikipedia.org/wiki/B-tree#Deletion)：B-Tree deletion，包含merge, borrow,和root collapse operations explained
+- [B-Tree Deletion Algorithm](https://en.wikipedia.org/wiki/B-tree#Deletion)：维基百科上对 B 树删除操作的详细讲解，涵盖合并、借用和根节点坍缩
 
 ## 本地文件
 

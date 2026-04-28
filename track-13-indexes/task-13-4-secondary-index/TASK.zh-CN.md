@@ -1,43 +1,40 @@
-# 添加 Secondary Indexes
+# 添加二级索引
 
 英文标题：Add Secondary Indexes
 网页：<https://builddistributedsystem.com/tracks/indexes/tasks/task-13-4-secondary-index>
 
 课程：13. 索引
 任务序号：4
-短标题：Secondary 索引
-难度：intermediate
+短标题：二级索引
+难度：进阶
 
 ## 中文导读
 
-本题要求你完成 `添加 Secondary Indexes`。
-
-重点关注：`secondary index`、`non-key lookup`、`inverted index`。
-
-建议先按提示逐步实现：Secondary 索引 maps attribute to primary keys。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现二级索引（Secondary Index）。主键索引只能按主键查找数据，但在实际应用中，我们经常需要按其他属性查询，例如按邮箱查找用户、按状态查找订单。二级索引为这些非主键属性提供了高效的查找路径，是数据库系统中不可或缺的功能。
 
 ## 题目说明
 
-Implement secondary indexes用于non-key attributes:
+为非主键属性实现二级索引：
 
-1. Primary 索引: primary_key -> data
-2. Secondary 索引: attribute_value -> list of primary_keys
-3. Query by attribute: secondary lookup, then primary lookups
-4. Keep secondary 索引 updated on all writes/deletes
+1. 主索引：主键 -> 数据
+2. 二级索引：属性值 -> 主键列表
+3. 按属性查询时：先查二级索引获取主键列表，再通过主索引获取实际数据
+4. 在所有写入和删除操作时，同步更新二级索引
 
-Secondary indexes enable efficient queries on any attribute, not just the primary key.
+二级索引使得可以按任意属性（而不仅仅是主键）进行高效查询。
 
 ## 概念说明
 
-### Secondary Indexes
+### 二级索引
 
-Primary indexes organize data by primary key. But what if you need to find users by email or orders by status? Secondary indexes provide alternative access paths用于these non-key queries.
+主索引按主键组织数据。但如果你需要按邮箱查找用户，或者按状态查找订单呢？二级索引为这些非主键查询提供了替代的访问路径。打个比方：主索引就像按学号排列的花名册，二级索引就像按姓氏排列的索引页——两种方式都能找到同一个人。
 
-### Implementation Approaches
+### 实现方式
 
-1. Separate 索引 file mapping attribute -> primary keys. 2. Covering 索引 includes full record to avoid primary lookup. 3. Inverted 索引用于text search.
+有三种常见的实现方式：
+1. 独立的索引文件，将属性值映射到主键列表
+2. 覆盖索引，包含完整记录，避免回查主索引
+3. 倒排索引，用于全文搜索
 
 ## 涉及概念
 
@@ -47,13 +44,13 @@ Primary indexes organize data by primary key. But what if you need to find users
 
 ## 实现提示
 
-- Secondary 索引 maps attribute to primary keys
-- Update secondary 索引 on data changes
--处理one-to-many relationships
+- 二级索引将属性值映射到主键列表
+- 数据发生变化时同步更新二级索引
+- 处理一对多的映射关系
 
 ## 测试用例
 
-### 1. Secondary 索引 lookup
+### 1. 二级索引查找
 
 输入：
 

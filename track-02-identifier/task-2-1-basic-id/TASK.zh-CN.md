@@ -1,40 +1,33 @@
-# Generate 唯一 IDs使用Node ID和Timestamp
+# 用节点标识和时间戳生成唯一 ID
 
-英文标题：Generate Unique IDs使用Node ID和Timestamp
 网页：<https://builddistributedsystem.com/tracks/identifier/tasks/task-2-1-basic-id>
 
 课程：2. 标识符：分布式唯一 ID
 任务序号：1
-短标题：基础 ID Generation
-难度：beginner
-子主题：Why 唯一 IDs Are Hard
+短标题：基础 ID 生成
+难度：入门
+子主题：为什么唯一 ID 这么难
 
 ## 中文导读
 
-本题要求你完成 `Generate 唯一 IDs使用Node ID和Timestamp`。
-
-重点关注：`unique IDs`、`timestamps`、`node identity`。
-
-建议先按提示逐步实现：Combine node_id，包含a timestamp用于basic uniqueness。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现一个最基础的唯一 ID 生成器：把节点标识和时间戳拼在一起，生成不会重复的 ID。这是分布式系统中 ID 生成的第一步，理解它能帮你认识到"多台机器同时生成 ID"这件事为什么不简单。
 
 ## 题目说明
 
-分布式系统 need unique identifiers用于entities, events,和消息. Without a central authority, each 节点 must generate IDs independently while avoiding collisions.
+在分布式系统中，每个实体、事件和消息都需要一个唯一标识符（Unique ID）。由于没有一个统一的中心服务来分配 ID，每个节点（Node）必须独立生成 ID，同时还要避免和其他节点产生冲突。
 
-Implement a generate workload handler that responds to generate requests，包含unique IDs:
+请实现一个 `generate` 消息处理器，当收到 `generate` 请求时，返回一个唯一的 ID：
 
-```JSON
+```json
 {
   "type": "generate",
   "msg_id": 1
 }
 ```
 
-Your 响应 should be:
+你的响应格式如下：
 
-```JSON
+```json
 {
   "type": "generate_ok",
   "msg_id": 1,
@@ -43,28 +36,28 @@ Your 响应 should be:
 }
 ```
 
-For this first implementation, combine your node_id，包含a timestamp to create IDs. This provides uniqueness across 节点 (different node_ids)和over time (different timestamps).
+在这个最基础的实现中，将你的 `node_id` 和时间戳拼接起来生成 ID。这样做可以保证：不同节点有不同的 `node_id`，同一个节点在不同时间有不同的时间戳，从而实现唯一性。
 
 ## 概念说明
 
-## Why 唯一 IDs Matter
+### 为什么唯一 ID 很重要
 
-Every **database record**, every **日志 entry**, every **消息** needs an identifier. In a distributed system, you cannot simply increment a 计数器 because multiple 节点 might generate the same number simultaneously.
+每一条数据库记录、每一行日志、每一条消息都需要一个标识符。在分布式系统中，你不能简单地用一个自增计数器来生成 ID，因为多个节点可能在同一时刻生成相同的数字。
 
-### The Collision Problem
+### 冲突问题
 
-Consider a simple 计数器-based approach:
+想象一下最简单的"计数器"方案：
 
 ```text
 Node A: counter = 1 → generates ID 1
 Node B: counter = 1 → generates ID 1  // COLLISION!
 ```
 
-Both 节点 generate the same ID because they have *no coordination*.
+两个节点生成了相同的 ID，原因就是它们之间没有任何协调。这就好比两个人各自从 1 开始编号，必然会出现重复。
 
-### Timestamp-Based IDs
+### 基于时间戳的 ID
 
-Timestamps provide a natural ordering和uniqueness over time, but two 节点 might generate the same timestamp. By including the `node_id`, we guarantee uniqueness across 节点:
+时间戳天然地提供了时间维度上的唯一性和排序能力，但两个节点可能在同一毫秒产生相同的时间戳。通过在 ID 中加入 `node_id`，就能保证跨节点的唯一性：
 
 ```text
 ID = "{node_id}-{timestamp}"
@@ -73,9 +66,9 @@ Node A: "n1-1704067200000"
 Node B: "n2-1704067200000"  // Different node_id = unique
 ```
 
-### Remaining Challenge
+### 遗留的挑战
 
-However, a single 节点 might still generate duplicate IDs within the same millisecond. We'll address this in the next task.
+不过，同一个节点在同一毫秒内多次调用，仍然可能生成重复的 ID。我们将在下一道题中解决这个问题。
 
 ## 涉及概念
 
@@ -85,13 +78,13 @@ However, a single 节点 might still generate duplicate IDs within the same mill
 
 ## 实现提示
 
-- Combine node_id，包含a timestamp用于basic uniqueness
-- Consider使用millisecond precision
--格式: node_id-timestamp-sequence
+- 将 `node_id` 和时间戳组合起来，实现基本的唯一性
+- 建议使用毫秒级精度的时间戳
+- 推荐格式：`node_id-timestamp-sequence`
 
 ## 测试用例
 
-### 1. Generate single ID，包含初始化
+### 1. 初始化后生成单个 ID
 
 输入：
 
@@ -109,7 +102,7 @@ However, a single 节点 might still generate duplicate IDs within the same mill
 
 ## 参考资料
 
-- [Unique ID Generation Challenge](https://fly.io/dist-sys/2/)：Fly.io gossip Glomers unique ID generation walkthrough
+- [Unique ID Generation Challenge](https://fly.io/dist-sys/2/)：Fly.io Gossip Glomers 唯一 ID 生成挑战的详细说明
 
 ## 本地文件
 

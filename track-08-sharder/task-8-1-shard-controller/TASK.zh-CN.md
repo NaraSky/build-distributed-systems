@@ -1,45 +1,39 @@
-# 实现 分片 Controller
+# 实现分片控制器
 
 英文标题：Implement Shard Controller
 网页：<https://builddistributedsystem.com/tracks/sharder/tasks/task-8-1-shard-controller>
 
 课程：8. 分片器：水平扩展与数据迁移
 任务序号：1
-短标题：分片 Controller
-难度：advanced
+短标题：分片控制器
+难度：高级
 子主题：Range Sharding
 
 ## 中文导读
 
-本题要求你完成 `实现 分片 Controller`。
-
-重点关注：`sharding`、`configuration`、`coordination`。
-
-建议先按提示逐步实现：Controller manages 分片-to-group mapping。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你实现一个分片控制器（Shard Controller），它负责管理"哪个副本组拥有哪些分片"的映射关系。分片控制器是整个分片系统的"大脑"，所有节点都依赖它来获取最新的分片分配信息。理解分片控制器的工作原理，是构建可水平扩展的分布式存储系统的关键一步。
 
 ## 题目说明
 
-Build a 分片 controller that manages 分片 assignment:
+构建一个分片控制器，用于管理分片的分配：
 
-1. Maintain configuration: which replica group owns which shards
-2. Support operations: Join (add group), Leave (remove group), Move (reassign 分片)
-3. Replicate controller state，包含Raft用于故障 tolerance
-4. Distribute shards evenly across groups
-5. Provide configuration query API
+1. 维护配置信息：记录每个副本组（Replica Group）拥有哪些分片
+2. 支持以下操作：加入（添加副本组）、离开（移除副本组）、移动（重新分配分片）
+3. 使用 Raft 复制控制器状态，保证容错性
+4. 将分片尽量均匀地分配到各个副本组
+5. 提供配置查询接口
 
-The controller is the source of truth用于分片 ownership.
+控制器是分片归属关系的唯一权威来源。
 
 ## 概念说明
 
-### Sharding
+### 分片（Sharding）
 
-When data exceeds one machine's capacity, split it across multiple machines (shards). Each 分片 handles a subset of keys. Sharding provides horizontal scalability.
+当数据量超过单台机器的存储能力时，就需要将数据拆分到多台机器上，每台机器负责一部分数据，这就是分片。每个分片处理一个键的子集，通过分片可以实现水平扩展。
 
-### 分片 Controller
+### 分片控制器
 
-The controller decides which 分片 goes where. It is typically a small Raft group用于high availability. Configuration changes are versioned to coordinate migrations.
+分片控制器决定每个分片应该放在哪里。它通常由一个小型 Raft 集群来实现，以保证高可用。配置变更会带上版本号，方便协调数据迁移。
 
 ## 涉及概念
 
@@ -49,15 +43,15 @@ The controller decides which 分片 goes where. It is typically a small Raft gro
 
 ## 实现提示
 
-- Controller manages 分片-to-group mapping
-- Use Raft用于controller 复制
-- Support join, leave, move operations
+- 控制器管理分片到副本组的映射关系
+- 使用 Raft 进行控制器状态复制
+- 支持加入、离开、移动操作
 
 ## 测试用例
 
-### 1. Join new group
+### 1. 加入新的副本组
 
-Config version incremented, group g1 added，包含servers [s1, s2], all 10 shards assigned to g1.
+配置版本号递增，副本组 g1 被添加，包含服务器 [s1, s2]，全部 10 个分片都分配给 g1。
 
 输入：
 
@@ -77,7 +71,7 @@ Config version incremented, group g1 added，包含servers [s1, s2], all 10 shar
 
 ## 参考资料
 
-- [MIT 6.824 Lab 4](https://pdos.csail.mit.edu/6.824/labs/lab-shard.html)：Sharded KV store lab
+- [MIT 6.824 Lab 4](https://pdos.csail.mit.edu/6.824/labs/lab-shard.html)：分片键值存储实验
 
 ## 本地文件
 

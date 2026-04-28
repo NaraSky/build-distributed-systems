@@ -1,32 +1,28 @@
-# 实现 JWT Authentication System
+# 实现 JWT 认证系统
 
 英文标题：Implement JWT Authentication System
 网页：<https://builddistributedsystem.com/tracks/securitor/tasks/task-24-1-1-jwt-authentication>
 
-课程：26. 安全器：认证、授权与加密
+课程：26. 安全器
 任务序号：1
-短标题：JWT Auth
-难度：intermediate
-子主题：Authentication和Authorization
+短标题：JWT 认证
+难度：进阶
+子主题：认证与授权
 
 ## 中文导读
 
-本题要求你完成 `实现 JWT Authentication System`。
-
-重点关注：`JWT`、`access token`、`refresh token`、`token verification`、`token expiry`。
-
-建议先按提示逐步实现：JWT structure: base64url(header).base64url(payload).HMAC_signature。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现一个基于 JWT 的认证系统，包括令牌的签发、验证和刷新。JWT 是分布式系统中最常用的身份认证方案之一，它的核心优势是无需服务端存储会话状态，任何知道密钥的服务都可以独立验证令牌的有效性。
 
 ## 题目说明
 
-JWT (JSON Web Token) is a compact, self-contained token that proves identity without a 服务端-side session store. The 服务端 signs the payload，包含a secret key; any service that knows the secret can verify the token without a database lookup.
+JWT（JSON Web Token）是一种紧凑的、自包含的令牌，能在不依赖服务端会话存储的情况下证明用户身份。服务端用密钥对载荷进行签名，之后任何知道该密钥的服务都可以直接验证令牌，无需查询数据库。
 
-Implement a 节点 that issues, verifies,和refreshes JWTs:
+可以把 JWT 想象成一张加密的身份名片：上面写着你是谁、有什么权限，并且盖了服务器的"印章"（签名）。拿到这张名片的任何服务只要能验证印章的真伪，就能确认你的身份，不需要再去数据库核实。访问令牌有效期短（通常 15 分钟），过期后用刷新令牌换取新的，这样即使令牌泄露，影响范围也有限。
 
-```JSON
-// Issue an access token (expires in 900s)
+你需要实现一个节点来签发、验证和刷新 JWT：
+
+```json
+// 签发一个访问令牌（900 秒后过期）
 { "type": "generate_access_token", "msg_id": 1,
   "payload": {"sub": "user123", "email": "user@example.com",
                "roles": ["user"]} }
@@ -34,19 +30,19 @@ Implement a 节点 that issues, verifies,和refreshes JWTs:
     "access_token": "<header.payload.signature>",
     "expires_in": 900 }
 
-// Verify a token's signature和expiry
+// 验证令牌的签名和有效期
 { "type": "verify_token", "msg_id": 2,
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...." }
 -> { "type": "token_valid", "in_reply_to": 2,
     "payload": {"sub": "user123", "email": "user@example.com"} }
 
-// Expired token -> reject
+// 过期的令牌 -> 拒绝
 { "type": "verify_token", "msg_id": 3,
   "token": "...expired token..." }
 -> { "type": "token_invalid", "in_reply_to": 3,
     "error": "Token expired" }
 
-// Exchange refresh token用于new access token
+// 用刷新令牌换取新的访问令牌
 { "type": "refresh_token", "msg_id": 4,
   "refresh_token": "..." }
 -> { "type": "token_refreshed", "in_reply_to": 4,
@@ -55,25 +51,25 @@ Implement a 节点 that issues, verifies,和refreshes JWTs:
 
 ## 涉及概念
 
-- `JWT`
-- `access token`
-- `refresh token`
-- `token verification`
-- `token expiry`
+- JWT
+- access token
+- refresh token
+- token verification
+- token expiry
 
 ## 实现提示
 
-- JWT structure: base64url(header).base64url(payload).HMAC_signature
-- Header: {"alg":"HS256","typ":"JWT"}; Payload: {"sub":"user123","iat":..., "exp":...}
-- Verify by recomputing the signature和comparing; also check exp claim
-- Access token expires in 900s (15 min); refresh token is long-lived
-- Reject，包含{"type":"token_invalid","error":"Token expired"}用于expired tokens
+- JWT 的结构为：`base64url(header).base64url(payload).HMAC_signature`
+- 头部：`{"alg":"HS256","typ":"JWT"}`；载荷：`{"sub":"user123","iat":..., "exp":...}`
+- 验证时需要重新计算签名并比对，同时检查 exp 声明是否过期
+- 访问令牌有效期为 900 秒（15 分钟）；刷新令牌的有效期较长
+- 过期令牌应返回 `{"type":"token_invalid","error":"Token expired"}`
 
 ## 测试用例
 
-### 1. Generate access token
+### 1. 签发访问令牌
 
-Should generate a three-part JWT和set expires_in=900.
+应当生成一个由三部分组成的 JWT，并设置 expires_in=900。
 
 输入：
 
@@ -87,9 +83,9 @@ Should generate a three-part JWT和set expires_in=900.
 {"type": "token_generated", "in_reply_to": 1, "access_token": ".*", "expires_in": 900}
 ```
 
-### 2. Verify valid token
+### 2. 验证有效令牌
 
-Valid token should return the decoded payload.
+有效的令牌应当返回解码后的载荷内容。
 
 输入：
 
@@ -105,8 +101,8 @@ Valid token should return the decoded payload.
 
 ## 参考资料
 
-- [JSON Web Tokens](https://jwt.io/introduction)：JWT structure, signing algorithms,和best practices
-- [JWT Best Practices](https://tools.ietf.org/html/rfc8725)：JWT Best Practices Current Practices (RFC 8725)
+- [JSON Web Tokens](https://jwt.io/introduction)：介绍 JWT 的结构、签名算法和最佳实践
+- [JWT Best Practices](https://tools.ietf.org/html/rfc8725)：JWT 最佳实践指南（RFC 8725）
 
 ## 本地文件
 

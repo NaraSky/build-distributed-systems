@@ -1,4 +1,4 @@
-# Show How 3PC Unblocks 2PC Scenarios
+# 展示三阶段提交如何解除两阶段提交的阻塞
 
 英文标题：Show How 3PC Unblocks 2PC Scenarios
 网页：<https://builddistributedsystem.com/tracks/coordinator/tasks/task-19-2-2-unblocking>
@@ -6,57 +6,51 @@
 课程：9. 协调器：分布式事务
 任务序号：7
 短标题：3PC Unblocking
-难度：advanced
+难度：高级
 子主题：Three-Phase Commit (3PC)
 
 ## 中文导读
 
-本题要求你完成 `Show How 3PC Unblocks 2PC Scenarios`。
-
-重点关注：`blocking vs non-blocking`、`recovery procedures`、`timeout handling`、`coordinator failure`、`participant uncertainty`。
-
-建议先按提示逐步实现：In 2PC, if coordinator crashes after all vote Yes, participants block forever。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你通过对比实验，展示三阶段提交相比两阶段提交的核心优势：当协调者在 PreCommit 之后崩溃时，参与者可以自行提交而不会被永久阻塞。这道题帮助你直观理解阻塞与非阻塞协议的关键区别。
 
 ## 题目说明
 
-The key advantage of 3PC over 2PC is that it unblocks one of 2PC's blocking scenarios. When the coordinator crashes after sending `PreCommit`, participants can proceed to commit without waiting用于recovery.
+三阶段提交相比两阶段提交的核心优势在于：它能解除两阶段提交中的一种阻塞场景。当协调者在发送 PreCommit 之后崩溃时，参与者可以继续完成提交，而不需要等待协调者恢复。
 
-**2PC blocking scenario**:
-1. Coordinator sends `Prepare` to all participants
-2. All participants vote `Yes`
-3. Coordinator crashes before sending `Commit`
-4. Participants are **blocked**: they don't know if the decision was Commit or Abort
-5. Participants must wait用于coordinator recovery
+**两阶段提交的阻塞场景**：
+1. 协调者向所有参与者发送 Prepare
+2. 所有参与者投赞成票
+3. 协调者在发送 Commit 之前崩溃
+4. 参与者被**阻塞**：它们不知道最终决策是提交还是中止
+5. 参与者只能等待协调者恢复
 
-**3PC non-blocking scenario**:
-1. Coordinator sends `CanCommit` to all participants
-2. All participants vote `Yes`
-3. Coordinator sends `PreCommit` to all participants
-4. All participants acknowledge `PreCommit`和enter `PRE_COMMITTED` state
-5. Coordinator crashes before sending `DoCommit`
-6. Participants are **not blocked**: they know everyone voted Yes, so they can commit
+**三阶段提交的非阻塞场景**：
+1. 协调者向所有参与者发送 CanCommit
+2. 所有参与者投赞成票
+3. 协调者向所有参与者发送 PreCommit
+4. 所有参与者确认 PreCommit 并进入 PRE_COMMITTED 状态
+5. 协调者在发送 DoCommit 之前崩溃
+6. 参与者**不会被阻塞**：它们知道所有人都投了赞成票，因此可以安全提交
 
-**Recovery rules用于participants in PRE_COMMITTED state**:
+**处于 PRE_COMMITTED 状态的参与者的恢复规则**：
 ```typescript
 function onTimeout() {
     if (state === PRE_COMMITTED) {
         // We know everyone voted Yes, so we can commit
         commit();
-        广播("I have committed");
+        broadcast("I have committed");
     }
 }
 ```
 
-**Example test**:
-```JSON
-请求:  {"type": "txn_begin", "msg_id": 1, "participants": ["p1", "p2"], "crash_coordinator_after": "pre_commit", "participant_timeout_ms": 2000}
-响应: {"type": "txn_begin_ok", "in_reply_to": 1, "txn_id": "txn42"}
+**测试示例**：
+```json
+Request:  {"type": "txn_begin", "msg_id": 1, "participants": ["p1", "p2"], "crash_coordinator_after": "pre_commit", "participant_timeout_ms": 2000}
+Response: {"type": "txn_begin_ok", "in_reply_to": 1, "txn_id": "txn42"}
 
-// After 超时, participants commit without coordinator:
-{"type": "have_committed", "src": "p1", "txn_id": "txn42", "recovery": "超时"}
-{"type": "have_committed", "src": "p2", "txn_id": "txn42", "recovery": "超时"}
+// After timeout, participants commit without coordinator:
+{"type": "have_committed", "src": "p1", "txn_id": "txn42", "recovery": "timeout"}
+{"type": "have_committed", "src": "p2", "txn_id": "txn42", "recovery": "timeout"}
 ```
 
 ## 涉及概念
@@ -69,17 +63,17 @@ function onTimeout() {
 
 ## 实现提示
 
-- In 2PC, if coordinator crashes after all vote Yes, participants block forever
-- In 3PC, PreCommit phase lets participants know a commit is coming
-- If coordinator crashes after PreCommit, participants can commit without waiting
-- Participants in PRE_COMMITTED state can 超时和commit unilaterally
-- Show this，包含a test: crash coordinator after PreCommit, verify participants commit
+- 在两阶段提交中，如果协调者在所有人投赞成票后崩溃，参与者会永久阻塞
+- 在三阶段提交中，PreCommit 阶段让参与者知道提交即将发生
+- 如果协调者在 PreCommit 之后崩溃，参与者可以自行提交而无需等待
+- 处于 PRE_COMMITTED 状态的参与者可以在超时后单方面提交
+- 通过测试来验证：让协调者在 PreCommit 之后崩溃，确认参与者能自行完成提交
 
 ## 测试用例
 
-### 1. 3PC unblocks after PreCommit
+### 1. 三阶段提交在 PreCommit 之后解除阻塞
 
-Participants should commit after 超时 even though coordinator crashed after PreCommit.
+即使协调者在 PreCommit 之后崩溃，参与者也应该在超时后成功提交。
 
 输入：
 
@@ -94,9 +88,9 @@ Participants should commit after 超时 even though coordinator crashed after Pr
 {"src": "coord", "dest": "c0", "body": {"type": "init_ok", "in_reply_to": 1, "msg_id": 0}}
 ```
 
-### 2. 2PC blocks in same scenario
+### 2. 两阶段提交在同一场景下阻塞
 
-2PC participants should block (not commit) after 超时 because they don't know the decision.
+两阶段提交的参与者在超时后应该保持阻塞（不提交），因为它们不知道最终决策。
 
 输入：
 
@@ -113,7 +107,7 @@ Participants should commit after 超时 even though coordinator crashed after Pr
 
 ## 参考资料
 
-- [Non-Blocking Commit Protocols](https://www.cs.princeton.edu/courses/archive/fall05/cos518/papers/skeene.pdf)：Paper on non-blocking atomic commitment
+- [Non-Blocking Commit Protocols](https://www.cs.princeton.edu/courses/archive/fall05/cos518/papers/skeene.pdf)：关于非阻塞原子提交的论文
 
 ## 本地文件
 

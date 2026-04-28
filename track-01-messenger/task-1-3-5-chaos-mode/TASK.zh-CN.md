@@ -1,53 +1,68 @@
-# 添加 混沌模式，包含Random 消息丢弃
+# 添加混沌模式：随机丢弃消息
 
-英文标题：Add Chaos模式，包含Random Message丢弃
+英文标题：Add Chaos Mode with Random Message Dropping
 网页：<https://builddistributedsystem.com/tracks/messenger/tasks/task-1-3-5-chaos-mode>
 
 课程：1. 信使：消息通信基础
 任务序号：15
 短标题：混沌模式
-难度：intermediate
-子主题：The Protocol Beneath
+难度：进阶
+子主题：协议底层机制
 
 ## 中文导读
 
-本题要求你完成 `添加 混沌模式，包含Random 消息丢弃`。
+真实的网络会丢消息。Netflix 开创了**混沌工程（Chaos Engineering）**的方法论——故意注入故障来测试系统的抗压能力。这道题要求你给节点添加一个"混沌模式"，开启后会按一定概率随机丢弃发出的消息，模拟网络丢包。
 
-重点关注：`chaos engineering`、`fault injection`、`resilience testing`、`network partitions`。
-
-建议先按提示逐步实现：Use a random number generator to decide whether to drop each outgoing 消息。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+混沌工程是验证分布式系统可靠性的重要手段。与其等到生产环境出故障才发现问题，不如主动注入故障来提前暴露薄弱环节。
 
 ## 题目说明
 
-Real networks drop 消息. Netflix pioneered **chaos engineering** — deliberately injecting failures to test resilience. Your task is to add a "chaos mode" to your 节点.
+真实的网络会丢消息——这不是"万一发生"，而是"一定会发生"。Netflix 率先提出了**混沌工程**的理念：与其被动等待故障发生，不如主动注入故障来测试系统的韧性。
 
-When chaos mode is enabled, the 节点 randomly drops a configurable percentage of **outgoing** 消息 (does not send them to 标准输出). This simulates 网络 packet loss.
+你的任务是给节点添加"混沌模式"。开启混沌模式后，节点会按照可配置的概率随机丢弃**发出的**消息（不写入标准输出），以此模拟网络丢包的场景。
 
-Implement these 消息 types:
+需要实现以下消息类型：
 
-1. `chaos_on` — Enable chaos mode，包含a given drop rate:
-```JSON
-请求:  {"type": "chaos_on", "msg_id": 1, "drop_rate": 0.1}
-响应: {"type": "chaos_on_ok", "in_reply_to": 1, "drop_rate": 0.1}
+1. `chaos_on` —— 以指定的丢弃率开启混沌模式：
+
+```json
+Request:  {"type": "chaos_on", "msg_id": 1, "drop_rate": 0.1}
+Response: {"type": "chaos_on_ok", "in_reply_to": 1, "drop_rate": 0.1}
 ```
 
-2. `chaos_off` — Disable chaos mode:
-```JSON
-请求:  {"type": "chaos_off", "msg_id": 2}
-响应: {"type": "chaos_off_ok", "in_reply_to": 2}
+2. `chaos_off` —— 关闭混沌模式：
+
+```json
+Request:  {"type": "chaos_off", "msg_id": 2}
+Response: {"type": "chaos_off_ok", "in_reply_to": 2}
 ```
 
-3. `chaos_stats` — Report chaos statistics:
-```JSON
-请求:  {"type": "chaos_stats", "msg_id": 3}
-响应: {"type": "chaos_stats_ok", "in_reply_to": 3, "enabled": true, "drop_rate": 0.1, "total_sent": 50, "total_dropped": 5}
+3. `chaos_stats` —— 报告混沌模式的统计信息：
+
+```json
+Request:  {"type": "chaos_stats", "msg_id": 3}
+Response: {"type": "chaos_stats_ok", "in_reply_to": 3, "enabled": true, "drop_rate": 0.1, "total_sent": 50, "total_dropped": 5}
 ```
 
-Use a fixed random seed (42)用于reproducibility in tests. The drop decision uses `random.random() < drop_rate`.
+为了在测试中保证可复现性，请使用固定的随机数种子（42）。丢弃的判断逻辑是 `random.nextDouble() < drop_rate`。
 
-Chaos mode should NOT drop control 消息 (`init_ok`, `chaos_on_ok`, `chaos_off_ok`, `chaos_stats_ok`) — only application 消息 like `echo_ok`.
+混沌模式**不能丢弃控制消息**（`init_ok`、`chaos_on_ok`、`chaos_off_ok`、`chaos_stats_ok`），只丢弃应用消息（如 `echo_ok`）。
+
+## 概念说明
+
+### 什么是混沌工程
+
+打个比方：消防演习不是因为真的着火了，而是为了提前发现逃生通道是否畅通、灭火器是否能用。混沌工程也是同样的道理——在可控的环境下主动制造故障，观察系统是否能正确应对。
+
+Netflix 的 Chaos Monkey 是最著名的混沌工程工具，它会随机杀死生产环境中的服务实例，迫使工程师必须把系统设计成能容忍任意节点失败。
+
+### 为什么只丢弃发出的消息
+
+在真实网络中，丢包发生在传输过程中，也就是消息已经从发送方出去了，但没到达接收方。模拟时我们在发送环节做拦截——让节点"以为"自己发了消息，但实际上没有写入标准输出。这样就模拟了消息在网络传输中丢失的效果。
+
+### 为什么不丢弃控制消息
+
+控制消息（如 `init_ok`、`chaos_on_ok`）是管理混沌模式本身的命令。如果连这些消息也丢了，你就无法控制混沌模式的开关了——这就像把灭火器也扔进火里一样。
 
 ## 涉及概念
 
@@ -58,15 +73,15 @@ Chaos mode should NOT drop control 消息 (`init_ok`, `chaos_on_ok`, `chaos_off_
 
 ## 实现提示
 
-- Use a random number generator to decide whether to drop each outgoing 消息
-- The drop rate should be configurable (default 10%)
-- 日志 dropped 消息 to 标准错误 so you can observe chaos effects
-- Track how many 消息 were dropped vs sent
-- Chaos mode should be toggleable via a 消息
+- 使用随机数生成器来决定是否丢弃每条发出的消息
+- 丢弃率应该可配置（默认 10%）
+- 将被丢弃的消息信息输出到标准错误（stderr），方便观察混沌效果
+- 跟踪已发送和已丢弃的消息数量
+- 混沌模式应该可以通过消息动态开关
 
 ## 测试用例
 
-### 1. 初始化和回声 work without 混沌
+### 1. 未开启混沌模式时初始化和回声正常工作
 
 输入：
 
@@ -82,7 +97,7 @@ Chaos mode should NOT drop control 消息 (`init_ok`, `chaos_on_ok`, `chaos_off_
 {"src": "n1", "dest": "c1", "body": {"type": "echo_ok", "echo": "safe", "in_reply_to": 2, "msg_id": 1}}
 ```
 
-### 2. 混沌 on responds，包含drop_rate
+### 2. 开启混沌模式后返回丢弃率
 
 输入：
 
@@ -100,8 +115,8 @@ Chaos mode should NOT drop control 消息 (`init_ok`, `chaos_on_ok`, `chaos_off_
 
 ## 参考资料
 
-- [Principles of Chaos Engineering](https://principlesofchaos.org/)：The foundational document on chaos engineering methodology
-- [Netflix Chaos Monkey](https://netflix.github.io/chaosmonkey/)：Netflix tool用于randomly terminating instances in production
+- [Principles of Chaos Engineering](https://principlesofchaos.org/)：混沌工程方法论的奠基性文档
+- [Netflix Chaos Monkey](https://netflix.github.io/chaosmonkey/)：Netflix 开源的混沌工程工具，用于在生产环境中随机终止服务实例
 
 ## 本地文件
 

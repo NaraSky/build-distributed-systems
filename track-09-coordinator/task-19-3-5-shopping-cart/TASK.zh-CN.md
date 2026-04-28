@@ -1,4 +1,4 @@
-# 实现 E-Commerce Checkout Saga
+# 实现电商结账 Saga
 
 英文标题：Implement E-Commerce Checkout Saga
 网页：<https://builddistributedsystem.com/tracks/coordinator/tasks/task-19-3-5-shopping-cart>
@@ -6,44 +6,38 @@
 课程：9. 协调器：分布式事务
 任务序号：15
 短标题：E-Commerce Saga
-难度：advanced
+难度：高级
 子主题：Saga Pattern
 
 ## 中文导读
 
-本题要求你完成 `实现 E-Commerce Checkout Saga`。
-
-重点关注：`e-commerce saga`、`inventory reservation`、`payment processing`、`shipment creation`、`real-world saga`。
-
-建议先按提示逐步实现：Model the complete e-commerce checkout flow，包含3 steps。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你实现一个完整的电商结账 Saga，涵盖库存、支付和物流三个服务。这是一个贴近真实业务场景的综合练习，帮助你把前面学到的 Saga 模式知识应用到实际的电商下单流程中。
 
 ## 题目说明
 
-Implement a complete e-commerce checkout saga，包含inventory, payment,和shipping services. This demonstrates the saga pattern in a realistic scenario.
+实现一个完整的电商结账 Saga，包含库存服务、支付服务和物流服务。这个练习展示了 Saga 模式在真实业务场景中的应用。
 
-**E-commerce checkout saga**:
+**电商结账 Saga 流程**：
 ```
-Step 1: ReserveInventory
-  - Service: InventoryService
-  - Action: Reserve SKU quantities
-  - Compensator: ReleaseReservation
+第 1 步：预留库存（ReserveInventory）
+  - 服务：库存服务
+  - 操作：预留商品数量
+  - 补偿操作：释放库存（ReleaseReservation）
 
-Step 2: ChargePayment
-  - Service: PaymentService
-  - Action: Charge credit card
-  - Compensator: RefundPayment
+第 2 步：扣款（ChargePayment）
+  - 服务：支付服务
+  - 操作：对信用卡扣款
+  - 补偿操作：退款（RefundPayment）
 
-Step 3: CreateShipment
-  - Service: ShippingService
-  - Action: Create shipping label
-  - Compensator: CancelShipment
+第 3 步：创建物流（CreateShipment）
+  - 服务：物流服务
+  - 操作：生成物流单
+  - 补偿操作：取消物流（CancelShipment）
 ```
 
-**Happy path example**:
-```JSON
-请求:  {"type": "checkout", "msg_id": 1, "saga_id": "checkout42", "user_id": "u42", "items": [{"sku": "abc123", "quantity": 2}, {"sku": "xyz789", "quantity": 1}], "shipping_address": "123 Main St"}
+**正常路径示例**：
+```json
+Request:  {"type": "checkout", "msg_id": 1, "saga_id": "checkout42", "user_id": "u42", "items": [{"sku": "abc123", "quantity": 2}, {"sku": "xyz789", "quantity": 1}], "shipping_address": "123 Main St"}
 
 // Step 1: ReserveInventory
 {"type": "ReserveInventory", "saga_id": "checkout42", "step": 1, "items": [{"sku": "abc123", "quantity": 2}, {"sku": "xyz789", "quantity": 1}]}
@@ -61,8 +55,8 @@ Step 3: CreateShipment
 {"type": "checkout_complete", "saga_id": "checkout42", "status": "COMPLETED", "order_id": "o123"}
 ```
 
-**故障 path example**:
-```JSON
+**失败路径示例**：
+```json
 // Step 1: ReserveInventory (succeeds)
 {"type": "ReserveInventory_ok", "saga_id": "checkout43", "step": 1, "reservations": [...]}
 
@@ -88,17 +82,17 @@ Step 3: CreateShipment
 
 ## 实现提示
 
--模式l the complete e-commerce checkout flow，包含3 steps
-- T1: ReserveInventory - reserve items in stock
-- T2: ChargePayment - charge user's credit card
-- T3: CreateShipment - create shipping label
-- Compensators: ReleaseInventory, RefundPayment, CancelShipment
+- 完整建模电商结账流程，包含三个步骤
+- T1：预留库存，将商品从可售库存中预留出来
+- T2：扣款，对用户的信用卡进行扣费
+- T3：创建物流，生成物流单和快递单号
+- 对应的补偿操作：释放库存、退款、取消物流
 
 ## 测试用例
 
-### 1. Successful checkout
+### 1. 成功结账
 
-checkout_complete should have status=COMPLETED，包含order_id, payment_id,和shipment_id.
+checkout_complete 应包含 status=COMPLETED，以及 order_id、payment_id 和 shipment_id。
 
 输入：
 
@@ -113,9 +107,9 @@ checkout_complete should have status=COMPLETED，包含order_id, payment_id,和s
 {"src": "checkout_orchestrator", "dest": "c0", "body": {"type": "init_ok", "in_reply_to": 1, "msg_id": 0}}
 ```
 
-### 2. Payment failure triggers rollback
+### 2. 支付失败触发回滚
 
-checkout_failed should have status=ABORTED和inventory should be released (compensated).
+checkout_failed 应包含 status=ABORTED，库存应被释放（执行补偿操作）。
 
 输入：
 
@@ -132,7 +126,7 @@ checkout_failed should have status=ABORTED和inventory should be released (compe
 
 ## 参考资料
 
-- [Saga Pattern用于E-Commerce](https://www.awsarchitectureblog.com/2017/01/12/managing-distributed-transactions-with-saga-pattern.html)：AWS blog on使用saga pattern用于e-commerce
+- [Saga Pattern for E-Commerce](https://www.awsarchitectureblog.com/2017/01/12/managing-distributed-transactions-with-saga-pattern.html)：AWS 博客上关于在电商场景中使用 Saga 模式的文章
 
 ## 本地文件
 

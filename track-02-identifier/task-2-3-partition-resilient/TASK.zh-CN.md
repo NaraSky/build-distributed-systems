@@ -1,75 +1,68 @@
-# 实现 ID Generation During Network Partition
+# 在网络分区时也能生成 ID
 
-英文标题：Implement ID Generation During Network Partition
 网页：<https://builddistributedsystem.com/tracks/identifier/tasks/task-2-3-partition-resilient>
 
 课程：2. 标识符：分布式唯一 ID
 任务序号：3
-短标题：Partition Resilient
-难度：intermediate
-子主题：Why 唯一 IDs Are Hard
+短标题：分区容错
+难度：进阶
+子主题：为什么唯一 ID 这么难
 
 ## 中文导读
 
-本题要求你完成 `实现 ID Generation During Network Partition`。
-
-重点关注：`network partitions`、`availability`、`CAP theorem`。
-
-建议先按提示逐步实现：Your ID generation should work without 网络 access。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题考察的是"网络断了怎么办"。在真实的分布式系统中，节点之间的网络随时可能中断，你的 ID 生成器必须在完全孤立的情况下仍然能正常工作。这道题帮助你理解 CAP 定理中"可用性"的重要性。
 
 ## 题目说明
 
-分布式系统 must handle **网络 partitions** - times when 节点 cannot communicate，包含each other. Your ID generator must continue working even when completely isolated from other 节点.
+分布式系统必须能够应对**网络分区（Network Partition）**，也就是节点之间无法通信的情况。你的 ID 生成器即使在节点完全孤立时，也必须能继续正常工作。
 
-Test your implementation by verifying it works when:
+验证你的实现在以下场景中都能正常运行：
 
-1. The 节点 cannot reach any other 节点
-2. The 网络 has high latency
-3. 消息 are being dropped
+1. 当前节点无法连接任何其他节点
+2. 网络延迟很高
+3. 消息被丢弃
 
-A good ID generation scheme is **fully local**和does not require coordination，包含other 节点.
+一个好的 ID 生成方案应该是**完全本地化**的，不需要和其他节点进行任何协调。
 
 ## 概念说明
 
-## CAP Theorem和Availability
+### CAP 定理与可用性
 
-The CAP theorem states that during a 网络 partition, you can have either **Consistency** or **Availability**, but not both.
+CAP 定理（CAP Theorem）指出，在网络分区发生时，你只能在**一致性（Consistency）**和**可用性（Availability）**之间二选一。
 
-ID generation should prioritize **availability**: even an isolated 节点 should generate valid IDs.
+ID 生成应该优先保证**可用性**：即使一个节点被完全隔离，它也应该能生成有效的 ID。想象一下，如果每次生成 ID 都要先问一下"中央服务器"，一旦网络断了，整个系统就瘫痪了。
 
-### Local-First Design
+### 本地优先的设计
 
-By embedding the `node_id` in our IDs, we achieve partition tolerance. Each 节点 can independently generate IDs that are guaranteed unique across the 集群, *without coordination*.
+通过在 ID 中嵌入 `node_id`，我们就实现了分区容错。每个节点可以独立生成全局唯一的 ID，*无需与其他节点协调*。这就像每个部门有自己独立的编号段，互不干扰。
 
-### The Trade-off
+### 方案对比
 
   
-    Approach
-    Consistency
-    Availability
+    方案
+    一致性
+    可用性
   
   
-    Central ID server
-    Strong (sequential IDs)
-    Fails during partition
+    中心化 ID 服务器
+    强（顺序 ID）
+    分区时不可用
   
   
-    Node-embedded IDs
-    Weak (no ordering)
-    Always available
+    嵌入节点标识的 ID
+    弱（无全局排序）
+    始终可用
   
 
-### 时钟 Drift处理
+### 时钟回退处理
 
-What if the 时钟 goes *backwards*? This can happen，包含NTP adjustments. A robust implementation should:
+如果时钟*倒退*了怎么办？这在 NTP 时间同步调整时是可能发生的。一个健壮的实现应该：
 
-  - Detect backward 时钟 movement
+  - 检测到时钟回退
 
-  - Wait until timestamp advances, OR
+  - 等待时间戳追上来，或者
 
-  - Continue使用the previous timestamp，包含incrementing sequence
+  - 继续使用上一个时间戳，配合递增的序列号
 
 ## 涉及概念
 
@@ -79,14 +72,14 @@ What if the 时钟 goes *backwards*? This can happen，包含NTP adjustments. A 
 
 ## 实现提示
 
-- Your ID generation should work without 网络 access
-- Do not depend on other 节点 or external services
-- Consider what happens if clocks drift
-- Generated IDs must be globally unique - use timestamp + node_id + sequence to guarantee no collisions even under partition
+- 你的 ID 生成逻辑不应该依赖网络访问
+- 不要依赖其他节点或外部服务
+- 考虑时钟漂移时会发生什么
+- 生成的 ID 必须全局唯一 -- 使用时间戳 + 节点标识 + 序列号的组合，确保在网络分区下也不会冲突
 
 ## 测试用例
 
-### 1. Generate 基础 ID
+### 1. 生成基础 ID
 
 输入：
 
@@ -104,7 +97,7 @@ What if the 时钟 goes *backwards*? This can happen，包含NTP adjustments. A 
 
 ## 参考资料
 
-- [CAP Theorem](https://en.wikipedia.org/wiki/CAP_theorem)：Understanding the trade-offs in 分布式系统
+- [CAP Theorem](https://en.wikipedia.org/wiki/CAP_theorem)：理解分布式系统中的权衡取舍
 
 ## 本地文件
 

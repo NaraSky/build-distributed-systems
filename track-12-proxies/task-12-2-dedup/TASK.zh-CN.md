@@ -1,44 +1,38 @@
-# 添加 Request 去重
+# 添加请求去重
 
 英文标题：Add Request Deduplication
 网页：<https://builddistributedsystem.com/tracks/proxies/tasks/task-12-2-dedup>
 
 课程：12. 代理
 任务序号：2
-短标题：去重
-难度：intermediate
-子主题：Caching 代理
+短标题：请求去重
+难度：进阶
+子主题：缓存代理
 
 ## 中文导读
 
-本题要求你完成 `添加 Request 去重`。
-
-重点关注：`deduplication`、`idempotency`、`request coalescing`。
-
-建议先按提示逐步实现：Track in-flight requests by key。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你为代理添加请求去重（Request Deduplication）功能。当多个客户端同时请求同一个资源时，如果每个请求都转发给后端，会造成不必要的负载。去重机制只将一个请求发给后端，然后把同一个响应返回给所有等待的客户端，从而大幅降低后端压力。
 
 ## 题目说明
 
-Deduplicate identical concurrent requests to reduce backend load:
+对相同的并发请求进行去重，以减少后端负载：
 
-1. Compute a 请求 key (e.g., hash of method + URL + body)
-2. If a 请求，包含the same key is already in-flight, wait用于it
-3. When the original completes, return the same 响应 to all waiters
-4. After 响应, remove from in-flight set
+1. 为每个请求计算一个唯一键（例如，对请求方法、URL 和请求体进行哈希）
+2. 如果已经有一个相同键的请求正在处理中（即"在途请求"），则等待它的结果
+3. 当原始请求完成后，将同一个响应返回给所有等待者
+4. 响应返回后，从在途请求集合中移除该键
 
-This is especially valuable用于hot endpoints，包含many identical requests.
+这对于有大量相同请求的热门接口尤其有价值。
 
 ## 概念说明
 
-### Request 去重
+### 请求去重
 
-When many clients 请求 the same resource simultaneously, sending all requests to the backend wastes resources. Deduplication sends one 请求和shares the 响应, reducing backend load dramatically.
+当许多客户端同时请求同一个资源时，把所有请求都发给后端会浪费资源。去重机制只发送一个请求，然后将响应共享给所有等待者，从而大幅降低后端负载。打个比方：如果十个人同时问你同一个问题，你只需要回答一次，然后让所有人都听到答案即可。
 
-### Request Fingerprinting
+### 请求指纹
 
-The dedup key must uniquely identify functionally equivalent requests. For GET requests, URL is often sufficient. For POST, you may need to hash the body. Be careful，包含headers that affect 响应.
+去重键必须能唯一标识功能上等价的请求。对于 GET 请求，通常只需要 URL 就够了。对于 POST 请求，可能还需要对请求体进行哈希。需要注意那些会影响响应内容的请求头。
 
 ## 涉及概念
 
@@ -48,15 +42,15 @@ The dedup key must uniquely identify functionally equivalent requests. For GET r
 
 ## 实现提示
 
-- Track in-flight requests by key
-- Have duplicates wait用于original
-- Return same 响应 to all waiters
+- 通过唯一键追踪在途请求
+- 让重复请求等待原始请求的结果
+- 将同一个响应返回给所有等待者
 
 ## 测试用例
 
-### 1. Deduplicate concurrent
+### 1. 并发请求去重
 
-Multiple clients send identical requests (same idempotency key) to 代理 concurrently. 代理 should recognize duplicates, send only ONE 请求 to backend,和return same 响应 to all clients. Track requests by idempotency key.
+多个客户端同时向代理发送相同的请求（具有相同的幂等键）。代理应该识别出重复请求，只向后端发送一个请求，并将同一个响应返回给所有客户端。通过幂等键追踪请求。
 
 输入：
 

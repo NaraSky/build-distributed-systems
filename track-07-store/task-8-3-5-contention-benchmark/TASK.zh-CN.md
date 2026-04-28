@@ -1,31 +1,25 @@
-# 基准测试 Contended Key Under OCC vs MVCC
+# 热点键场景下 OCC 与 MVCC 的基准测试
 
 英文标题：Benchmark Contended Key Under OCC vs MVCC
 网页：<https://builddistributedsystem.com/tracks/store/tasks/task-8-3-5-contention-benchmark>
 
-课程：7. 存储：线性一致 KV Store
+课程：7. 存储：线性一致键值存储
 任务序号：15
-短标题：Contention 基准测试
-难度：advanced
-子主题：Transactions on Raft
+短标题：Contention Benchmark
+难度：高级
+子主题：基于 Raft 的事务
 
 ## 中文导读
 
-本题要求你完成 `基准测试 Contended Key Under OCC vs MVCC`。
-
-重点关注：`contention`、`abort rate`、`throughput`、`OCC vs MVCC`、`hot key`。
-
-建议先按提示逐步实现：With 100 clients all updating the same key, OCC will have high abort rates。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你对热点键（Hot Key）场景进行基准测试：100 个客户端同时更新同一个键，对比乐观并发控制和多版本并发控制在中止率和吞吐量上的表现。通过这个极端场景的测试，你能清楚地看到不同并发控制策略在高竞争条件下的实际差异。
 
 ## 题目说明
 
-Benchmark a contended-key scenario: 100 clients all updating the same key simultaneously. Compare OCC vs MVCC in terms of abort rate和throughput.
+对热点键竞争场景进行基准测试：100 个客户端同时更新同一个键，对比乐观并发控制和多版本并发控制在中止率和吞吐量方面的表现。
 
-```JSON
-请求:  {"type": "contention_benchmark", "msg_id": 1, "clients": 100, "key": "hot_key", "ops_per_client": 10, "strategies": ["occ", "mvcc_snapshot", "serializable"]}
-响应: {"type": "contention_benchmark_ok", "in_reply_to": 1, "results": [
+```json
+Request:  {"type": "contention_benchmark", "msg_id": 1, "clients": 100, "key": "hot_key", "ops_per_client": 10, "strategies": ["occ", "mvcc_snapshot", "serializable"]}
+Response: {"type": "contention_benchmark_ok", "in_reply_to": 1, "results": [
     {"strategy": "occ", "total_commits": 1000, "total_aborts": 4500, "abort_rate_pct": 81.8, "avg_retries": 4.5, "throughput_commits_sec": 200},
     {"strategy": "mvcc_snapshot", "total_commits": 1000, "total_aborts": 0, "abort_rate_pct": 0, "avg_retries": 0, "throughput_commits_sec": 5000},
     {"strategy": "serializable", "total_commits": 1000, "total_aborts": 900, "abort_rate_pct": 47.4, "avg_retries": 0.9, "throughput_commits_sec": 800}
@@ -42,17 +36,17 @@ Benchmark a contended-key scenario: 100 clients all updating the same key simult
 
 ## 实现提示
 
-- With 100 clients all updating the same key, OCC will have high abort rates
-- MVCC + snapshot isolation allows readers to proceed without blocking
-- Serializable isolation aborts conflicting writes
-- Measure abort rate, throughput (commits/sec),和average retries
-- The hot key scenario is worst-case用于OCC
+- 100 个客户端同时更新同一个键时，乐观并发控制会产生很高的中止率
+- 多版本并发控制加快照隔离允许读操作不被阻塞地继续执行
+- 可串行化隔离级别会中止冲突的写操作
+- 需要测量中止率、吞吐量（提交数/秒）和平均重试次数
+- 热点键场景是乐观并发控制最不利的情况
 
 ## 测试用例
 
-### 1. 基准测试 contended key
+### 1. 热点键基准测试
 
-contention_benchmark_ok should show OCC，包含higher abort_rate_pct than MVCC.
+验证 contention_benchmark_ok 结果中，乐观并发控制的 abort_rate_pct 高于多版本并发控制。
 
 输入：
 
@@ -69,7 +63,7 @@ contention_benchmark_ok should show OCC，包含higher abort_rate_pct than MVCC.
 
 ## 参考资料
 
-- [Concurrency Control in Databases](https://15445.courses.cs.cmu.edu/fall2023/slides/16-concurrencycontrol.pdf)：CMU 15-445 lecture on concurrency control mechanisms
+- [Concurrency Control in Databases](https://15445.courses.cs.cmu.edu/fall2023/slides/16-concurrencycontrol.pdf)：CMU 15-445 数据库课程关于并发控制机制的讲义
 
 ## 本地文件
 

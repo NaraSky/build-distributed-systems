@@ -1,33 +1,29 @@
-# 添加 消息 Batching to Reduce Network Overhead
+# 添加消息批处理以降低网络开销
 
 英文标题：Add Message Batching to Reduce Network Overhead
 网页：<https://builddistributedsystem.com/tracks/gossiper/tasks/task-3-4-batching>
 
 课程：3. 传播者：Gossip 信息传播
 任务序号：4
-短标题：消息 Batching
-难度：intermediate
-子主题：Naive 广播 (Flooding)
+短标题：消息批处理
+难度：进阶
+子主题：朴素广播（洪泛）
 
 ## 中文导读
 
-本题要求你完成 `添加 消息 Batching to Reduce Network Overhead`。
-
-重点关注：`batching`、`throughput optimization`、`latency tradeoff`。
-
-建议先按提示逐步实现：Buffer 消息 before sending。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题让你实现消息批处理——不再收到一条消息就立刻发送，而是先攒一批，然后一次性发出去。这是分布式系统中非常常见的优化手段，能显著降低网络开销，但代价是增加了一点延迟。理解这个权衡对设计高性能系统至关重要。
 
 ## 题目说明
 
-Reduce 网络 overhead by batching multiple 消息 into single transmissions. Instead of sending immediately, buffer 消息和flush periodically or when the buffer reaches a threshold.
+通过将多条消息打包成一次传输来降低网络开销。不再立即发送每条消息，而是先将消息放入缓冲区，然后按照定时或者缓冲区达到阈值时批量发送。
 
 ## 概念说明
 
-### Batching Trade-offs
+### 批处理的权衡
 
-Batching improves throughput by reducing per-消息 overhead but increases latency. The optimal batch size depends on 消息 rate, 网络 latency,和consistency requirements.
+批处理（Batching）通过减少每条消息的传输开销来提升吞吐量，但同时也增加了延迟。最优的批处理大小取决于消息速率、网络延迟和一致性要求。
+
+可以类比寄快递：你可以每收到一个包裹就跑一趟快递站，也可以攒够几个包裹再一起去寄。后者省了跑腿次数，但每个包裹都要等一会儿才能寄出。
 
 ## 涉及概念
 
@@ -37,13 +33,13 @@ Batching improves throughput by reducing per-消息 overhead but increases laten
 
 ## 实现提示
 
-- Buffer 消息 before sending
-- Use a time-based flush
-- Balance latency vs throughput
+- 先将消息放入缓冲区，不要立即发送
+- 使用基于时间的定时刷新机制
+- 在延迟和吞吐量之间寻找平衡点
 
 ## 测试用例
 
-### 1. Messages are batched together
+### 1. 消息被批量打包处理
 
 输入：
 

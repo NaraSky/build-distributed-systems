@@ -1,43 +1,36 @@
-# 实现 Sequence 计数器，包含Overflow处理
+# 实现带溢出处理的序列计数器
 
-英文标题：Implement Sequence Counter，包含Overflow处理
 网页：<https://builddistributedsystem.com/tracks/identifier/tasks/task-2-2-3-sequence-counter>
 
 课程：2. 标识符：分布式唯一 ID
 任务序号：8
-短标题：Sequence 计数器
-难度：intermediate
-子主题：Snowflake IDs (Twitter's Approach)
+短标题：序列计数器
+难度：进阶
+子主题：雪花 ID（Twitter 的方案）
 
 ## 中文导读
 
-本题要求你完成 `实现 Sequence 计数器，包含Overflow处理`。
-
-重点关注：`sequence number`、`overflow handling`、`spin wait`、`throughput limits`。
-
-建议先按提示逐步实现：The sequence 计数器 increments用于each ID generated in the same millisecond。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+雪花 ID 中的 12 位序列号决定了每毫秒最多能生成 4096 个 ID。如果流量突增超过了这个上限怎么办？这道题让你实现序列计数器，并优雅地处理溢出：当序列号用完时，等到下一毫秒再继续生成。
 
 ## 题目说明
 
-Within a single millisecond, each Snowflake 节点 can generate up to 4096 unique IDs (12-bit sequence 计数器). When traffic bursts exceed this limit, the generator must handle **sequence overflow** gracefully.
+在同一毫秒内，每个雪花节点最多可以生成 4096 个唯一 ID（12 位序列计数器）。当流量突增超过这个限制时，生成器必须优雅地处理**序列溢出**。
 
-Your task is to implement the sequence 计数器:
+你需要实现序列计数器的以下功能：
 
-1. Initialize to 0 at the start of each new millisecond
-2. Increment by 1用于each ID generated in the same millisecond
-3. On overflow (sequence > 4095), spin-wait until the next millisecond, then reset
-4. Track maximum sequence reached per millisecond用于throughput analysis
+1. 每进入一个新的毫秒，将序列号重置为 0
+2. 在同一毫秒内，每生成一个 ID，序列号加 1
+3. 当序列号溢出（大于 4095）时，忙等待（Spin Wait）直到下一毫秒，然后重置
+4. 跟踪每毫秒达到的最大序列号，用于吞吐量分析
 
-Implement a `generate_batch` 消息 that generates N IDs at once:
+实现 `generate_batch` 消息处理器，一次性生成 N 个 ID：
 
-```JSON
-请求:  {"type": "generate_batch", "msg_id": 1, "count": 10}
-响应: {"type": "generate_batch_ok", "in_reply_to": 1, "ids": [1, 2, 3, ...], "max_sequence": 9}
+```json
+Request:  {"type": "generate_batch", "msg_id": 1, "count": 10}
+Response: {"type": "generate_batch_ok", "in_reply_to": 1, "ids": [1, 2, 3, ...], "max_sequence": 9}
 ```
 
-All generated IDs must be unique和monotonically increasing.
+所有生成的 ID 必须唯一且单调递增。
 
 ## 涉及概念
 
@@ -48,17 +41,17 @@ All generated IDs must be unique和monotonically increasing.
 
 ## 实现提示
 
-- The sequence 计数器 increments用于each ID generated in the same millisecond
-- Reset the sequence to 0 when moving to a new millisecond
-- If the sequence overflows (>4095), wait until the next millisecond
-- Spin-waiting is acceptable here since millisecond transitions are fast
-- Track the max sequence reached用于throughput analysis
+- 序列计数器在同一毫秒内每生成一个 ID 就递增一次
+- 进入新的毫秒时将序列号重置为 0
+- 如果序列号溢出（超过 4095），等待到下一个毫秒
+- 这里使用忙等待是可以接受的，因为毫秒级的切换非常快
+- 记录达到的最大序列号，用于吞吐量分析
 
 ## 测试用例
 
-### 1. Single generate works
+### 1. 单次生成正常工作
 
-Should produce a generate_ok，包含a numeric id.
+验证说明：应产生一个包含数值型 `id` 的 `generate_ok` 响应。
 
 输入：
 
@@ -73,9 +66,9 @@ Should produce a generate_ok，包含a numeric id.
 {"src": "n1", "dest": "c0", "body": {"type": "init_ok", "in_reply_to": 1, "msg_id": 0}}
 ```
 
-### 2. Batch of 5 produces 5 唯一 IDs
+### 2. 批量生成 5 个唯一 ID
 
-响应 should have type generate_batch_ok，包含ids array of length 5, all unique,和a max_sequence field.
+验证说明：响应类型应为 `generate_batch_ok`，包含长度为 5 的 `ids` 数组（所有 ID 唯一），以及 `max_sequence` 字段。
 
 输入：
 
@@ -92,7 +85,7 @@ Should produce a generate_ok，包含a numeric id.
 
 ## 参考资料
 
-- [Globally Unique ID Generation](https://instagram-engineering.com/sharding-ids-at-instagram-1cf5a71e5a5c)：Instagram engineering on ID generation at scale
+- [Globally Unique ID Generation](https://instagram-engineering.com/sharding-ids-at-instagram-1cf5a71e5a5c)：Instagram 工程团队关于大规模 ID 生成的实践分享
 
 ## 本地文件
 

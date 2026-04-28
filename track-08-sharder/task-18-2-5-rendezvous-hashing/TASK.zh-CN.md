@@ -1,45 +1,39 @@
-# 实现 Rendezvous Hashing (Highest随机Weight)
+# 实现会合哈希（最高随机权重）
 
-英文标题：Implement Rendezvous Hashing (Highest随机Weight)
+英文标题：Implement Rendezvous Hashing (Highest Random Weight)
 网页：<https://builddistributedsystem.com/tracks/sharder/tasks/task-18-2-5-rendezvous-hashing>
 
 课程：8. 分片器：水平扩展与数据迁移
 任务序号：10
-短标题：Rendezvous Hashing
-难度：advanced
+短标题：会合哈希
+难度：高级
 子主题：Consistent Hashing
 
 ## 中文导读
 
-本题要求你完成 `实现 Rendezvous Hashing (Highest随机Weight)`。
-
-重点关注：`rendezvous hashing`、`highest random weight`、`HRW`、`consistent hashing alternative`、`weighted nodes`。
-
-建议先按提示逐步实现：For each key, compute weight(key, 节点) = hash(key + node_id)用于ALL 节点。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+本题要求你实现会合哈希（Rendezvous Hashing），也叫最高随机权重（Highest Random Weight）算法。它是一致性哈希的替代方案，核心思路非常简单：对每个键，为所有节点计算一个分数，分数最高的节点"赢得"这个键。相比一致性哈希，会合哈希不需要维护环结构，实现起来更简单。
 
 ## 题目说明
 
-Rendezvous hashing (Highest随机Weight) is an alternative to consistent hashing. For each key, compute a score用于every 节点,和the highest score wins.
+会合哈希是一致性哈希的替代方案。对于每个键，它为所有节点计算一个分数，分数最高的节点获得该键的归属权。
 
-**Algorithm**:
-1. For each key K和each 节点 N: `score = hash(K + N)`
-2. Assign K to the 节点，包含the highest score
-3. When a 节点 is added/removed, re-evaluate only affected keys
+**算法**：
+1. 对于每个键 K 和每个节点 N：`score = hash(K + N)`
+2. 将 K 分配给分数最高的节点
+3. 当节点增减时，只需重新评估受影响的键
 
-**Advantages over consistent hashing**:
-- Simpler implementation (no ring data structure)
-- Perfect distribution without virtual 节点
-- Easy to support weighted 节点: `score = hash(K + N) * weight(N)`
+**相比一致性哈希的优势**：
+- 实现更简单（不需要环数据结构）
+- 无需虚拟节点即可实现完美分布
+- 容易支持带权节点：`score = hash(K + N) * weight(N)`
 
-**Disadvantages**:
-- O(N) per lookup (must compute score用于all 节点) vs. O(日志 N)用于ring
-- For small clusters (<100 节点), the O(N) cost is negligible
+**劣势**：
+- 每次查找的时间复杂度为 O(N)（需要为所有节点计算分数），而环结构为 O(log N)
+- 对于小规模集群（少于 100 个节点），O(N) 的开销可以忽略不计
 
-```JSON
-请求:  {"type": "hrw_lookup", "msg_id": 1, "key": "user:42", "节点": ["n1", "n2", "n3"]}
-响应: {"type": "hrw_lookup_ok", "in_reply_to": 1, "key": "user:42", "winner": "n2", "scores": {"n1": 12345, "n2": 99999, "n3": 45678}}
+```json
+Request:  {"type": "hrw_lookup", "msg_id": 1, "key": "user:42", "nodes": ["n1", "n2", "n3"]}
+Response: {"type": "hrw_lookup_ok", "in_reply_to": 1, "key": "user:42", "winner": "n2", "scores": {"n1": 12345, "n2": 99999, "n3": 45678}}
 ```
 
 ## 涉及概念
@@ -52,17 +46,17 @@ Rendezvous hashing (Highest随机Weight) is an alternative to consistent hashing
 
 ## 实现提示
 
-- For each key, compute weight(key, 节点) = hash(key + node_id)用于ALL 节点
-- The 节点，包含the highest weight owns the key
-- When a 节点 is added/removed, only keys where that 节点 had the highest weight are affected
-- Simpler than consistent hashing: no ring, no virtual 节点
-- Naturally supports weighted 节点: multiply the hash by the 节点 weight
+- 对于每个键，计算 `weight(key, node) = hash(key + node_id)`，需要对所有节点都计算
+- 权重最高的节点拥有该键
+- 当节点增减时，只有该节点曾经拥有最高权重的键会受到影响
+- 比一致性哈希更简单：不需要环，不需要虚拟节点
+- 天然支持带权节点：将哈希值乘以节点权重即可
 
 ## 测试用例
 
-### 1. HRW returns node，包含highest score
+### 1. 返回分数最高的节点
 
-winner should be the 节点，包含the highest score in the scores map.
+winner 应为 scores 映射中分数最高的节点。
 
 输入：
 
@@ -77,9 +71,9 @@ winner should be the 节点，包含the highest score in the scores map.
 {"src": "n1", "dest": "c0", "body": {"type": "init_ok", "in_reply_to": 1, "msg_id": 0}}
 ```
 
-### 2. Same key always maps to same node
+### 2. 相同的键始终映射到相同的节点
 
-Both lookups should return the same winner.
+两次查找应返回相同的 winner。
 
 输入：
 
@@ -97,7 +91,7 @@ Both lookups should return the same winner.
 
 ## 参考资料
 
-- [Rendezvous Hashing](https://en.wikipedia.org/wiki/Rendezvous_hashing)：Wikipedia article on rendezvous hashing (highest random weight)
+- [Rendezvous Hashing](https://en.wikipedia.org/wiki/Rendezvous_hashing)：会合哈希（最高随机权重）的维基百科词条
 
 ## 本地文件
 

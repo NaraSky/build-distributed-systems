@@ -1,42 +1,36 @@
-# 实现 One-Shot Watches用于Change Notification
+# 实现一次性监听器以获取变更通知
 
-英文标题：Implement One-Shot Watches用于Change Notification
+英文标题：Implement One-Shot Watches for Change Notification
 网页：<https://builddistributedsystem.com/tracks/watcher/tasks/task-15-2-1-watches>
 
 课程：22. 观察者：ZooKeeper/etcd 模型
 任务序号：6
 短标题：Watches
-难度：intermediate
-子主题：Watches和Sessions
+难度：进阶
+子主题：Watches and Sessions
 
 ## 中文导读
 
-本题要求你完成 `实现 One-Shot Watches用于Change Notification`。
-
-重点关注：`watch`、`one-shot`、`WatchEvent`、`change notification`、`push-based`。
-
-建议先按提示逐步实现：GetData(path, watch=true) registers a one-shot watch on the 节点。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现 ZooKeeper 的监听器（Watch）机制。监听器让客户端不用反复轮询就能知道数据何时发生了变化。客户端在读取数据时注册一个监听器，当数据变化时 ZooKeeper 会主动推送通知。需要注意的是，ZooKeeper 的监听器是一次性的：触发一次后就失效了，需要重新注册。
 
 ## 题目说明
 
-Watches enable push-based notification when a ZNode changes. Instead of polling, clients register a watch和ZooKeeper notifies them when the 节点 is modified.
+监听器（Watch）让客户端能够在 ZNode 发生变化时收到推送通知。客户端不需要轮询，只需注册一个监听器，当节点被修改时 ZooKeeper 就会主动通知。
 
-**Watch flow**:
-1. 客户端 calls `GetData("/config", watch=true)` — receives current data AND registers a watch
-2. When another 客户端 calls `SetData("/config", new_data, version)`
-3. ZooKeeper sends a `WatchEvent(NodeDataChanged)` to the watching 客户端
-4. The watch is removed (one-shot); 客户端 must re-register to watch again
+**监听器的工作流程**：
+1. 客户端调用 `GetData("/config", watch=true)`，获得当前数据的同时注册一个监听器
+2. 当另一个客户端调用 `SetData("/config", new_data, version)` 时
+3. ZooKeeper 向监听的客户端发送一个 `WatchEvent(NodeDataChanged)` 事件
+4. 监听器被移除（一次性的）；客户端如果想继续监听，必须重新注册
 
-**Watch events**:
-- `NodeDataChanged`: 节点 data was modified
-- `NodeDeleted`: 节点 was deleted
-- `NodeChildrenChanged`: children were added or removed
+**监听事件类型**：
+- `NodeDataChanged`：节点数据被修改
+- `NodeDeleted`：节点被删除
+- `NodeChildrenChanged`：子节点被添加或移除
 
-```JSON
-请求:  {"type": "znode_get_watch", "msg_id": 1, "path": "/config", "watch": true, "watcher_id": "w1"}
-响应: {"type": "znode_get_watch_ok", "in_reply_to": 1, "data": "v1", "version": 0, "watch_registered": true}
+```json
+Request:  {"type": "znode_get_watch", "msg_id": 1, "path": "/config", "watch": true, "watcher_id": "w1"}
+Response: {"type": "znode_get_watch_ok", "in_reply_to": 1, "data": "v1", "version": 0, "watch_registered": true}
 
 Event:    {"type": "watch_event", "path": "/config", "event_type": "NodeDataChanged", "watcher_id": "w1"}
 ```
@@ -51,17 +45,17 @@ Event:    {"type": "watch_event", "path": "/config", "event_type": "NodeDataChan
 
 ## 实现提示
 
-- GetData(path, watch=true) registers a one-shot watch on the 节点
-- When the 节点 data changes, the watcher receives a WatchEvent notification
-- Watches are one-shot: they fire once, then are removed. 客户端 must re-register.
-- Watch events: NodeDataChanged, NodeDeleted, NodeChildrenChanged
-- Watches are ordered: the 客户端 always sees the watch event before the new data
+- GetData(path, watch=true) 在节点上注册一个一次性监听器
+- 当节点数据变化时，监听者会收到一个 WatchEvent 通知
+- 监听器是一次性的：触发一次后就被移除，客户端需要重新注册
+- 监听事件类型：NodeDataChanged、NodeDeleted、NodeChildrenChanged
+- 监听器是有序的：客户端总是先看到监听事件，再看到新数据
 
 ## 测试用例
 
-### 1. Register watch和receive event on change
+### 1. 注册监听器并在变更时收到事件
 
-znode_get_watch_ok should include data, version,和watch_registered: true.
+znode_get_watch_ok 应当包含 data、version 和 watch_registered: true。
 
 输入：
 
@@ -76,9 +70,9 @@ znode_get_watch_ok should include data, version,和watch_registered: true.
 {"src": "n1", "dest": "c0", "body": {"type": "init_ok", "in_reply_to": 1, "msg_id": 0}}
 ```
 
-### 2. Watch fires on data change
+### 2. 数据变更触发监听事件
 
-After SetData, a watch_event，包含event_type NodeDataChanged should be sent to w1.
+执行 SetData 后，应当向 w1 发送一个 event_type 为 NodeDataChanged 的 watch_event。
 
 输入：
 
@@ -97,7 +91,7 @@ After SetData, a watch_event，包含event_type NodeDataChanged should be sent t
 
 ## 参考资料
 
-- [ZooKeeper Watches](https://zookeeper.apache.org/doc/current/zookeeperProgrammers.html#ch_zkWatches)：ZooKeeper documentation on watches和notification semantics
+- [ZooKeeper Watches](https://zookeeper.apache.org/doc/current/zookeeperProgrammers.html#ch_zkWatches)：ZooKeeper 关于监听器和通知语义的官方文档
 
 ## 本地文件
 

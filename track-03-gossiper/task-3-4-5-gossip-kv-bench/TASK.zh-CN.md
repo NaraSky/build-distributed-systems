@@ -1,40 +1,34 @@
-# 基准测试 Gossip KV 存储 Performance
+# 八卦键值存储的性能基准测试
 
 英文标题：Benchmark Gossip KV Store Performance
 网页：<https://builddistributedsystem.com/tracks/gossiper/tasks/task-3-4-5-gossip-kv-bench>
 
 课程：3. 传播者：Gossip 信息传播
 任务序号：20
-短标题：Gossip KV Bench
-难度：advanced
-子主题：Epidemic Algorithms和CRDT Gossip
+短标题：八卦键值存储基准测试
+难度：高级
+子主题：Epidemic Algorithms and CRDT Gossip
 
 ## 中文导读
 
-本题要求你完成 `基准测试 Gossip KV 存储 Performance`。
-
-重点关注：`benchmarking`、`convergence time`、`message overhead`、`consistency`。
-
-建议先按提示逐步实现：Track total 消息 exchanged用于gossip sync。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题让你为之前实现的八卦键值存储编写基准测试，量化它的实际表现。你需要关注三个核心指标：所有副本达成一致需要多久（收敛时间）、每次写入产生多少八卦消息（消息开销）、以及读取到过期数据的频率（一致性违例）。通过这些数据，你可以直观地了解八卦传播协议的性能特征。
 
 ## 题目说明
 
-Benchmark your gossip KV store to measure real-world performance characteristics:
+对你的八卦键值存储进行基准测试，衡量其实际性能表现：
 
-1. **Convergence time**: How long until all replicas have the same value?
-2. **消息 overhead**: How many gossip 消息 per write operation?
-3. **Consistency violations**: How often does a read return stale data?
+1. **收敛时间**：所有副本达到相同值需要多长时间？
+2. **消息开销**：每次写入操作会产生多少条八卦消息？
+3. **一致性违例**：读操作返回过期数据的频率有多高？
 
-Implement a `bench_write` that tracks timing:
-```JSON
+实现一个带计时功能的 `bench_write` 接口：
+```json
 请求:  {"type": "bench_write", "msg_id": 1, "key": "x", "value": "v1"}
 响应: {"type": "bench_write_ok", "in_reply_to": 1, "write_id": 1}
 ```
 
-And a `bench_report` endpoint:
-```JSON
+以及一个 `bench_report` 报告接口：
+```json
 请求:  {"type": "bench_report", "msg_id": 2}
 响应: {"type": "bench_report_ok", "in_reply_to": 2,
            "total_writes": 10, "total_gossip_msgs": 45,
@@ -50,15 +44,15 @@ And a `bench_report` endpoint:
 
 ## 实现提示
 
-- Track total 消息 exchanged用于gossip sync
-- Measure time from write to full convergence (all replicas agree)
-- Count consistency violations: reads that return stale data
-- Compare metrics under normal vs partition conditions
-- Expose metrics via a bench_stats endpoint
+- 记录八卦同步过程中交换的消息总数
+- 测量从写入到完全收敛（所有副本一致）所需的时间
+- 统计一致性违例次数：即读操作返回过期数据的次数
+- 对比正常情况和网络分区情况下的各项指标
+- 通过 `bench_stats` 接口暴露这些指标
 
 ## 测试用例
 
-### 1. Bench write returns write_id
+### 1. 基准写入返回写入编号
 
 输入：
 
@@ -74,7 +68,7 @@ And a `bench_report` endpoint:
 {"src": "n1", "dest": "c1", "body": {"type": "bench_write_ok", "write_id": 1, "in_reply_to": 2, "msg_id": 1}}
 ```
 
-### 2. Bench report，包含zero writes
+### 2. 零写入时的基准报告
 
 输入：
 
@@ -92,7 +86,7 @@ And a `bench_report` endpoint:
 
 ## 参考资料
 
-- [Maelstrom Broadcast Workload](https://github.com/jepsen-io/maelstrom/blob/main/doc/workloads.md#broadcast)：Maelstrom 广播 workload specification
+- [Maelstrom Broadcast Workload](https://github.com/jepsen-io/maelstrom/blob/main/doc/workloads.md#broadcast)：Maelstrom 广播工作负载的规范文档
 
 ## 本地文件
 

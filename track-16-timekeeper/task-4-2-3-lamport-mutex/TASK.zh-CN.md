@@ -1,41 +1,35 @@
-# 实现 Distributed Mutual Exclusion，包含Lamport Clocks
+# 基于 Lamport 时钟实现分布式互斥
 
-英文标题：Implement Distributed Mutual Exclusion，包含Lamport Clocks
+英文标题：Implement Distributed Mutual Exclusion with Lamport Clocks
 网页：<https://builddistributedsystem.com/tracks/timekeeper/tasks/task-4-2-3-lamport-mutex>
 
 课程：16. 时间守卫：逻辑时钟
 任务序号：8
-短标题：Lamport Mutex
-难度：advanced
-子主题：Lamport Clocks
+短标题：Lamport 互斥
+难度：高级
+子主题：Lamport 时钟
 
 ## 中文导读
 
-本题要求你完成 `实现 Distributed Mutual Exclusion，包含Lamport Clocks`。
-
-重点关注：`distributed mutex`、`Lamport mutex`、`request queue`、`total ordering`。
-
-建议先按提示逐步实现：Each 节点 maintains a priority 队列 of lock requests sorted by Lamport timestamp。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题让你实现 Lamport 的分布式互斥算法。在分布式系统中，没有共享内存，也没有全局锁，如何保证同一时刻只有一个节点进入临界区？Lamport 的方案是：利用逻辑时钟为所有加锁请求排出一个全局顺序，每个节点维护一个按时间戳排序的请求队列，只有排在队首且收到所有其他节点回复的节点才能进入临界区。
 
 ## 题目说明
 
-Lamport's mutual exclusion algorithm uses Lamport clocks to totally order lock requests. Each 节点 maintains a 请求 队列 sorted by (timestamp, node_id).
+Lamport 互斥算法利用 Lamport 时钟对加锁请求进行全序排列。每个节点维护一个按 `(时间戳, 节点编号)` 排序的请求队列。
 
-**Protocol:**
-1. To **请求** the lock: 广播 a 请求(ts, node_id) to all other 节点, add to local 队列
-2. On receiving 请求: add to 队列, send REPLY
-3. To **enter critical section**: your 请求 must be at the head of the 队列 AND you must have received REPLY from every other 节点
-4. To **release**: remove from 队列, 广播 RELEASE
+**协议流程：**
+1. **请求加锁**：向所有其他节点广播 `REQUEST(ts, node_id)`，同时将请求加入本地队列
+2. **收到请求**：将对方的请求加入队列，发送 `REPLY` 回复
+3. **进入临界区**：当且仅当自己的请求在队列头部，且已收到所有其他节点的 `REPLY`
+4. **释放锁**：从队列中移除自己的请求，向所有其他节点广播 `RELEASE`
 
-Implement:
-```JSON
-请求:  {"type": "request_lock", "msg_id": 1}
-响应: {"type": "request_lock_ok", "in_reply_to": 1, "position": 1, "ts": 1}
+实现以下消息处理器：
+```json
+Request:  {"type": "request_lock", "msg_id": 1}
+Response: {"type": "request_lock_ok", "in_reply_to": 1, "position": 1, "ts": 1}
 
-请求:  {"type": "lock_status", "msg_id": 2}
-响应: {"type": "lock_status_ok", "in_reply_to": 2, "holding": false, "queue_size": 1, "队列": [{"ts": 1, "节点": "n1"}]}
+Request:  {"type": "lock_status", "msg_id": 2}
+Response: {"type": "lock_status_ok", "in_reply_to": 2, "holding": false, "queue_size": 1, "queue": [{"ts": 1, "node": "n1"}]}
 ```
 
 ## 涉及概念
@@ -47,15 +41,15 @@ Implement:
 
 ## 实现提示
 
-- Each 节点 maintains a priority 队列 of lock requests sorted by Lamport timestamp
-- To 请求: 广播 请求 to all 节点, add self to 队列
-- To release: 广播 RELEASE to all 节点, remove self from 队列
-- A 节点 can enter CS when: its 请求 is at the head AND it has received replies from all others
-- Use (timestamp, node_id) pairs用于total ordering to break ties
+- 每个节点维护一个优先级队列，按 Lamport 时间戳对加锁请求排序
+- 请求加锁时：向所有节点广播请求，并将自己加入队列
+- 释放锁时：向所有节点广播释放消息，并将自己从队列中移除
+- 进入临界区的条件：自己的请求在队首，且已收到所有其他节点的回复
+- 使用 `(时间戳, 节点编号)` 作为排序键来打破时间戳相同的平局
 
 ## 测试用例
 
-### 1. Request lock adds to 队列
+### 1. 请求加锁后加入队列
 
 输入：
 
@@ -73,7 +67,7 @@ Implement:
 {"src": "n1", "dest": "c1", "body": {"type": "lock_status_ok", "in_reply_to": 3, "holding": true, "queue_size": 1, "queue": [{"ts": 1, "node": "n1"}], "msg_id": 2}}
 ```
 
-### 2. Lock status，包含empty 队列
+### 2. 队列为空时查询锁状态
 
 输入：
 
@@ -91,7 +85,7 @@ Implement:
 
 ## 参考资料
 
-- [Distributed Mutual Exclusion Algorithms](https://www.cs.uic.edu/~ajayk/Chapter9.pdf)：Overview of distributed mutex algorithms including Lamport
+- [Distributed Mutual Exclusion Algorithms](https://www.cs.uic.edu/~ajayk/Chapter9.pdf)：分布式互斥算法综述，包括 Lamport 算法
 
 ## 本地文件
 

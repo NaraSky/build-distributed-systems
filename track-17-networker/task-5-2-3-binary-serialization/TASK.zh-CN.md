@@ -1,45 +1,39 @@
-# 实现 a Binary Serialization格式
+# 实现二进制序列化格式
 
-英文标题：Implement a Binary Serialization格式
+英文标题：Implement a Binary Serialization Format
 网页：<https://builddistributedsystem.com/tracks/networker/tasks/task-5-2-3-binary-serialization>
 
 课程：17. 网络器：TCP 与协议基础
 任务序号：8
-短标题：Binary Serialization
-难度：advanced
-子主题：消息 Framing和Serialization
+短标题：二进制序列化
+难度：高级
+子主题：消息分帧与序列化
 
 ## 中文导读
 
-本题要求你完成 `实现 a Binary Serialization格式`。
-
-重点关注：`binary serialization`、`MessagePack`、`type tags`、`compact encoding`。
-
-建议先按提示逐步实现：Use a type tag byte before each value: 0x01=int, 0x02=string, 0x03=array, 0x04=map。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题让你动手实现一个类似 MessagePack 的二进制序列化格式。日常开发中我们习惯用 JSON 来传输数据，但 JSON 是文本格式，体积大、解析慢。二进制序列化把数据"压缩"成紧凑的字节序列，省去了字段名、引号等冗余字符，传输效率大大提高。通过亲手实现编码和解码，你将深刻理解二进制协议的设计思路，以及它相比 JSON 在体积和性能上的优势。
 
 ## 题目说明
 
-Implement a binary serialization format (similar to MessagePack). Support four types: integers, strings, arrays,和maps. Compare size和performance to JSON.
+实现一个二进制序列化格式（类似 MessagePack）。支持四种类型：整数、字符串、数组和映射表。并将其与 JSON 在体积和性能上进行对比。
 
-Type tags:
-- `0x01`: integer (4 bytes big-endian)
-- `0x02`: string (2-byte length + UTF-8 bytes)
-- `0x03`: array (2-byte count + N encoded values)
-- `0x04`: map (2-byte count + N key-value pairs)
+类型标签：
+- `0x01`：整数（4 字节大端序）
+- `0x02`：字符串（2 字节长度 + UTF-8 字节）
+- `0x03`：数组（2 字节元素数量 + N 个编码后的值）
+- `0x04`：映射表（2 字节键值对数量 + N 个键值对）
 
-Implement handlers:
+实现以下消息处理器：
 
-```JSON
-请求:  {"type": "bin_encode", "msg_id": 1, "value": {"name": "Alice", "age": 30}}
-响应: {"type": "bin_encode_ok", "in_reply_to": 1, "encoded_hex": "...", "size_bytes": 20, "json_size_bytes": 27, "savings_pct": 25.9}
+```json
+Request:  {"type": "bin_encode", "msg_id": 1, "value": {"name": "Alice", "age": 30}}
+Response: {"type": "bin_encode_ok", "in_reply_to": 1, "encoded_hex": "...", "size_bytes": 20, "json_size_bytes": 27, "savings_pct": 25.9}
 
-请求:  {"type": "bin_decode", "msg_id": 2, "encoded_hex": "..."}
-响应: {"type": "bin_decode_ok", "in_reply_to": 2, "value": {"name": "Alice", "age": 30}}
+Request:  {"type": "bin_decode", "msg_id": 2, "encoded_hex": "..."}
+Response: {"type": "bin_decode_ok", "in_reply_to": 2, "value": {"name": "Alice", "age": 30}}
 
-请求:  {"type": "bin_benchmark", "msg_id": 3, "payload_sizes": [100, 1000, 10000]}
-响应: {"type": "bin_benchmark_ok", "in_reply_to": 3, "results": [
+Request:  {"type": "bin_benchmark", "msg_id": 3, "payload_sizes": [100, 1000, 10000]}
+Response: {"type": "bin_benchmark_ok", "in_reply_to": 3, "results": [
     {"size": 100, "json_bytes": 100, "binary_bytes": 72, "ratio": 0.72}
 ]}
 ```
@@ -53,15 +47,15 @@ Implement handlers:
 
 ## 实现提示
 
-- Use a type tag byte before each value: 0x01=int, 0x02=string, 0x03=array, 0x04=map
-- Integers use a fixed 4-byte big-endian encoding
-- Strings are prefixed，包含a 2-byte length followed by UTF-8 bytes
-- Arrays are prefixed，包含a 2-byte count, followed by that many encoded values
-- Compare the encoded size to JSON用于the same data
+- 在每个值前面放一个类型标签字节：0x01 表示整数，0x02 表示字符串，0x03 表示数组，0x04 表示映射表
+- 整数使用固定的 4 字节大端序编码
+- 字符串前面加 2 字节的长度，后跟 UTF-8 编码的字节
+- 数组前面加 2 字节的元素数量，后跟相应数量的编码后的值
+- 将二进制编码后的大小与同一数据的 JSON 大小进行对比
 
 ## 测试用例
 
-### 1. Encode a simple integer
+### 1. 编码一个简单整数
 
 输入：
 
@@ -77,9 +71,9 @@ Implement handlers:
 {"src": "n1", "dest": "c1", "body": {"type": "bin_encode_ok", "in_reply_to": 2, "encoded_hex": "010000002a", "size_bytes": 5, "msg_id": 1}}
 ```
 
-### 2. Encode和decode roundtrip
+### 2. 编码与解码往返验证
 
-Encode should produce hex用于string "hello". Decode of that hex should return "hello".
+验证说明：编码字符串 "hello" 应生成对应的十六进制表示；对该十六进制解码后应还原为 "hello"。
 
 输入：
 
@@ -97,7 +91,7 @@ Encode should produce hex用于string "hello". Decode of that hex should return 
 
 ## 参考资料
 
-- [MessagePack Specification](https://msgpack.org/)：MessagePack: an efficient binary serialization format
+- [MessagePack Specification](https://msgpack.org/)：MessagePack 高效二进制序列化格式的规范文档
 
 ## 本地文件
 

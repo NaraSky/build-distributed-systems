@@ -1,51 +1,45 @@
-# 实现 Centralized Job 调度器
+# 实现集中式任务调度器
 
 英文标题：Implement Centralized Job Scheduler
 网页：<https://builddistributedsystem.com/tracks/scheduler/tasks/task-22-1-1-centralized-scheduler>
 
-课程：24. 调度器：任务调度
+课程：24. 任务调度器
 任务序号：1
-短标题：Centralized 调度器
-难度：intermediate
-子主题：Centralized Job Scheduling
+短标题：集中式调度器
+难度：进阶
+子主题：集中式任务调度
 
 ## 中文导读
 
-本题要求你完成 `实现 Centralized Job 调度器`。
-
-重点关注：`priority queue`、`worker assignment`、`job dispatch`、`failure handling`、`queue status`。
-
-建议先按提示逐步实现：Maintain a max-heap of pending jobs; higher priority number = runs first。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现一个集中式任务调度器（Centralized Scheduler），它是整个系统中唯一负责接收任务、排优先级、分配给工作节点的"指挥中心"。当工作节点故障时，调度器还要负责重新分配任务。这是理解分布式调度的起点。
 
 ## 题目说明
 
-A centralized scheduler is the single authority that receives all job submissions, maintains a priority 队列,和dispatches work to available workers. When a worker fails, it reassigns its jobs without the 客户端 noticing.
+集中式调度器是系统中唯一的调度权威，负责接收所有任务提交、维护一个优先队列（Priority Queue），并将任务分派给空闲的工作节点。当某个工作节点故障时，调度器会将其上的任务重新分配，而客户端无感知。
 
-Implement a 节点 that acts as the central scheduler:
+实现一个充当中心调度器的节点：
 
-```JSON
-// Initialize，包含available workers
+```json
+// 初始化，传入可用的工作节点列表
 { "type": "init", "msg_id": 1,
   "workers": ["worker-1", "worker-2", "worker-3"] }
 -> { "type": "init_ok", "in_reply_to": 1 }
 
-// Submit a job; higher priority runs first
+// 提交一个任务；优先级越高越先执行
 { "type": "submit_job", "msg_id": 2,
   "job": {"id": "job1", "priority": 10, "type": "process_data"} }
--> [assigned to an available worker]
+-> [分配给一个空闲的工作节点]
 
-// Three jobs: priority 20 runs before 10 before 1
+// 三个任务：优先级 20 先于 10 先于 1
 { "type": "submit_job", ..., "job": {"id": "high_job", "priority": 20} }
 -> { "type": "job_submitted", "job_id": "high_job" }
 
-// Worker crashes -> scheduler reassigns its jobs
+// 工作节点崩溃 -> 调度器重新分配其任务
 { "type": "worker_failed", "worker_id": "worker-1" }
 -> { "type": "job_reassigned",
     "job_id": "job1", "old_worker": "worker-1", "new_worker": "worker-2" }
 
-// Inspect current 队列 state
+// 查看当前队列状态
 { "type": "get_queue_status", "msg_id": 1 }
 -> { "type": "queue_status_ok", "in_reply_to": 1,
     "pending_jobs": 5, "running_jobs": 3, "workers_available": 2 }
@@ -53,25 +47,25 @@ Implement a 节点 that acts as the central scheduler:
 
 ## 涉及概念
 
-- `priority queue`
-- `worker assignment`
-- `job dispatch`
-- `failure handling`
-- `queue status`
+- priority queue
+- worker assignment
+- job dispatch
+- failure handling
+- queue status
 
 ## 实现提示
 
-- Maintain a max-heap of pending jobs; higher priority number = runs first
-- On submit_job, assign immediately if a worker is free; otherwise enqueue
-- On worker_failed, find all jobs running on that worker和reassign to another
-- get_queue_status counts pending (queued but not assigned) vs running (assigned) separately
-- Track a worker -> job mapping so you can reassign on 故障
+- 使用最大堆维护待处理任务，优先级数字越大越先执行
+- 收到 `submit_job` 时，如果有空闲工作节点就立即分配；否则放入队列
+- 收到 `worker_failed` 时，找到该工作节点上正在运行的所有任务，重新分配给其他节点
+- `get_queue_status` 分别统计待处理（已排队但未分配）和运行中（已分配）的任务数
+- 维护一个"工作节点到任务"的映射，以便在故障时快速重新分配
 
 ## 测试用例
 
-### 1. Submit和schedule job
+### 1. 提交并调度任务
 
-Job should be submitted和assigned to an available worker.
+任务应被提交并分配给一个空闲的工作节点。
 
 输入：
 
@@ -86,9 +80,9 @@ Job should be submitted和assigned to an available worker.
 {"src": "scheduler", "dest": "client", "body": {"type": "init_ok", "in_reply_to": 1}}
 ```
 
-### 2. Priority scheduling order
+### 2. 按优先级调度
 
-high_job (priority 20) should be scheduled first.
+优先级为 20 的 `high_job` 应最先被调度。
 
 输入：
 
@@ -106,7 +100,7 @@ high_job (priority 20) should be scheduled first.
 
 ## 参考资料
 
-- [Job Scheduling Algorithms](https://en.wikipedia.org/wiki/Job-shop_scheduling)：Overview of job scheduling approaches
+- [Job Scheduling Algorithms](https://en.wikipedia.org/wiki/Job-shop_scheduling)：任务调度方法概述
 
 ## 本地文件
 

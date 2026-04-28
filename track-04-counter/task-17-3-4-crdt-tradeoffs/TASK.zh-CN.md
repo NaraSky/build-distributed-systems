@@ -1,50 +1,43 @@
-# Analyze CRDT Tradeoffs vs. OCC和Locking
+# 分析 CRDT 与乐观并发控制及加锁的权衡
 
-英文标题：Analyze CRDT Tradeoffs vs. OCC和Locking
 网页：<https://builddistributedsystem.com/tracks/counter/tasks/task-17-3-4-crdt-tradeoffs>
 
 课程：4. 计数器：分布式状态与 CRDT
 任务序号：14
-短标题：CRDT Tradeoffs
-难度：intermediate
-子主题：More CRDTs
+短标题：CRDT 权衡分析
+难度：进阶
+子主题：更多 CRDT
 
 ## 中文导读
 
-本题要求你完成 `Analyze CRDT Tradeoffs vs. OCC和Locking`。
-
-重点关注：`CRDT tradeoffs`、`storage overhead`、`merge complexity`、`OCC comparison`、`coordination-free`。
-
-建议先按提示逐步实现：CRDTs: no coordination, but tombstones和元数据 increase 存储 cost。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题让你分析 CRDT、乐观并发控制和加锁三种方案各自的优缺点，并根据不同的使用场景给出推荐。没有万能的方案，每种方法在一致性、可用性和存储开销上都有不同的取舍。这道题帮你建立"因地制宜选方案"的工程思维。
 
 ## 题目说明
 
-CRDTs provide coordination-free 最终一致性, but come，包含tradeoffs. Comparing CRDTs，包含OCC (Optimistic Concurrency Control)和locking reveals when each approach is appropriate.
+CRDT 提供了无需协调的最终一致性，但也有代价。将 CRDT 与乐观并发控制（OCC，Optimistic Concurrency Control）和加锁（Locking）进行对比，可以帮助我们理解每种方案各自适用的场景。
 
-**CRDT advantages**:
-- Always available (no coordination required)
-- Works under 网络 partitions (AP in CAP)
-- Automatic conflict resolution (no human intervention)
+**CRDT 的优势**：
+- 始终可用（不需要节点间协调）
+- 在网络分区下仍然可用（CAP 定理中的 AP 选择）
+- 冲突自动解决（无需人工干预）
 
-**CRDT disadvantages**:
-- 存储 overhead: tombstones, vector clocks, tags accumulate
-- Merge complexity: custom merge functions用于each data type
-- Weaker consistency: only eventual (not 线性一致)
+**CRDT 的劣势**：
+- 存储开销大：墓碑、向量时钟、标签等元数据会不断累积
+- 合并逻辑复杂：每种数据类型都需要自定义的合并函数
+- 一致性较弱：只保证最终一致性（不是线性一致性）
 
-**Comparison table**:
-| Aspect | CRDT | OCC | Locking |
-|--------|------|-----|---------|
-| Consistency | Eventual | 线性一致 | 线性一致 |
-| Availability | Always | Abort on conflict | Block on contention |
-| Coordination | None | Validation phase | Lock acquisition |
-| 存储 | High (元数据) | Low | Low |
-| Latency | Low (local) | Low (optimistic) | Variable (wait) |
+**对比表**：
+| 维度 | CRDT | OCC | 加锁 |
+|------|------|-----|------|
+| 一致性 | 最终一致 | 线性一致 | 线性一致 |
+| 可用性 | 始终可用 | 冲突时中止 | 竞争时阻塞 |
+| 协调 | 不需要 | 验证阶段 | 获取锁 |
+| 存储 | 高（元数据） | 低 | 低 |
+| 延迟 | 低（本地操作） | 低（乐观模式） | 不确定（可能等待） |
 
-```JSON
-请求:  {"type": "tradeoff_analysis", "msg_id": 1, "use_case": "shopping_cart", "partition_rate": 0.1, "conflict_rate": 0.3}
-响应: {"type": "tradeoff_analysis_ok", "in_reply_to": 1, "recommendation": "CRDT", "reasoning": "High partition rate favors always-available CRDT over blocking approaches"}
+```json
+Request:  {"type": "tradeoff_analysis", "msg_id": 1, "use_case": "shopping_cart", "partition_rate": 0.1, "conflict_rate": 0.3}
+Response: {"type": "tradeoff_analysis_ok", "in_reply_to": 1, "recommendation": "CRDT", "reasoning": "High partition rate favors always-available CRDT over blocking approaches"}
 ```
 
 ## 涉及概念
@@ -57,17 +50,17 @@ CRDTs provide coordination-free 最终一致性, but come，包含tradeoffs. Com
 
 ## 实现提示
 
-- CRDTs: no coordination, but tombstones和元数据 increase 存储 cost
-- Locking: strong consistency, but lock contention limits scalability
-- OCC (Optimistic Concurrency Control): good用于low-conflict workloads, aborts on conflict
-- CRDTs shine under partition: they remain available without coordination
-- Build a comparison用于3 use cases: 计数器, shopping cart, document editing
+- CRDT 不需要协调，但墓碑和元数据会增加存储开销
+- 加锁提供强一致性，但锁竞争会限制可扩展性
+- 乐观并发控制适合低冲突的工作负载，冲突时会中止事务
+- CRDT 在网络分区场景下优势明显：无需协调就能保持可用
+- 针对三种场景进行对比分析：计数器、购物车、文档协同编辑
 
 ## 测试用例
 
-### 1. High partition rate recommends CRDT
+### 1. 高分区率推荐使用 CRDT
 
-High partition rate should recommend CRDT.
+高分区率场景应推荐 CRDT。
 
 输入：
 
@@ -82,9 +75,9 @@ High partition rate should recommend CRDT.
 {"src": "n1", "dest": "c0", "body": {"type": "init_ok", "in_reply_to": 1, "msg_id": 0}}
 ```
 
-### 2. Low conflict rate recommends OCC
+### 2. 低冲突率推荐使用乐观并发控制
 
-Low partition + low conflict，包含strong consistency need should recommend OCC or Locking.
+低分区率加低冲突率，且需要强一致性时，应推荐乐观并发控制或加锁。
 
 输入：
 
@@ -101,7 +94,7 @@ Low partition + low conflict，包含strong consistency need should recommend OC
 
 ## 参考资料
 
-- [CRDTs in Practice](https://martin.kleppmann.com/2020/07/06/crdt-hard-parts-hydra.html)：Kleppmann - CRDTs: The Hard Parts
+- [CRDTs in Practice](https://martin.kleppmann.com/2020/07/06/crdt-hard-parts-hydra.html)：Kleppmann 的演讲，讨论 CRDT 在实践中的难点
 
 ## 本地文件
 

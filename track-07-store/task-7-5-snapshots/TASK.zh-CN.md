@@ -1,45 +1,39 @@
-# 实现 日志 Compaction，包含Snapshots
+# 实现基于快照的日志压缩
 
-英文标题：Implement Log Compaction，包含Snapshots
+英文标题：Implement Log Compaction with Snapshots
 网页：<https://builddistributedsystem.com/tracks/store/tasks/task-7-5-snapshots>
 
-课程：7. 存储：线性一致 KV Store
+课程：7. 存储：线性一致键值存储
 任务序号：5
 短标题：Snapshots
-难度：advanced
-子主题：Linearizable 键值 存储
+难度：高级
+子主题：线性一致键值存储
 
 ## 中文导读
 
-本题要求你完成 `实现 日志 Compaction，包含Snapshots`。
-
-重点关注：`snapshot`、`log compaction`、`recovery`。
-
-建议先按提示逐步实现：Snapshot state machine periodically。
-
-协议字段、消息类型、输入输出格式请以本文件中的代码块和测试用例为准。
+这道题要求你实现基于快照（Snapshot）的日志压缩机制。随着系统运行，Raft 日志会不断增长。如果不做清理，日志最终会占满所有存储空间。快照机制把已经应用到状态机的日志条目压缩为一个紧凑的状态快照，从而控制日志的大小。
 
 ## 题目说明
 
-Implement 日志 compaction，包含snapshots:
+实现基于快照的日志压缩功能：
 
-1. Periodically snapshot state machine state
-2. Record snapshot 索引和term
-3. Discard 日志 entries before snapshot
-4. On recovery, restore from snapshot then replay 日志
-5. Send InstallSnapshot to followers that are too far behind
+1. 定期对状态机的当前状态创建快照
+2. 记录快照对应的日志索引和任期号
+3. 丢弃快照之前的所有日志条目
+4. 节点恢复时，先从快照恢复状态，再重放快照之后的日志
+5. 当某个跟随者（Follower）落后太多、领导者已经丢弃了它需要的日志条目时，通过 InstallSnapshot 消息将快照发送给该跟随者
 
-This prevents unbounded 日志 growth.
+这样就能防止日志无限增长。
 
 ## 概念说明
 
-### 日志 Compaction
+### 日志压缩
 
-The Raft 日志 grows forever as commands arrive. Snapshots compress applied 日志 entries into a compact state representation. Only the snapshot和subsequent 日志 are needed用于recovery.
+Raft 日志会随着命令不断到来而持续增长。快照机制将已经应用的日志条目压缩为一个紧凑的状态表示。恢复时只需要快照加上快照之后的日志即可。打个比方，这就像记账本，你不需要保留从开业至今的每一笔流水，只要知道上个月底的余额，再加上这个月的交易记录就够了。
 
-### InstallSnapshot RPC
+### InstallSnapshot 远程调用
 
-When a Follower is so far behind that Leader discarded needed entries, send the snapshot instead. The Follower replaces its state，包含the snapshot和resumes from there.
+当一个跟随者落后太多，领导者已经把它所需的日志条目丢弃掉了，这时领导者会把快照直接发给该跟随者。跟随者用快照替换自己的状态，然后从快照之后的位置继续同步日志。
 
 ## 涉及概念
 
@@ -49,15 +43,15 @@ When a Follower is so far behind that Leader discarded needed entries, send the 
 
 ## 实现提示
 
-- Snapshot state machine periodically
-- Discard 日志 entries before snapshot
-- Send snapshot to slow followers
+- 定期对状态机创建快照
+- 丢弃快照之前的日志条目
+- 向进度落后的跟随者发送快照
 
 ## 测试用例
 
-### 1. 创建 snapshot
+### 1. 创建快照
 
-Snapshot created，包含lastIncludedIndex=5, lastIncludedTerm=2, contains state {"x":1,"y":2}
+创建一个快照，其 lastIncludedIndex=5、lastIncludedTerm=2，包含状态 {"x":1,"y":2}。
 
 输入：
 
@@ -77,7 +71,7 @@ Snapshot created，包含lastIncludedIndex=5, lastIncludedTerm=2, contains state
 
 ## 参考资料
 
-- [Raft Section 7](https://raft.github.io/raft.pdf)：日志 compaction in Raft
+- [Raft Section 7](https://raft.github.io/raft.pdf)：Raft 论文中关于日志压缩的章节
 
 ## 本地文件
 
